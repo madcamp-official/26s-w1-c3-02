@@ -75,7 +75,7 @@ frontend/
 | 좋아요·즐겨찾기 | 좋아요/즐겨찾기 버튼(주석·댓글·책) | `/likes`, `.../favorite` |
 | 주석 검색 | `SearchPage` (페이지·키워드) | `GET /annotations/search` |
 
-### B — 계정 · 소셜 (사용자 코어)
+### B — 계정 · 소셜 (사용자 코어) ==> 내가
 
 | 영역 | 페이지 / 컴포넌트 | 관련 API (`../docs/api-spec.md`) |
 |---|---|---|
