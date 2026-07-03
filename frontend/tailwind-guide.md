@@ -450,7 +450,214 @@ function MyPage() {
 }
 ```
 
-## 6. 반응형 기준
+## 6. Loading / Empty / Error 상태
+
+컴포넌트마다 로딩·빈 상태·에러를 다르게 만들면 화면 톤이 흐트러진다. 아래 규칙을 따른다.
+
+### Loading
+
+리스트/카드 로딩은 스켈레톤을 사용한다.
+
+사용 위치:
+
+```txt
+책 목록
+주석 피드
+댓글 목록
+친구 목록
+그룹 목록
+마이페이지 목록
+```
+
+스켈레톤은 실제 카드와 비슷한 크기, radius를 유지한다.
+
+```jsx
+function BookCardSkeleton() {
+  return (
+    <article className="card book-card animate-pulse">
+      <div className="book-cover bg-surfaceMuted" />
+      <div className="min-w-0">
+        <div className="h-4 w-2/3 rounded bg-surfaceMuted" />
+        <div className="mt-2 h-3 w-1/2 rounded bg-surfaceMuted" />
+        <div className="mt-5 flex items-center justify-between">
+          <div className="h-6 w-14 rounded-full bg-surfaceMuted" />
+          <div className="h-3 w-10 rounded bg-surfaceMuted" />
+        </div>
+      </div>
+    </article>
+  );
+}
+```
+
+주석 카드 스켈레톤:
+
+```jsx
+function AnnotationCardSkeleton() {
+  return (
+    <article className="card annotation-card animate-pulse">
+      <div className="flex items-center gap-3">
+        <div className="avatar bg-surfaceMuted" />
+        <div className="grid flex-1 gap-2">
+          <div className="h-3 w-24 rounded bg-surfaceMuted" />
+          <div className="h-3 w-16 rounded bg-surfaceMuted" />
+        </div>
+      </div>
+
+      <div className="grid gap-3">
+        <div className="h-5 w-full rounded bg-surfaceMuted" />
+        <div className="h-5 w-5/6 rounded bg-surfaceMuted" />
+        <div className="h-5 w-2/3 rounded bg-surfaceMuted" />
+      </div>
+
+      <div className="flex justify-between">
+        <div className="h-6 w-14 rounded-full bg-surfaceMuted" />
+        <div className="h-4 w-24 rounded bg-surfaceMuted" />
+      </div>
+    </article>
+  );
+}
+```
+
+버튼 내부 액션 로딩은 버튼 안 스피너를 사용하고, 로딩 중에는 버튼을 `disabled` 처리한다.
+
+```jsx
+<button className="button button--primary" disabled>
+  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+  저장 중
+</button>
+```
+
+페이지 전체를 덮는 풀스크린 스피너는 사용하지 않는다.
+
+### Empty
+
+빈 상태는 아이콘, 일러스트, CTA 버튼 없이 짧은 안내 문구 한 줄로만 구성한다.
+
+```jsx
+function EmptyState({ children }) {
+  return (
+    <div className="py-12 text-center">
+      <p className="text-sm font-semibold text-text-muted">{children}</p>
+    </div>
+  );
+}
+```
+
+권장 문구:
+
+| 화면 | 문구 |
+|---|---|
+| 책 목록 검색 결과 없음 | 검색 결과가 없습니다 |
+| 책 상세 주석 카드 없음 | 아직 등록된 주석이 없습니다 |
+| 주석 검색 결과 없음 | 일치하는 주석을 찾지 못했습니다 |
+| 댓글 없음 | 첫 댓글을 남겨보세요 |
+| 내 즐겨찾기 없음 | 즐겨찾기한 항목이 없습니다 |
+| 내가 작성한 주석 없음 | 작성한 주석이 없습니다 |
+| 친구 목록 없음 | 아직 친구가 없습니다 |
+| 친구 요청 없음 | 대기 중인 요청이 없습니다 |
+| 그룹 목록 없음 | 참여 중인 그룹이 없습니다 |
+| 그룹 멤버/도서 없음 | 등록된 항목이 없습니다 |
+
+사용 예시:
+
+```jsx
+{books.length === 0 && <EmptyState>검색 결과가 없습니다</EmptyState>}
+```
+
+### Error
+
+폼 제출 에러는 인라인으로 표시한다.
+
+```jsx
+<label className="form-field">
+  <span className="form-label">이메일</span>
+  <input className="input input--error" />
+  <span className="form-error">{error.message}</span>
+</label>
+```
+
+좋아요, 즐겨찾기, 삭제, 그룹 초대, 친구 요청 같은 카드/리스트 단위 액션의 성공·실패는 토스트로 표시한다.
+
+```jsx
+function Toast({ type = 'success', message }) {
+  const tone =
+    type === 'error'
+      ? 'bg-danger-soft text-danger'
+      : 'bg-white text-primary';
+
+  return (
+    <div className={`fixed bottom-6 right-6 z-50 rounded-sm px-4 py-3 text-sm font-semibold shadow-card ${tone}`}>
+      {message}
+    </div>
+  );
+}
+```
+
+목록/상세 조회 자체가 실패하면 빈 상태와 같은 톤으로 한 줄만 표시한다. 재시도 버튼은 넣지 않는다.
+
+```jsx
+{isError && (
+  <div className="py-12 text-center">
+    <p className="text-sm font-semibold text-text-muted">불러오지 못했습니다</p>
+  </div>
+)}
+```
+
+## 7. API 에러 처리 규칙
+
+백엔드 공통 에러 포맷은 아래 형태다.
+
+```json
+{ "error": { "code": "VALIDATION_ERROR", "message": "이메일 형식이 올바르지 않습니다." } }
+```
+
+화면에는 기본적으로 `error.message`를 그대로 표시한다. 백엔드가 이미 한국어 문구를 내려주므로 프론트에서 문구를 새로 만들지 않는다.
+
+`message`가 비어있을 때만 `code` 기준 대체 문구를 사용한다.
+
+| code | 대체 문구 |
+|---|---|
+| `VALIDATION_ERROR` | 입력값을 확인해주세요 |
+| `UNAUTHORIZED` | 로그인이 필요합니다 |
+| `FORBIDDEN` | 권한이 없습니다 |
+| `NOT_FOUND` | 대상을 찾을 수 없습니다 |
+| `DUPLICATE` | 이미 존재합니다 |
+| `INTERNAL_ERROR` | 일시적인 오류가 발생했습니다 |
+
+표시 위치:
+
+```txt
+폼 제출 에러: input 아래 form-error
+좋아요/즐겨찾기/삭제/그룹/친구 액션 에러: toast
+목록/상세 조회 실패: "불러오지 못했습니다" 한 줄
+```
+
+`401 UNAUTHORIZED`는 토스트로 띄우지 않는다. 로그인 상태를 초기화하고 `/login`으로 이동시킨다.
+
+```jsx
+if (error.status === 401) {
+  logout();
+  navigate('/login');
+}
+```
+
+에러 메시지 helper 예시:
+
+```js
+const fallbackMessages = {
+  VALIDATION_ERROR: '입력값을 확인해주세요',
+  UNAUTHORIZED: '로그인이 필요합니다',
+  FORBIDDEN: '권한이 없습니다',
+  NOT_FOUND: '대상을 찾을 수 없습니다',
+  DUPLICATE: '이미 존재합니다',
+  INTERNAL_ERROR: '일시적인 오류가 발생했습니다',
+};
+
+export const getErrorMessage = (error) =>
+  error?.message || fallbackMessages[error?.code] || '요청을 처리하지 못했습니다';
+```
+
+## 8. 반응형 기준
 
 기본 breakpoint는 Tailwind 기본값을 사용한다.
 
@@ -484,7 +691,7 @@ xl 1280px
 <p className="break-words leading-[1.7]">긴 주석 본문</p>
 ```
 
-## 7. 구현 체크리스트
+## 9. 구현 체크리스트
 
 페이지 구현 후 아래를 확인한다.
 
@@ -496,3 +703,7 @@ xl 1280px
 - 모바일에서 카드가 1열로 자연스럽게 쌓이는가?
 - 텍스트가 버튼이나 카드 밖으로 넘치지 않는가?
 - 로딩, 빈 상태, 에러 상태가 필요한 페이지에 있는가?
+- 리스트/카드는 스켈레톤, 버튼 액션은 스피너로 로딩을 표시했는가?
+- 빈 상태에 CTA 버튼 없이 안내 문구만 있는가?
+- 폼 에러는 인라인, 그 외 액션 에러는 토스트로 표시했는가?
+- 에러 메시지는 `error.message`를 우선 사용했는가?
