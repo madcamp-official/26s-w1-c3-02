@@ -36,7 +36,7 @@ frontend/
     │   └── comments.js  likes.js  # 댓글·좋아요            (A)
     ├── components/
     │   ├── common/                # Button, Input, Modal, Card, Pagination [공통]
-    │   └── layout/                # Header, Nav, Layout    [공통]
+    │   └── layout/                # Header, Nav, Laydout    [공통]
     ├── features/
     │   ├── books/  annotations/   # (A)
     │   ├── auth/  friends/         # (B)
