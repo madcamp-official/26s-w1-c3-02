@@ -1,0 +1,7 @@
+{
+  "name": "annotation-note-frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "//": "Phase 0에서 Vite 스캐폴딩으로 scripts/dependencies를 채울 것"
+}
