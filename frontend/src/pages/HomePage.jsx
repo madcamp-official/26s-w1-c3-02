@@ -210,20 +210,35 @@ function BookCover({ cover, title }) {
 
 function BookCard({ book }) {
   return (
-    <Link to={`/books/${book.id}`} className="card book-card transition hover:-translate-y-1 hover:shadow-card">
-      <BookCover cover={book.cover} title={book.title} />
-      <div className="min-w-0">
-        <h3 className="line-clamp-2 text-[17px] font-bold leading-snug text-text">{book.title}</h3>
-        <p className="mt-1 truncate text-sm text-text-muted">{book.author}</p>
-        <div className="mt-4 flex items-center justify-between gap-3">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-slate-700 whitespace-nowrap"> {book.genre} </span>
-          <span className="text-sm font-semibold text-text-muted">♡ {book.saves}</span>
+    <Link to={`/books/${book.id}`} className="block">
+    <article className="card book-card">
+      <img className="book-cover" src={book.coverImageUrl} alt={`${book.title} 표지`} />
+
+      <div className="min-w-0 flex h-full flex-col">
+        <h3 className="line-clamp-2 min-h-[44px] text-[15px] font-bold leading-[1.45] text-text">
+          {book.title}
+        </h3>
+
+        <p className="mt-1 truncate text-sm text-text-muted">
+          {book.author}
+        </p>
+
+        <div className="mt-auto flex items-center justify-between gap-3 pt-4">
+          <span className="tag tag--blue shrink-0 whitespace-nowrap">
+            {book.genre}
+          </span>
+
+          <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-sm text-text-muted">
+            <span>♡</span>
+            <span>{book.saves}</span>
+          </span>
         </div>
-       </div>
+      </div>
+    </article>
     </Link>
-     
   );
 }
+
 
 function AnnotationCard({ item }) {
   return (
@@ -302,10 +317,10 @@ export default function HomePage() {
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-              {recommendedBooks.map((book) => (
-                <BookCard key={book.id} book={book} />
-              ))}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                {recommendedBooks.slice(0, 4).map((book) => (
+                    <BookCard key={book.id} book={book} />
+                ))}
             </div>
           </section>
 
