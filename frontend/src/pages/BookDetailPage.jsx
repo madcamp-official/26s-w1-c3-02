@@ -110,7 +110,7 @@ function BookCover() {
 
 function BookHero() {
   return (
-    <section className="mx-auto grid w-full max-w-[900px] gap-8 py-10 md:grid-cols-[240px_1fr] md:items-center md:py-16">
+    <section className="mx-auto grid w-full max-w-[900px] gap-6 py-10 md:grid-cols-[240px_1fr] md:items-center md:py-16">
       <div className="flex justify-center md:justify-start">
         <BookCover />
       </div>
