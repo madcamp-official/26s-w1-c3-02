@@ -126,10 +126,115 @@
 ## API 문서
 
 > API 주소, 요청 방식, 요청값, 응답값, 에러 상황을 정리
+> 상세 스펙(공통 규약·ENUM·객체 스키마 등)은 [api-spec.md](api-spec.md) 참고
+
+**Base URL:** `/api`  ·  **인증:** JWT Bearer (`Authorization: Bearer <accessToken>`, 🔒 표시된 항목만 필요)
+**공통 에러 포맷:** `{ "error": { "code": "...", "message": "..." } }` — `400 VALIDATION_ERROR` · `401 UNAUTHORIZED` · `403 FORBIDDEN` · `404 NOT_FOUND` · `409 DUPLICATE` · `500 INTERNAL_ERROR`
+
+### 인증 · 사용자
 
 | Method | Endpoint | 설명 | 요청 | 응답 |
 |---|---|---|---|---|
-|  |  |  |  |  |
+| POST | `/api/auth/register` | 회원가입 | Body: `{ nickname, email, password }` | `201` `{ id, nickname, email, createdAt }`<br>`400` 형식 오류 · `409` 이메일/닉네임 중복 |
+| POST | `/api/auth/login` | 로그인(토큰 발급) | Body: `{ email, password }` | `200` `{ accessToken, user }`<br>`401` 이메일/비밀번호 불일치 |
+| POST | `/api/auth/logout` 🔒 | 로그아웃 | - | `204` |
+| GET | `/api/users/me` 🔒 | 내 정보 조회 | - | `200` `{ id, nickname, email, createdAt }` |
+| PATCH | `/api/users/me` 🔒 | 닉네임/비밀번호 변경 | Body: `{ nickname?, password? }` | `200` 수정된 사용자 객체<br>`409` 닉네임 중복 |
+| GET | `/api/users` 🔒 | 닉네임으로 사용자 검색(친구 추가용) | Query: `nickname` | `200` `{ data: [{ id, nickname }] }` |
+
+### 도서
+
+| Method | Endpoint | 설명 | 요청 | 응답 |
+|---|---|---|---|---|
+| GET | `/api/books` | 책 목록 조회 · 검색(제목/저자) | Query: `keyword, genreCode, page, size` | `200` `{ data: [책 객체], pagination }` |
+| GET | `/api/books/{bookId}` | 책 상세 | - | `200` 책 객체 + `annotationCount, isFavorited`<br>`404` 책 없음 |
+| POST | `/api/books` 🔒 | 새 책 등록 | Body: `{ title, author, publishDate, isbn, genreCode, coverImageUrl }` | `201` 생성된 책 객체<br>`409` 동일 ISBN 존재 |
+
+### 즐겨찾기 — 책
+
+| Method | Endpoint | 설명 | 요청 | 응답 |
+|---|---|---|---|---|
+| POST | `/api/books/{bookId}/favorite` 🔒 | 책 즐겨찾기 추가 | - | `201`<br>`409` 이미 즐겨찾기 상태 |
+| DELETE | `/api/books/{bookId}/favorite` 🔒 | 즐겨찾기 해제 | - | `204` |
+| GET | `/api/users/me/favorite-books` 🔒 | 내 즐겨찾기 책 목록 | - | `200` 책 객체 배열(페이지네이션) |
+
+### 주석 카드
+
+| Method | Endpoint | 설명 | 요청 | 응답 |
+|---|---|---|---|---|
+| POST | `/api/annotations` 🔒 | 주석 카드 작성 | Body: `{ bookId, type?, passage, review, page, visibility, isSpoiler, groupId? }` | `201` 주석 카드 객체<br>`404` 책/그룹 없음 · `403` 그룹 멤버 아님 |
+| GET | `/api/books/{bookId}/annotations` | 특정 책의 주석 카드 피드 | Query: `type, sort, page, size` | `200` 주석 카드 객체 배열(페이지네이션) |
+| GET | `/api/annotations/{annotationId}` | 주석 카드 상세 | - | `200` 주석 카드 객체<br>`404` 없음 · `403` 접근 권한 없음 |
+| PATCH | `/api/annotations/{annotationId}` 🔒 | 주석 카드 수정(작성자) | Body: `{ review?, visibility?, isSpoiler?, type? }` | `200` 수정된 주석 카드 객체<br>`403` 작성자 아님 · `404` 없음 |
+| DELETE | `/api/annotations/{annotationId}` 🔒 | 주석 카드 삭제(작성자) | - | `204`<br>`403` 작성자 아님 · `404` 없음 |
+| GET | `/api/annotations/search` | 페이지·키워드로 공개 주석 검색 | Query: `bookId, keyword, pageNumber, type, sort, page, size` | `200` 주석 카드 객체 배열(페이지네이션) |
+| GET | `/api/users/me/annotations` 🔒 | 내가 작성한 주석 목록(마이페이지) | - | `200` 주석 카드 객체 배열(페이지네이션) |
+
+### 댓글
+
+| Method | Endpoint | 설명 | 요청 | 응답 |
+|---|---|---|---|---|
+| POST | `/api/annotations/{annotationId}/comments` 🔒 | 댓글 작성 | Body: `{ content }` | `201` 댓글 객체<br>`404` 원글 없음 |
+| GET | `/api/annotations/{annotationId}/comments` | 댓글 목록 | - | `200` 댓글 객체 배열(페이지네이션) |
+| PATCH | `/api/comments/{commentId}` 🔒 | 댓글 수정(작성자) | Body: `{ content }` | `200` 수정된 댓글 객체<br>`403`/`404` |
+| DELETE | `/api/comments/{commentId}` 🔒 | 댓글 삭제(작성자) | - | `204`<br>`403`/`404` |
+
+### 즐겨찾기 — 주석
+
+| Method | Endpoint | 설명 | 요청 | 응답 |
+|---|---|---|---|---|
+| POST | `/api/annotations/{annotationId}/favorite` 🔒 | 주석 즐겨찾기 추가 | - | `201`<br>`409` 중복 |
+| DELETE | `/api/annotations/{annotationId}/favorite` 🔒 | 즐겨찾기 해제 | - | `204` |
+| GET | `/api/users/me/favorite-annotations` 🔒 | 내 즐겨찾기 주석 목록 | - | `200` 주석 카드 객체 배열(페이지네이션) |
+
+### 좋아요
+
+| Method | Endpoint | 설명 | 요청 | 응답 |
+|---|---|---|---|---|
+| POST | `/api/likes` 🔒 | 좋아요 추가 | Body: `{ targetType, targetId }` | `201` `{ likeId, targetType, targetId, createdAt }`<br>`409` 중복 · `404` 대상 없음 |
+| DELETE | `/api/likes` 🔒 | 좋아요 취소 | Query: `targetType, targetId` | `204`<br>`404` 좋아요 기록 없음 |
+
+### 친구
+
+| Method | Endpoint | 설명 | 요청 | 응답 |
+|---|---|---|---|---|
+| POST | `/api/friends` 🔒 | 친구 요청 보내기 | Body: `{ friendId }` | `201` `{ requesterId, addresseeId, status, createdAt }`<br>`409` 이미 요청/친구 · `404` 대상 없음 · `400` 자기 자신 |
+| GET | `/api/users/me/friend-requests` 🔒 | 받은/보낸 친구 요청 목록 | Query: `direction`(received/sent) | `200` `{ data: [...] }` |
+| POST | `/api/friends/{userId}/accept` 🔒 | 친구 요청 수락 | - | `200` `{ userId, nickname, status }`<br>`404` 요청 없음 · `403` 내가 받은 요청 아님 |
+| DELETE | `/api/friends/{userId}` 🔒 | 요청 거절·취소 / 친구 삭제 | - | `204`<br>`404` 관계 없음 |
+| GET | `/api/users/me/friends` 🔒 | 내 친구 목록(수락된 것만) | - | `200` `{ data: [...] }` |
+
+### 그룹 주석방
+
+| Method | Endpoint | 설명 | 요청 | 응답 |
+|---|---|---|---|---|
+| POST | `/api/groups` 🔒 | 그룹 생성(생성자=방장) | Body: `{ groupName, bookIds, memberIds }` | `201` `{ groupId, groupName, owner, createdAt }` |
+| GET | `/api/users/me/groups` 🔒 | 내가 속한 그룹 목록 | - | `200` 그룹 객체 배열 |
+| GET | `/api/groups/{groupId}` 🔒(멤버) | 그룹 상세(멤버·도서 포함) | - | `200` `{ groupId, groupName, owner, members, books }`<br>`403` 멤버 아님 · `404` 없음 |
+| PATCH | `/api/groups/{groupId}` 🔒 | 그룹 이름 변경(방장) | Body: `{ groupName }` | `200` 수정된 그룹 객체<br>`403` 방장 아님 |
+| DELETE | `/api/groups/{groupId}` 🔒 | 그룹 삭제(방장) | - | `204`<br>`403` 방장 아님 |
+
+### 그룹 참여자
+
+| Method | Endpoint | 설명 | 요청 | 응답 |
+|---|---|---|---|---|
+| POST | `/api/groups/{groupId}/members` 🔒 | 멤버 초대/추가(방장) | Body: `{ userId }` | `201`<br>`403` 방장 아님 · `409` 이미 멤버 · `404` 사용자 없음 |
+| GET | `/api/groups/{groupId}/members` 🔒(멤버) | 멤버 목록 | - | `200` 멤버 객체 배열 |
+| DELETE | `/api/groups/{groupId}/members/{userId}` 🔒 | 내보내기(방장) 또는 나가기(본인) | - | `204`<br>`403` 권한 없음 |
+
+### 그룹 도서
+
+| Method | Endpoint | 설명 | 요청 | 응답 |
+|---|---|---|---|---|
+| POST | `/api/groups/{groupId}/books` 🔒(멤버) | 그룹에 도서 추가 | Body: `{ bookId }` | `201`<br>`409` 중복 |
+| GET | `/api/groups/{groupId}/books` 🔒(멤버) | 그룹 도서 목록 | - | `200` 책 객체 배열 |
+| DELETE | `/api/groups/{groupId}/books/{bookId}` 🔒(멤버) | 그룹 도서 제거 | - | `204` |
+
+### 그룹 주석 피드
+
+| Method | Endpoint | 설명 | 요청 | 응답 |
+|---|---|---|---|---|
+| GET | `/api/groups/{groupId}/annotations` 🔒(멤버) | 그룹 안에서 작성된 주석 모아보기 | Query: `type, sort, page, size` | `200` 주석 카드 객체 배열(페이지네이션)<br>`403` 멤버 아님 |
 
 ---
 
