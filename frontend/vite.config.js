@@ -1,1 +1,10 @@
-// Vite 설정 [공통]. Phase 0에서 @vitejs/plugin-react 등 추가.
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    host: '0.0.0.0',
+    port: 5173,
+  },
+});

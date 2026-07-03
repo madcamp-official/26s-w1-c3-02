@@ -1,1 +1,22 @@
-// 라우터 정의 [공통] — 전체 라우트를 이곳에 선언. Phase 0에서 뼈대 구성.
+import { Navigate, Route, Routes } from 'react-router-dom';
+
+const EmptyPage = ({ title }) => <main>{title}</main>;
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<EmptyPage title="Home" />} />
+      <Route path="/books/:bookId" element={<EmptyPage title="Book Detail" />} />
+      <Route path="/annotations/:annotationId" element={<EmptyPage title="Annotation Detail" />} />
+      <Route path="/search" element={<EmptyPage title="Search" />} />
+      <Route path="/login" element={<EmptyPage title="Login" />} />
+      <Route path="/register" element={<EmptyPage title="Register" />} />
+      <Route path="/mypage" element={<EmptyPage title="My Page" />} />
+      <Route path="/friends" element={<EmptyPage title="Friends" />} />
+      <Route path="/groups" element={<EmptyPage title="Groups" />} />
+      <Route path="/groups/:groupId" element={<EmptyPage title="Group Detail" />} />
+      <Route path="/404" element={<EmptyPage title="Not Found" />} />
+      <Route path="*" element={<Navigate to="/404" replace />} />
+    </Routes>
+  );
+}

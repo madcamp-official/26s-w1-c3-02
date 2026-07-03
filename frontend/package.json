@@ -3,5 +3,17 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "//": "Phase 0에서 Vite 스캐폴딩으로 scripts/dependencies를 채울 것"
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^6.0.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^7.1.1"
+  },
+  "devDependencies": {}
 }
