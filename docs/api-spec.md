@@ -104,13 +104,21 @@ Authorization: Bearer <accessToken>
 ### GET `/api/users/me` 🔒
 응답 `200`
 ```json
-{ "id": 1, "nickname": "reader01", "email": "a@b.com", "createdAt": "2026-07-03T12:00:00Z" }
+{
+  "id": 1, "nickname": "reader01", "email": "a@b.com",
+  "bio": "책 속의 문장이 나를 바꾸고, 나의 문장이 누군가에게 닿기를.",
+  "avatarUrl": "https://.../avatar.jpg",
+  "avatarIcon": "cat",
+  "createdAt": "2026-07-03T12:00:00Z"
+}
 ```
+- `bio`, `avatarUrl`은 마이페이지 대시보드 프로필 카드용 선택 필드. 미설정 시 `null`.
+- `avatarIcon`은 사용자가 이미지 업로드 대신 선택하는 프리셋 아이콘 키(예: `reader`/`cat`/`fox`/`bear`/`rabbit`/`owl`/`star`/`plant`/`coffee`/`moon`, 프런트 `AVATAR_ICON_OPTIONS` 참고). 미설정 시 `null`. `avatarUrl`과는 별개 필드이며 동시에 값이 있을 경우 어느 쪽을 화면에 렌더링할지는 추후 결정(현재는 어느 화면에도 표시하지 않고 설정 저장만 지원).
 
 ### PATCH `/api/users/me` 🔒
 요청(부분 수정)
 ```json
-{ "nickname": "reader_new", "password": "newpw!!" }
+{ "nickname": "reader_new", "password": "newpw!!", "bio": "새 소개", "avatarUrl": "https://.../avatar.jpg", "avatarIcon": "cat" }
 ```
 응답 `200` — 수정된 사용자 객체 · 에러 `409` 닉네임 중복
 
@@ -209,7 +217,7 @@ Authorization: Bearer <accessToken>
 ```json
 {
   "annotationId": 12,
-  "book": { "bookId": 3, "title": "데미안", "author": "헤르만 헤세" },
+  "book": { "bookId": 3, "title": "데미안", "author": "헤르만 헤세", "coverImageUrl": "https://.../cover.jpg" },
   "author": { "id": 5, "nickname": "reader_kim" },
   "type": "REVIEW",
   "passage": "새는 알에서 나오려고 투쟁한다.",
@@ -228,6 +236,7 @@ Authorization: Bearer <accessToken>
 - `likeCount`는 `likes`(targetType=`annotation`) 집계값.
 - `isLiked` / `isFavorited` / `commentCount`는 상세·목록 응답에 포함, 비로그인 시 `isLiked`·`isFavorited`는 `false`.
 - `groupId`는 그룹 안에서 작성된 주석이면 그룹 id, 그 외 `null`.
+- `book.coverImageUrl`은 책 표지 이미지 URL(도서 객체와 동일 필드). 표지가 없으면 `null` 또는 빈 문자열.
 
 ### POST `/api/annotations` 🔒
 요청
@@ -467,6 +476,26 @@ Authorization: Bearer <accessToken>
   "createdAt": "2026-07-03T14:00:00Z"
 }
 ```
+
+### GET `/api/users/me/groups` 🔒
+응답 `200`
+```json
+[
+  {
+    "groupId": 9,
+    "groupName": "데미안 같이 읽기",
+    "owner": { "id": 2, "nickname": "헤세매니아" },
+    "memberCount": 4,
+    "bookCount": 2,
+    "coverImageUrl": "https://.../cover.jpg",
+    "lastActivityAt": "2026-07-03T09:00:00Z",
+    "createdAt": "2026-07-01T14:00:00Z"
+  }
+]
+```
+- `memberCount`/`bookCount`는 마이페이지 그룹 목록 카드용 요약 필드로, 멤버·도서 목록 자체는 `GET /api/groups/{groupId}`에서 조회한다(목록 화면에서 그룹별로 상세를 추가 조회하지 않도록 하기 위함).
+- `coverImageUrl`은 그룹 대표 이미지(그룹 도서 중 하나의 표지 등), 없으면 `null`.
+- `lastActivityAt`은 그룹 내 최근 주석 작성 시각(마이페이지 대시보드의 "최근 활동" 표시용), 활동 없으면 `createdAt`과 동일.
 
 ### GET `/api/groups/{groupId}` 🔒(멤버)
 응답 `200`

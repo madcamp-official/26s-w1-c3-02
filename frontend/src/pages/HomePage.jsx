@@ -1,5 +1,6 @@
-
 import { Link } from 'react-router-dom';
+import Header from '../components/layout/Header';
+import Footer from '../components/layout/Footer';
 
 const recommendedBooks = [
   {
@@ -81,69 +82,6 @@ const feedItems = [
 ];
 
 const filters = ['전체',  '소설', '시/에세이', '인문', '자기계발'];
-
-function LogoMark() {
-  return (
-    <span className="relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-primary-soft">
-      <span className="absolute left-2 top-1.5 h-5 w-2 -skew-y-12 rounded-[2px] bg-primary" />
-      <span className="absolute right-2 top-1.5 h-5 w-2 skew-y-12 rounded-[2px] bg-primary/85" />
-    </span>
-  );
-}
-
-function Header() {
-  return (
-    <header className="site-header">
-      <div className="container grid min-h-[72px] grid-cols-[auto_1fr_auto] items-center gap-4 lg:gap-8">
-        <Link to="/" className="brand justify-self-start">
-          <LogoMark />
-          <span>문장서재</span>
-          <span className="brand__subtitle hidden xl:inline">문장을 수집하고, 생각을 나누는 공간</span>
-        </Link>
-
-        <div className="w-full min-w-[220px] max-w-[360px] md:w-[min(42vw,420px)] md:max-w-none lg:w-[min(36vw,460px)]">
-          <label className="flex w-full items-center gap-3 rounded-sm border border-line bg-white px-4 py-2.5 text-sm text-text-muted shadow-soft">
-            <span aria-hidden="true">⌕</span>
-            <input
-              className="w-full min-w-0 bg-transparent text-text outline-none placeholder:text-text-subtle"
-              placeholder="책 제목, 저자, 문장 검색"
-            />
-          </label>
-        </div>
-
-        <div className="flex justify-self-end">
-            <nav
-                className="hidden items-center gap-3 md:flex lg:gap-5 xl:gap-7"
-                aria-label="주요 메뉴"
-            >
-                <Link className="nav__link nav__link--active shrink-0" to="/">
-                홈
-                </Link>
-                <Link className="nav__link shrink-0" to="/search">
-                둘러보기
-                </Link>
-                <Link className="nav__link shrink-0" to="/mypage">
-                내 서재
-                </Link>
-                <Link className="nav__link shrink-0" to="/groups">
-                활동
-                </Link>
-                <Link className="nav__link shrink-0 " to="/login">
-                로그인
-                </Link>
-            </nav>
-
-            <Link
-                className="button button--primary button--sm shrink-0 whitespace-nowrap md:hidden"
-                to="/login"
-            >
-                로그인
-            </Link>
-            </div>
-      </div>
-    </header>
-  );
-}
 
 function HeroScene() {
   return (
@@ -281,32 +219,12 @@ function AnnotationCard({ item }) {
   );
 }
 
-function Footer() {
-  return (
-    <footer className="mt-16 border-t border-line bg-white/70">
-      <div className="container flex flex-col gap-4 py-6 text-sm text-text-muted md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center gap-3">
-          <LogoMark />
-          <strong className="text-lg text-primary">문장서재</strong>
-          <span className="hidden sm:inline">문장을 수집하고, 생각을 나누는 공간</span>
-        </div>
-        <nav className="flex flex-wrap gap-5">
-          <a href="#intro">소개</a>
-          <a href="#terms">이용약관</a>
-          <a href="#privacy">개인정보처리방침</a>
-          <a href="#support">고객센터</a>
-        </nav>
-      </div>
-    </footer>
-  );
-}
-
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-page">
+    <div className="min-h-screen bg-page flex flex-col">
       <Header />
 
-      <main className="page">
+      <main className="page flex-1">
         <div className="container grid gap-8">
           <HomeHero />
 
