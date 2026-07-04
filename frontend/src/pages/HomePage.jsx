@@ -1,3 +1,4 @@
+
 import { Link } from 'react-router-dom';
 
 const recommendedBooks = [
@@ -374,5 +375,6 @@ export default function HomePage() {
 
       <Footer />
     </div>
+
   );
 }

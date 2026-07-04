@@ -253,6 +253,7 @@
   .grid {
     display: grid;
     gap: 1rem;
+
   }
 
   .grid--books {

@@ -142,6 +142,13 @@
 | PATCH | `/api/users/me` 🔒 | 닉네임/비밀번호 변경 | Body: `{ nickname?, password? }` | `200` 수정된 사용자 객체<br>`409` 닉네임 중복 |
 | GET | `/api/users` 🔒 | 닉네임으로 사용자 검색(친구 추가용) | Query: `nickname` | `200` `{ data: [{ id, nickname }] }` |
 
+### 홈 화면 (추천 · 피드)
+
+| Method | Endpoint | 설명 | 요청 | 응답 |
+|---|---|---|---|---|
+| GET | `/api/annotations/feed` | 홈 화면 통합 주석 피드 조회.<br>`sort=likes,desc`(기본값) 호출 시 배열의 첫 번째 항목(`data[0]`)을 최다 공감된 '오늘의 문장' UI로 사용하고, 나머지를 하단 피드로 구성합니다. | Query:<br>`filter` (all/following)<br>`genreCode` (도서 장르 코드)<br>`sort` (likes,desc / recent,desc)<br>`page, size` | `200` 주석 카드 객체 배열(페이지네이션) |
+| GET | `/api/books/recommendations` | 홈 화면 '이런 책은 어때요?' 섹션에 노출할 추천 도서 목록(10개 내외)을 조회합니다. | Query:<br>`size` (기본값: 10) | `200` 추천 도서 객체 배열 |
+
 ### 도서
 
 | Method | Endpoint | 설명 | 요청 | 응답 |
