@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { getBook } from '../api/books';
 import { createAnnotation, getAnnotation, updateAnnotation } from '../api/annotations';
+import SiteHeader from '../components/SiteHeader';
 
 const visibilityOptions = [
   {
@@ -187,7 +188,7 @@ export default function AnnotationFormPage() {
 
   return (
     <div className="min-h-screen bg-page">
-      <Header />
+      <SiteHeader />
 
       <div className="border-b border-line bg-white/40">
         <div className="container flex min-h-[58px] items-center gap-2 text-sm font-semibold text-text-muted">

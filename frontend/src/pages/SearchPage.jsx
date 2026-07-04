@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { getBooks } from '../api/books';
-import { searchAnnotations } from '../api/annotations';
+import { getAnnotationFeed, searchAnnotations } from '../api/annotations';
 import { getPageData } from '../api/client';
+import SiteHeader from '../components/SiteHeader';
 
 const searchCategories = [
   { label: '통합검색', value: 'all' },
@@ -59,7 +60,23 @@ function normalizeAnnotation(annotation) {
     likeCount: annotation.likeCount ?? 0,
     commentCount: annotation.commentCount ?? 0,
     isSpoiler: Boolean(annotation.isSpoiler),
+    createdAt: annotation.createdAt,
+    time: formatRelativeTime(annotation.createdAt),
   };
+}
+
+function formatRelativeTime(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+
+  const diffMinutes = Math.max(Math.floor((Date.now() - date.getTime()) / 60000), 0);
+  if (diffMinutes < 60) return `${Math.max(diffMinutes, 1)}분 전`;
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours}시간 전`;
+
+  return `${Math.floor(diffHours / 24)}일 전`;
 }
 
 function SearchHeader({ category, keyword, onCategoryChange, onKeywordChange, onSubmit }) {
@@ -180,21 +197,72 @@ function EmptyState({ children }) {
   );
 }
 
+function PopularBookCard({ book }) {
+  return (
+    <Link to={`/books/${book.id}`} className="group block">
+      <article className="grid h-full gap-3">
+        {book.coverImageUrl ? (
+          <img
+            className="aspect-[3/4] w-full rounded-sm object-cover shadow-soft transition group-hover:-translate-y-1 group-hover:shadow-card"
+            src={book.coverImageUrl}
+            alt={`${book.title} 표지`}
+          />
+        ) : (
+          <div className="aspect-[3/4] w-full rounded-sm bg-primary-soft" />
+        )}
+        <div className="min-w-0">
+          <h3 className="line-clamp-2 text-sm font-extrabold leading-[1.45] text-text">{book.title}</h3>
+          <p className="mt-1 truncate text-xs font-semibold text-text-muted">{book.author}</p>
+        </div>
+      </article>
+    </Link>
+  );
+}
+
+function BrowseAnnotationCard({ annotation }) {
+  return (
+    <Link to={`/annotations/${annotation.id}`} className="card card--padded block transition hover:-translate-y-1 hover:shadow-card">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="tag">p.{annotation.page}</span>
+        <span className="tag tag--blue">{annotation.visibility}</span>
+        <span className="text-sm font-semibold text-text-muted">『{annotation.bookTitle}』</span>
+        <span className="ml-auto text-sm text-text-subtle">{annotation.time}</span>
+      </div>
+      <blockquote className="mt-4 border-l-4 border-primary-soft pl-4 text-xl font-semibold leading-[1.65] text-text">
+        “{annotation.passage}”
+      </blockquote>
+      <p className="mt-3 line-clamp-2 leading-[1.7] text-text-muted">{annotation.review}</p>
+      <footer className="mt-5 flex items-center justify-between text-sm text-text-muted">
+        <span>{annotation.author}</span>
+        <span>♡ {annotation.likeCount} · 댓글 {annotation.commentCount}</span>
+      </footer>
+    </Link>
+  );
+}
+
 export default function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryParam = searchParams.get('category') || 'all';
-  const keywordParam = searchParams.get('q') || '';
+  const keywordParam = searchParams.get('q') || searchParams.get('keyword') || searchParams.get('search') || '';
   const [category, setCategory] = useState(categoryParam);
   const [keyword, setKeyword] = useState(keywordParam);
   const [books, setBooks] = useState([]);
   const [annotations, setAnnotations] = useState([]);
+  const [popularBooks, setPopularBooks] = useState([]);
+  const [browseAnnotations, setBrowseAnnotations] = useState([]);
+  const [bookWindow, setBookWindow] = useState(0);
+  const [annotationFilter, setAnnotationFilter] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
+  const [isBrowseLoading, setIsBrowseLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  const [browseErrorMessage, setBrowseErrorMessage] = useState('');
 
   const activeCategory = useMemo(
     () => (searchCategories.some((item) => item.value === categoryParam) ? categoryParam : 'all'),
     [categoryParam],
   );
+  const isBrowseMode = !keywordParam.trim();
+  const visiblePopularBooks = popularBooks.slice(bookWindow * 5, bookWindow * 5 + 5);
 
   useEffect(() => {
     setCategory(activeCategory);
@@ -205,6 +273,13 @@ export default function SearchPage() {
     let ignore = false;
 
     async function loadResults() {
+      if (isBrowseMode) {
+        setIsLoading(false);
+        setBooks([]);
+        setAnnotations([]);
+        return;
+      }
+
       setIsLoading(true);
       setErrorMessage('');
 
@@ -236,7 +311,50 @@ export default function SearchPage() {
     return () => {
       ignore = true;
     };
-  }, [activeCategory, keywordParam]);
+  }, [activeCategory, keywordParam, isBrowseMode]);
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadBrowse() {
+      if (!isBrowseMode) return;
+
+      setIsBrowseLoading(true);
+      setBrowseErrorMessage('');
+
+      try {
+        const [bookResponse, annotationResponse] = await Promise.all([
+          getBooks({ sort: 'popular', page: 1, size: 20 }),
+          getAnnotationFeed({
+            recentHours: 72,
+            scope: annotationFilter === 'friends' ? 'friends' : undefined,
+            sort: annotationFilter === 'friends' ? 'recent,desc' : 'likes,desc',
+            page: 1,
+            size: 20,
+          }),
+        ]);
+
+        if (!ignore) {
+          setPopularBooks(getPageData(bookResponse).data.map(normalizeBook));
+          setBrowseAnnotations(getPageData(annotationResponse).data.map(normalizeAnnotation));
+        }
+      } catch (error) {
+        if (!ignore) {
+          setPopularBooks([]);
+          setBrowseAnnotations([]);
+          setBrowseErrorMessage(error.message || '둘러보기 데이터를 불러오지 못했습니다.');
+        }
+      } finally {
+        if (!ignore) setIsBrowseLoading(false);
+      }
+    }
+
+    loadBrowse();
+
+    return () => {
+      ignore = true;
+    };
+  }, [annotationFilter, isBrowseMode]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -250,28 +368,102 @@ export default function SearchPage() {
 
   return (
     <div className="min-h-screen bg-page">
-      <SearchHeader
-        category={category}
-        keyword={keyword}
-        onCategoryChange={setCategory}
-        onKeywordChange={setKeyword}
-        onSubmit={handleSubmit}
-      />
+      <SiteHeader />
 
       <main className="page">
         <div className="container grid gap-8">
           <section>
-            <p className="text-sm font-bold text-text-muted">{categoryLabel}</p>
             <h1 className="page-title mt-2">
-              {keywordParam ? `“${keywordParam}” 검색 결과` : '전체 검색 결과'}
+              {isBrowseMode ? '둘러보기' : `“${keywordParam}” 검색 결과`}
             </h1>
           </section>
 
-          {errorMessage && <EmptyState>{errorMessage}</EmptyState>}
+          {isBrowseMode && (
+            <>
+              {browseErrorMessage && <EmptyState>{browseErrorMessage}</EmptyState>}
 
-          {!errorMessage && isLoading && <EmptyState>검색 결과를 불러오는 중입니다</EmptyState>}
+              {!browseErrorMessage && (
+                <>
+                  <section className="grid gap-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <h2 className="section-title">인기 책</h2>
+                      <button
+                        className="button button--secondary button--sm"
+                        type="button"
+                        onClick={() => {
+                          const totalWindows = Math.max(Math.ceil(popularBooks.length / 5), 1);
+                          setBookWindow((value) => (value + 1) % totalWindows);
+                        }}
+                        aria-label="다음 인기 책"
+                      >
+                        →
+                      </button>
+                    </div>
 
-          {!errorMessage && !isLoading && (activeCategory === 'all' || activeCategory === 'book' || activeCategory === 'author') && (
+                    {isBrowseLoading ? (
+                      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+                        {Array.from({ length: 5 }).map((_, index) => (
+                          <article key={index} className="aspect-[3/4] animate-pulse rounded-sm bg-surfaceMuted" />
+                        ))}
+                      </div>
+                    ) : visiblePopularBooks.length === 0 ? (
+                      <EmptyState>인기 책이 없습니다.</EmptyState>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+                        {visiblePopularBooks.map((book) => (
+                          <PopularBookCard key={book.id} book={book} />
+                        ))}
+                      </div>
+                    )}
+                  </section>
+
+                  <section className="grid gap-4 border-t border-line pt-7">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                      <h2 className="section-title">인기 구절노트</h2>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          className={`button button--sm ${annotationFilter === 'all' ? 'button--primary' : 'button--secondary'}`}
+                          type="button"
+                          onClick={() => setAnnotationFilter('all')}
+                        >
+                          전체
+                        </button>
+                        <button
+                          className={`button button--sm ${annotationFilter === 'friends' ? 'button--primary' : 'button--secondary'}`}
+                          type="button"
+                          onClick={() => setAnnotationFilter('friends')}
+                        >
+                          친구
+                        </button>
+                      </div>
+                    </div>
+
+                    {isBrowseLoading ? (
+                      <div className="grid gap-4">
+                        {Array.from({ length: 3 }).map((_, index) => (
+                          <article key={index} className="card card--padded h-40 animate-pulse" />
+                        ))}
+                      </div>
+                    ) : browseAnnotations.length === 0 ? (
+                      <EmptyState>조건에 맞는 구절노트가 없습니다.</EmptyState>
+                    ) : (
+                      <div className="grid gap-4">
+                        {browseAnnotations.map((annotation) => (
+                          <BrowseAnnotationCard key={annotation.id} annotation={annotation} />
+                        ))}
+                      </div>
+                    )}
+                  </section>
+                </>
+              )}
+            </>
+          )}
+
+          {!isBrowseMode && errorMessage && <EmptyState>{errorMessage}</EmptyState>}
+
+          {!isBrowseMode && !errorMessage && isLoading && <EmptyState>검색 결과를 불러오는 중입니다</EmptyState>}
+
+          {!isBrowseMode && !errorMessage && !isLoading && (activeCategory === 'all' || activeCategory === 'book' || activeCategory === 'author') && (
             <section className="grid gap-4">
               <h2 className="section-title">책 결과</h2>
               {books.length === 0 ? (
@@ -286,7 +478,7 @@ export default function SearchPage() {
             </section>
           )}
 
-          {!errorMessage && !isLoading && (activeCategory === 'all' || activeCategory === 'annotation') && (
+          {!isBrowseMode && !errorMessage && !isLoading && (activeCategory === 'all' || activeCategory === 'annotation') && (
             <section className="grid gap-4">
               <h2 className="section-title">주석 결과</h2>
               {annotations.length === 0 ? (

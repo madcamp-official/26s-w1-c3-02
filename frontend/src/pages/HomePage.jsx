@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getBooks } from '../api/books';
+import { getAnnotationFeed } from '../api/annotations';
 import { getPageData } from '../api/client';
+import SiteHeader from '../components/SiteHeader';
 
 const feedItems = [
   {
@@ -74,6 +76,35 @@ function normalizeBook(book) {
     saves: book.favoriteCount ?? book.annotationCount ?? 0,
     coverImageUrl: book.coverImageUrl,
   };
+}
+
+function normalizeFeedItem(annotation) {
+  return {
+    id: annotation.annotationId ?? annotation.id,
+    author: annotation.author?.nickname ?? annotation.authorName ?? annotation.author ?? '익명',
+    time: formatRelativeTime(annotation.createdAt),
+    book: annotation.book?.title ?? annotation.bookTitle ?? '책 정보 없음',
+    quote: annotation.passage ?? annotation.quote ?? '',
+    review: annotation.review ?? '',
+    likes: annotation.likeCount ?? 0,
+    comments: annotation.commentCount ?? annotation.comments ?? 0,
+    avatar: 'bg-primary-soft',
+  };
+}
+
+function formatRelativeTime(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+
+  const diffMs = Date.now() - date.getTime();
+  const diffMinutes = Math.max(Math.floor(diffMs / 60000), 0);
+  if (diffMinutes < 60) return `${Math.max(diffMinutes, 1)}분 전`;
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours}시간 전`;
+
+  return `${Math.floor(diffHours / 24)}일 전`;
 }
 
 function LogoMark() {
@@ -300,7 +331,8 @@ function BookCardSkeleton() {
 
 function AnnotationCard({ item }) {
   return (
-    <article className="card annotation-card transition hover:-translate-y-1 hover:shadow-card">
+    <Link to={`/annotations/${item.id}`} className="block h-full">
+      <article className="card annotation-card h-full transition hover:-translate-y-1 hover:shadow-card">
       <header className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <span className={`avatar ${item.avatar}`} />
@@ -312,9 +344,6 @@ function AnnotationCard({ item }) {
             <p className="mt-1 truncate text-xs font-semibold text-text-muted">「{item.book}」</p>
           </div>
         </div>
-        <button className="button button--ghost button--sm" aria-label="더보기">
-          ···
-        </button>
       </header>
 
       <div>
@@ -322,7 +351,6 @@ function AnnotationCard({ item }) {
           <span className="mr-2 text-3xl font-bold text-primary-soft">“</span>
           {item.quote}
         </p>
-        <span className="tag tag--blue">#{item.tag}</span>
       </div>
 
       <footer className="card-actions">
@@ -331,7 +359,8 @@ function AnnotationCard({ item }) {
           <span>댓글 {item.comments}</span>
         </div>
       </footer>
-    </article>
+      </article>
+    </Link>
   );
 }
 
@@ -352,11 +381,14 @@ function Footer() {
 export default function HomePage() {
   const navigate = useNavigate();
   const [books, setBooks] = useState([]);
+  const [todayFeed, setTodayFeed] = useState([]);
   const [keyword, setKeyword] = useState('');
   const [searchCategory, setSearchCategory] = useState('all');
   const [genreCode, setGenreCode] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [isFeedLoading, setIsFeedLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  const [feedErrorMessage, setFeedErrorMessage] = useState('');
 
   const selectedGenreLabel = useMemo(
     () => genreFilters.find((filter) => filter.value === genreCode)?.label ?? '전체',
@@ -395,6 +427,39 @@ export default function HomePage() {
     };
   }, [genreCode]);
 
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadTodayFeed() {
+      setIsFeedLoading(true);
+      setFeedErrorMessage('');
+
+      try {
+        const response = await getAnnotationFeed({
+          recentHours: 24,
+          sort: 'likes,desc',
+          page: 1,
+          size: 3,
+        });
+        const page = getPageData(response);
+        if (!ignore) setTodayFeed(page.data.map(normalizeFeedItem));
+      } catch (error) {
+        if (!ignore) {
+          setTodayFeed([]);
+          setFeedErrorMessage(error.message || '오늘의 문장피드를 불러오지 못했습니다.');
+        }
+      } finally {
+        if (!ignore) setIsFeedLoading(false);
+      }
+    }
+
+    loadTodayFeed();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
   const handleSearch = (event) => {
     event.preventDefault();
     const params = new URLSearchParams({ category: searchCategory });
@@ -409,13 +474,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-page">
-      <Header
-        keyword={keyword}
-        onKeywordChange={setKeyword}
-        onSearch={handleSearch}
-        searchCategory={searchCategory}
-        onSearchCategoryChange={setSearchCategory}
-      />
+      <SiteHeader active="home" />
 
       <main className="page">
         <div className="container grid gap-8">
@@ -468,15 +527,31 @@ export default function HomePage() {
 
           <section className="grid gap-4 border-t border-line pt-7">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <h2 className="section-title mr-2">오늘의 문장 피드</h2>
-              
+              <h2 className="section-title mr-2">오늘의 문장피드</h2>
+              <Link className="text-sm font-bold text-primary hover:underline" to="/search?category=annotation">
+                더보기
+              </Link>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-              {feedItems.map((item) => (
-                <AnnotationCard key={item.id} item={item} />
-              ))}
-            </div>
+            {feedErrorMessage && (
+              <div className="py-8 text-center">
+                <p className="text-sm font-semibold text-text-muted">{feedErrorMessage}</p>
+              </div>
+            )}
+
+            {!feedErrorMessage && (
+              <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+                {isFeedLoading
+                  ? Array.from({ length: 3 }).map((_, index) => <article key={index} className="card annotation-card animate-pulse" />)
+                  : todayFeed.map((item) => <AnnotationCard key={item.id} item={item} />)}
+              </div>
+            )}
+
+            {!isFeedLoading && !feedErrorMessage && todayFeed.length === 0 && (
+              <div className="py-10 text-center">
+                <p className="text-sm font-semibold text-text-muted">최근 24시간 안에 올라온 구절노트가 없습니다.</p>
+              </div>
+            )}
           </section>
         </div>
       </main>

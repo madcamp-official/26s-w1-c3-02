@@ -4,6 +4,7 @@ import { getBook } from '../api/books';
 import { getBookAnnotations, searchAnnotations } from '../api/annotations';
 import { getPageData } from '../api/client';
 import { like, unlike } from '../api/likes';
+import SiteHeader from '../components/SiteHeader';
 
 const sortOptions = [
   { label: '최신순', value: 'recent,desc' },
@@ -254,14 +255,19 @@ function AnnotationCard({ annotation }) {
             </span>
             <span>{annotation.author}</span>
           </div>
-          <button
-            className={`button button--sm ${isLiked ? 'button--primary' : 'button--secondary'}`}
-            type="button"
-            disabled={isLikePending}
-            onClick={handleLike}
-          >
-            ▲ 좋아요 {likeCount}
-          </button>
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <button
+              className={`button button--sm ${isLiked ? 'button--primary' : 'button--secondary'}`}
+              type="button"
+              disabled={isLikePending}
+              onClick={handleLike}
+            >
+              ▲ 좋아요 {likeCount}
+            </button>
+            <span className="button button--secondary button--sm pointer-events-none">
+              댓글 {annotation.comments}
+            </span>
+          </div>
         </footer>
       )}
     </Link>
@@ -409,7 +415,7 @@ export default function BookDetailPage() {
 
   return (
     <div className="min-h-screen bg-page">
-      <Header />
+      <SiteHeader />
 
       <div className="border-b border-line bg-white/40">
         <div className="container flex min-h-[58px] items-center gap-2 text-sm font-semibold text-text-muted">

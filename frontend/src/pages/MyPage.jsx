@@ -18,6 +18,7 @@ import {
   sendFriendRequest,
 } from '../api/friends';
 import { getErrorMessage } from '../utils/error';
+import SiteHeader from '../components/SiteHeader';
 
 // 사이드바 아이콘 (lucide-react 미설치 상태라 최소 인라인 SVG로 대체)
 const iconProps = {
@@ -360,7 +361,9 @@ export default function MyPage() {
   };
 
   return (
-    <main className="page min-h-[calc(100vh-72px)]">
+    <>
+      <SiteHeader active="mypage" />
+      <main className="page min-h-[calc(100vh-72px)]">
       <div className="container flex flex-col md:flex-row items-start gap-6">
         {/* 좌측 사이드바 */}
         <aside className="w-full md:w-[220px] shrink-0">
@@ -828,6 +831,7 @@ export default function MyPage() {
           {toastMessage}
         </div>
       )}
-    </main>
+      </main>
+    </>
   );
 }

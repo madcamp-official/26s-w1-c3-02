@@ -5,6 +5,7 @@ import { createComment, deleteComment, getComments } from '../api/comments';
 import { like, unlike } from '../api/likes';
 import { getPageData } from '../api/client';
 import { getMe } from '../api/users';
+import SiteHeader from '../components/SiteHeader';
 
 const commentTypes = [
   { label: '전체', value: '' },
@@ -78,7 +79,9 @@ function normalizeAnnotation(annotation) {
 }
 
 function normalizeComment(comment) {
-  const type = String(comment.commentType ?? comment.type ?? 'NORMAL').toUpperCase();
+  const type = String(
+    comment.commentType ?? comment.comment_type ?? comment.commentCategory ?? comment.category ?? comment.type ?? 'NORMAL',
+  ).toUpperCase();
 
   return {
     id: comment.commentId ?? comment.id,
@@ -305,6 +308,9 @@ export default function AnnotationDetailPage() {
       await createComment(annotationId, {
         type: draftType,
         commentType: draftType,
+        comment_type: draftType,
+        category: draftType,
+        commentCategory: draftType,
         content: trimmedContent,
       });
       setDraftContent('');
@@ -341,7 +347,7 @@ export default function AnnotationDetailPage() {
 
   return (
     <div className="min-h-screen bg-page">
-      <Header />
+      <SiteHeader />
 
       <main className="page">
         <div className="container grid max-w-[940px] gap-8">
