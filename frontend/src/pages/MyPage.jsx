@@ -767,15 +767,6 @@ export default function MyPage() {
               ))}
             </nav>
           </div>
-
-          <div className="card card--padded mt-4 bg-primary-soft/40 text-center">
-            <p className="text-xs font-semibold leading-relaxed text-text">
-              문장서재를 더 풍성하게
-              <br />
-              활용해 보세요.
-            </p>
-            <p className="mt-2 text-xs font-bold text-primary">가이드 보기 →</p>
-          </div>
         </aside>
 
         {/* 우측 콘텐츠 */}
