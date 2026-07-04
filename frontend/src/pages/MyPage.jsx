@@ -17,6 +17,7 @@ import {
   deleteFriendRelationship,
   sendFriendRequest,
 } from '../api/friends';
+import { createGroup } from '../api/groups';
 import { getErrorMessage } from '../utils/error';
 import SiteHeader from '../components/SiteHeader';
 
@@ -175,6 +176,10 @@ export default function MyPage() {
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState('success'); // success | error
   const [showSearchModal, setShowSearchModal] = useState(false);
+  const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
+  const [newGroupName, setNewGroupName] = useState('');
+  const [isCreatingGroup, setIsCreatingGroup] = useState(false);
+  const [createGroupError, setCreateGroupError] = useState('');
 
   // 토스트 헬퍼
   const showToast = (message, type = 'success') => {
@@ -357,6 +362,32 @@ export default function MyPage() {
     } catch (err) {
       console.error(err);
       showToast(getErrorMessage(err), 'error');
+    }
+  };
+
+  const handleCreateGroup = async (e) => {
+    e.preventDefault();
+    setCreateGroupError('');
+
+    const groupName = newGroupName.trim();
+    if (!groupName) {
+      setCreateGroupError('그룹 이름을 입력해 주세요.');
+      return;
+    }
+
+    setIsCreatingGroup(true);
+    try {
+      const group = await createGroup({ groupName });
+      showToast('그룹 라운지를 만들었습니다.');
+      setShowCreateGroupModal(false);
+      setNewGroupName('');
+      fetchTabData('groups');
+      navigate(`/groups/${group.groupId}`);
+    } catch (err) {
+      console.error(err);
+      setCreateGroupError(getErrorMessage(err));
+    } finally {
+      setIsCreatingGroup(false);
     }
   };
 
@@ -586,36 +617,56 @@ export default function MyPage() {
 
           {/* 5. 그룹 주석방 탭 */}
           {activeTab === 'groups' && (
-            isLoadingTab ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="card card--padded h-20 animate-pulse bg-surfaceMuted" />
-                <div className="card card--padded h-20 animate-pulse bg-surfaceMuted" />
+            <div className="grid gap-4">
+              <div className="card card--padded bg-white flex items-center justify-between gap-4">
+                <p className="text-sm font-bold text-text">함께 읽을 사람들을 모아 새 그룹 주석방을 만들어 보세요.</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewGroupName('');
+                    setCreateGroupError('');
+                    setShowCreateGroupModal(true);
+                  }}
+                  className="button button--primary button--lg shrink-0"
+                >
+                  새 그룹 만들기
+                </button>
               </div>
-            ) : tabError ? (
-              <div className="py-12 text-center">
-                <p className="text-sm font-semibold text-danger">{tabError}</p>
-              </div>
-            ) : tabData.length === 0 ? (
-              <EmptyState message="참여 중인 그룹이 없습니다" />
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {tabData.map((group) => (
-                  <Link to={`/groups/${group.groupId}`} key={group.groupId} className="card card--padded bg-white hover:border-line-strong transition-colors block">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <h3 className="text-base font-bold text-text">{group.groupName}</h3>
-                        <p className="text-xs text-text-muted mt-1.5">
-                          방장: {group.owner?.nickname || '알 수 없음'}
-                        </p>
+
+              {isLoadingTab ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="card card--padded h-20 animate-pulse bg-surfaceMuted" />
+                  <div className="card card--padded h-20 animate-pulse bg-surfaceMuted" />
+                </div>
+              ) : tabError ? (
+                <div className="py-12 text-center">
+                  <p className="text-sm font-semibold text-danger">{tabError}</p>
+                </div>
+              ) : tabData.length === 0 ? (
+                <EmptyState message="참여 중인 그룹이 없습니다" />
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {tabData.map((group) => (
+                    <Link to={`/groups/${group.groupId}`} key={group.groupId} className="card card--padded bg-white hover:border-line-strong transition-colors block">
+                      <div className="flex justify-between items-center gap-3">
+                        <div>
+                          <h3 className="text-base font-bold text-text">{group.groupName}</h3>
+                          <p className="text-xs text-text-muted mt-1.5">
+                            방장: {group.owner?.nickname || '알 수 없음'}
+                          </p>
+                          <p className="mt-3 text-xs text-text-subtle">
+                            멤버 {group.memberCount ?? group.memberIds?.length ?? 0}명 · 책 {group.bookCount ?? group.bookIds?.length ?? 0}권
+                          </p>
+                        </div>
+                        {group.createdAt && (
+                          <span className="text-xs text-text-subtle">{formatDate(group.createdAt)} 생성</span>
+                        )}
                       </div>
-                      {group.createdAt && (
-                        <span className="text-xs text-text-subtle">{formatDate(group.createdAt)} 생성</span>
-                      )}
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
 
           {/* 6. 친구 탭 */}
@@ -817,6 +868,50 @@ export default function MyPage() {
                 닫기
               </button>
             </div>
+          </section>
+        </div>
+      )}
+
+      {/* 그룹 만들기 모달 */}
+      {showCreateGroupModal && (
+        <div className="modal-overlay">
+          <section className="modal card card--padded">
+            <h2 className="section-title mb-4">그룹 주석방 만들기</h2>
+            <form onSubmit={handleCreateGroup} className="grid gap-3">
+              <label className="form-field">
+                <span className="form-label">그룹 이름</span>
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="예: 데미안 같이 읽기"
+                  value={newGroupName}
+                  onChange={(e) => setNewGroupName(e.target.value)}
+                  disabled={isCreatingGroup}
+                  autoFocus
+                />
+              </label>
+              <p className="form-help">
+                멤버 초대와 책 추가는 그룹을 만든 뒤 상세 페이지에서 진행할 수 있습니다.
+              </p>
+              {createGroupError && <p className="form-error">{createGroupError}</p>}
+              <div className="flex justify-end gap-2 mt-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreateGroupModal(false);
+                    setNewGroupName('');
+                    setCreateGroupError('');
+                  }}
+                  className="button button--secondary"
+                  disabled={isCreatingGroup}
+                >
+                  취소
+                </button>
+                <button type="submit" className="button button--primary" disabled={isCreatingGroup}>
+                  {isCreatingGroup ? '만드는 중...' : '만들기'}
+                </button>
+              </div>
+            </form>
           </section>
         </div>
       )}
