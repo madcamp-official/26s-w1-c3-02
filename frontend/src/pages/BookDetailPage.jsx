@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { getBook } from '../api/books';
-import { getBookAnnotations, searchAnnotations } from '../api/annotations';
+import { favoriteBook, getBook, unfavoriteBook } from '../api/books';
+import { favoriteAnnotation, getBookAnnotations, searchAnnotations, unfavoriteAnnotation } from '../api/annotations';
 import { getPageData } from '../api/client';
 import { like, unlike } from '../api/likes';
 import SiteHeader from '../components/SiteHeader';
@@ -51,6 +51,7 @@ function normalizeAnnotation(annotation) {
     comments: annotation.commentCount ?? annotation.comments ?? 0,
     likeCount: annotation.likeCount ?? 0,
     isLiked: Boolean(annotation.isLiked),
+    isFavorited: Boolean(annotation.isFavorited),
     isSpoiler: Boolean(annotation.isSpoiler),
   };
 }
@@ -143,7 +144,7 @@ function BookCover({ book }) {
   );
 }
 
-function BookHero({ book, isLoading }) {
+function BookHero({ book, isLoading, onToggleFavorite, isFavoritePending }) {
   if (isLoading) {
     return (
       <section className="mx-auto grid w-full max-w-[900px] gap-6 py-10 md:grid-cols-[240px_1fr] md:items-center md:py-16">
@@ -170,7 +171,13 @@ function BookHero({ book, isLoading }) {
         </h1>
         <p className="mt-5 text-xl font-medium text-text-muted">{book.author} 지음</p>
         <div className="mt-7 flex flex-wrap items-center justify-center gap-4 md:justify-start">
-          <button className="button button--secondary button--lg" type="button">
+          <button
+            className={`button button--lg ${book.isFavorited ? 'button--primary' : 'button--secondary'}`}
+            type="button"
+            onClick={onToggleFavorite}
+            disabled={isFavoritePending}
+            aria-pressed={book.isFavorited}
+          >
             {book.isFavorited ? '★ 서재에 담김' : '☆ 서재에 담기'}
           </button>
           <span className="text-base font-medium text-text-subtle">구절 노트 {book.annotationCount}개</span>
@@ -183,8 +190,10 @@ function BookHero({ book, isLoading }) {
 function AnnotationCard({ annotation }) {
   const [isRevealed, setIsRevealed] = useState(!annotation.isSpoiler);
   const [isLiked, setIsLiked] = useState(annotation.isLiked);
+  const [isFavorited, setIsFavorited] = useState(annotation.isFavorited);
   const [likeCount, setLikeCount] = useState(annotation.likeCount);
   const [isLikePending, setIsLikePending] = useState(false);
+  const [isFavoritePending, setIsFavoritePending] = useState(false);
   const shouldHideContent = annotation.isSpoiler && !isRevealed;
 
   const handleLike = async (event) => {
@@ -207,6 +216,27 @@ function AnnotationCard({ annotation }) {
       setLikeCount((count) => Math.max(count + (nextLiked ? -1 : 1), 0));
     } finally {
       setIsLikePending(false);
+    }
+  };
+
+  const handleFavorite = async (event) => {
+    event.preventDefault();
+    if (isFavoritePending) return;
+
+    setIsFavoritePending(true);
+    const nextFavorited = !isFavorited;
+    setIsFavorited(nextFavorited);
+
+    try {
+      if (nextFavorited) {
+        await favoriteAnnotation(annotation.id);
+      } else {
+        await unfavoriteAnnotation(annotation.id);
+      }
+    } catch {
+      setIsFavorited(!nextFavorited);
+    } finally {
+      setIsFavoritePending(false);
     }
   };
 
@@ -263,6 +293,15 @@ function AnnotationCard({ annotation }) {
               onClick={handleLike}
             >
               ▲ 좋아요 {likeCount}
+            </button>
+            <button
+              className={`button button--sm ${isFavorited ? 'button--primary' : 'button--secondary'}`}
+              type="button"
+              disabled={isFavoritePending}
+              onClick={handleFavorite}
+              aria-pressed={isFavorited}
+            >
+              {isFavorited ? '★ 저장됨' : '☆ 저장'}
             </button>
             <span className="button button--secondary button--sm pointer-events-none">
               댓글 {annotation.comments}
@@ -324,6 +363,7 @@ export default function BookDetailPage() {
   const [searchKeyword, setSearchKeyword] = useState('');
   const [isBookLoading, setIsBookLoading] = useState(true);
   const [isAnnotationsLoading, setIsAnnotationsLoading] = useState(true);
+  const [isBookFavoritePending, setIsBookFavoritePending] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   const visibleBook = useMemo(
@@ -413,6 +453,27 @@ export default function BookDetailPage() {
     setSearchKeyword('');
   };
 
+  const handleToggleBookFavorite = async () => {
+    if (!book || isBookFavoritePending) return;
+
+    const nextFavorited = !book.isFavorited;
+    setIsBookFavoritePending(true);
+    setBook((current) => (current ? { ...current, isFavorited: nextFavorited } : current));
+
+    try {
+      if (nextFavorited) {
+        await favoriteBook(book.id);
+      } else {
+        await unfavoriteBook(book.id);
+      }
+    } catch (error) {
+      setBook((current) => (current ? { ...current, isFavorited: !nextFavorited } : current));
+      setErrorMessage(error.message || '서재 담기를 변경하지 못했습니다.');
+    } finally {
+      setIsBookFavoritePending(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-page">
       <SiteHeader />
@@ -428,7 +489,12 @@ export default function BookDetailPage() {
 
       <main className="page">
         <div className="container mx-auto grid max-w-[980px] gap-8">
-          <BookHero book={visibleBook} isLoading={isBookLoading} />
+          <BookHero
+            book={visibleBook}
+            isLoading={isBookLoading}
+            onToggleFavorite={handleToggleBookFavorite}
+            isFavoritePending={isBookFavoritePending}
+          />
           <SearchAndAction
             bookId={bookId}
             value={searchInput}

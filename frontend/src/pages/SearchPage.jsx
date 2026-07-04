@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { getBooks } from '../api/books';
-import { getAnnotationFeed, searchAnnotations } from '../api/annotations';
+import { favoriteBook, getBooks, unfavoriteBook } from '../api/books';
+import { favoriteAnnotation, getAnnotationFeed, searchAnnotations, unfavoriteAnnotation } from '../api/annotations';
 import { getPageData } from '../api/client';
 import SiteHeader from '../components/SiteHeader';
 
@@ -44,6 +44,7 @@ function normalizeBook(book) {
     genre: book.genreName ?? genreLabels[book.genreCode] ?? book.genre ?? '일반',
     coverImageUrl: book.coverImageUrl,
     annotationCount: book.annotationCount ?? 0,
+    isFavorited: Boolean(book.isFavorited),
   };
 }
 
@@ -59,6 +60,7 @@ function normalizeAnnotation(annotation) {
     visibility: visibilityLabels[annotation.visibility] ?? annotation.visibility ?? '공개',
     likeCount: annotation.likeCount ?? 0,
     commentCount: annotation.commentCount ?? 0,
+    isFavorited: Boolean(annotation.isFavorited),
     isSpoiler: Boolean(annotation.isSpoiler),
     createdAt: annotation.createdAt,
     time: formatRelativeTime(annotation.createdAt),
@@ -126,9 +128,52 @@ function SearchHeader({ category, keyword, onCategoryChange, onKeywordChange, on
   );
 }
 
-function BookResultCard({ book }) {
+function BookmarkButton({ isActive, isPending, onClick, label = '북마크' }) {
   return (
-    <Link to={`/books/${book.id}`} className="card book-card">
+    <button
+      type="button"
+      className={`flex h-9 w-9 items-center justify-center rounded-full shadow-soft transition ${
+        isActive ? 'bg-primary text-white' : 'bg-white text-text-muted hover:text-primary'
+      }`}
+      onClick={onClick}
+      disabled={isPending}
+      aria-label={isActive ? `${label} 해제` : label}
+      aria-pressed={isActive}
+      title={isActive ? `${label} 해제` : label}
+    >
+      {isActive ? '★' : '☆'}
+    </button>
+  );
+}
+
+function BookResultCard({ book }) {
+  const [isFavorited, setIsFavorited] = useState(book.isFavorited);
+  const [isPending, setIsPending] = useState(false);
+
+  const handleFavorite = async (event) => {
+    event.preventDefault();
+    if (isPending) return;
+
+    const nextFavorited = !isFavorited;
+    setIsPending(true);
+    setIsFavorited(nextFavorited);
+
+    try {
+      if (nextFavorited) {
+        await favoriteBook(book.id);
+      } else {
+        await unfavoriteBook(book.id);
+      }
+    } catch {
+      setIsFavorited(!nextFavorited);
+    } finally {
+      setIsPending(false);
+    }
+  };
+
+  return (
+    <Link to={`/books/${book.id}`} className="card book-card relative">
+      
       {book.coverImageUrl ? (
         <img className="book-cover" src={book.coverImageUrl} alt={`${book.title} 표지`} />
       ) : (
@@ -148,7 +193,30 @@ function BookResultCard({ book }) {
 
 function AnnotationResultCard({ annotation }) {
   const [isRevealed, setIsRevealed] = useState(!annotation.isSpoiler);
+  const [isFavorited, setIsFavorited] = useState(annotation.isFavorited);
+  const [isPending, setIsPending] = useState(false);
   const shouldHideContent = annotation.isSpoiler && !isRevealed;
+
+  const handleFavorite = async (event) => {
+    event.preventDefault();
+    if (isPending) return;
+
+    const nextFavorited = !isFavorited;
+    setIsPending(true);
+    setIsFavorited(nextFavorited);
+
+    try {
+      if (nextFavorited) {
+        await favoriteAnnotation(annotation.id);
+      } else {
+        await unfavoriteAnnotation(annotation.id);
+      }
+    } catch {
+      setIsFavorited(!nextFavorited);
+    } finally {
+      setIsPending(false);
+    }
+  };
 
   return (
     <Link to={`/annotations/${annotation.id}`} className="card card--padded block transition hover:-translate-y-1 hover:shadow-card">
@@ -183,6 +251,17 @@ function AnnotationResultCard({ annotation }) {
             <span>{annotation.author}</span>
             <span>♡ {annotation.likeCount} · 댓글 {annotation.commentCount}</span>
           </footer>
+          <div className="mt-4 flex justify-end">
+            <button
+              type="button"
+              className={`button button--sm ${isFavorited ? 'button--primary' : 'button--secondary'}`}
+              onClick={handleFavorite}
+              disabled={isPending}
+              aria-pressed={isFavorited}
+            >
+              {isFavorited ? '★ 저장됨' : '☆ 저장'}
+            </button>
+          </div>
         </>
       )}
     </Link>
@@ -198,8 +277,34 @@ function EmptyState({ children }) {
 }
 
 function PopularBookCard({ book }) {
+  const [isFavorited, setIsFavorited] = useState(book.isFavorited);
+  const [isPending, setIsPending] = useState(false);
+
+  const handleFavorite = async (event) => {
+    event.preventDefault();
+    if (isPending) return;
+
+    const nextFavorited = !isFavorited;
+    setIsPending(true);
+    setIsFavorited(nextFavorited);
+
+    try {
+      if (nextFavorited) {
+        await favoriteBook(book.id);
+      } else {
+        await unfavoriteBook(book.id);
+      }
+    } catch {
+      setIsFavorited(!nextFavorited);
+    } finally {
+      setIsPending(false);
+    }
+  };
+
   return (
-    <Link to={`/books/${book.id}`} className="group block">
+    <Link to={`/books/${book.id}`} className="group relative block">
+      <div className="absolute right-2 top-2 z-10">
+      </div>
       <article className="grid h-full gap-3">
         {book.coverImageUrl ? (
           <img
@@ -220,6 +325,30 @@ function PopularBookCard({ book }) {
 }
 
 function BrowseAnnotationCard({ annotation }) {
+  const [isFavorited, setIsFavorited] = useState(annotation.isFavorited);
+  const [isPending, setIsPending] = useState(false);
+
+  const handleFavorite = async (event) => {
+    event.preventDefault();
+    if (isPending) return;
+
+    const nextFavorited = !isFavorited;
+    setIsPending(true);
+    setIsFavorited(nextFavorited);
+
+    try {
+      if (nextFavorited) {
+        await favoriteAnnotation(annotation.id);
+      } else {
+        await unfavoriteAnnotation(annotation.id);
+      }
+    } catch {
+      setIsFavorited(!nextFavorited);
+    } finally {
+      setIsPending(false);
+    }
+  };
+
   return (
     <Link to={`/annotations/${annotation.id}`} className="card card--padded block transition hover:-translate-y-1 hover:shadow-card">
       <div className="flex flex-wrap items-center gap-2">
@@ -234,7 +363,18 @@ function BrowseAnnotationCard({ annotation }) {
       <p className="mt-3 line-clamp-2 leading-[1.7] text-text-muted">{annotation.review}</p>
       <footer className="mt-5 flex items-center justify-between text-sm text-text-muted">
         <span>{annotation.author}</span>
-        <span>♡ {annotation.likeCount} · 댓글 {annotation.commentCount}</span>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <span>♡ {annotation.likeCount} · 댓글 {annotation.commentCount}</span>
+          <button
+            type="button"
+            className={`button button--sm ${isFavorited ? 'button--primary' : 'button--secondary'}`}
+            onClick={handleFavorite}
+            disabled={isPending}
+            aria-pressed={isFavorited}
+          >
+            {isFavorited ? '★ 저장됨' : '☆ 저장'}
+          </button>
+        </div>
       </footer>
     </Link>
   );

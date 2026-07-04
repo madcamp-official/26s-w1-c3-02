@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getBooks } from '../api/books';
-import { getAnnotationFeed } from '../api/annotations';
+import { favoriteBook, getBooks, unfavoriteBook } from '../api/books';
+import { favoriteAnnotation, getAnnotationFeed, unfavoriteAnnotation } from '../api/annotations';
 import { getPageData } from '../api/client';
 import SiteHeader from '../components/SiteHeader';
 
@@ -75,6 +75,7 @@ function normalizeBook(book) {
     genre: book.genreName ?? genreLabels[book.genreCode] ?? book.genre ?? '일반',
     saves: book.favoriteCount ?? book.annotationCount ?? 0,
     coverImageUrl: book.coverImageUrl,
+    isFavorited: Boolean(book.isFavorited),
   };
 }
 
@@ -88,6 +89,7 @@ function normalizeFeedItem(annotation) {
     review: annotation.review ?? '',
     likes: annotation.likeCount ?? 0,
     comments: annotation.commentCount ?? annotation.comments ?? 0,
+    isFavorited: Boolean(annotation.isFavorited),
     avatar: 'bg-primary-soft',
   };
 }
@@ -286,9 +288,34 @@ function BookCoverFallback({ title }) {
 }
 
 function BookCard({ book }) {
+  const [isFavorited, setIsFavorited] = useState(book.isFavorited);
+  const [isPending, setIsPending] = useState(false);
+
+  const handleFavorite = async (event) => {
+    event.preventDefault();
+    if (isPending) return;
+
+    const nextFavorited = !isFavorited;
+    setIsPending(true);
+    setIsFavorited(nextFavorited);
+
+    try {
+      if (nextFavorited) {
+        await favoriteBook(book.id);
+      } else {
+        await unfavoriteBook(book.id);
+      }
+    } catch {
+      setIsFavorited(!nextFavorited);
+    } finally {
+      setIsPending(false);
+    }
+  };
+
   return (
     <Link to={`/books/${book.id}`} className="block">
-      <article className="card book-card">
+      <article className="card book-card relative">
+        
         {book.coverImageUrl ? (
           <img className="book-cover" src={book.coverImageUrl} alt={`${book.title} 표지`} />
         ) : (
@@ -330,6 +357,30 @@ function BookCardSkeleton() {
 }
 
 function AnnotationCard({ item }) {
+  const [isFavorited, setIsFavorited] = useState(item.isFavorited);
+  const [isPending, setIsPending] = useState(false);
+
+  const handleFavorite = async (event) => {
+    event.preventDefault();
+    if (isPending) return;
+
+    const nextFavorited = !isFavorited;
+    setIsPending(true);
+    setIsFavorited(nextFavorited);
+
+    try {
+      if (nextFavorited) {
+        await favoriteAnnotation(item.id);
+      } else {
+        await unfavoriteAnnotation(item.id);
+      }
+    } catch {
+      setIsFavorited(!nextFavorited);
+    } finally {
+      setIsPending(false);
+    }
+  };
+
   return (
     <Link to={`/annotations/${item.id}`} className="block h-full">
       <article className="card annotation-card h-full transition hover:-translate-y-1 hover:shadow-card">
@@ -358,6 +409,15 @@ function AnnotationCard({ item }) {
           <span>♡ {item.likes}</span>
           <span>댓글 {item.comments}</span>
         </div>
+        <button
+          type="button"
+          className={`button button--sm ${isFavorited ? 'button--primary' : 'button--secondary'}`}
+          onClick={handleFavorite}
+          disabled={isPending}
+          aria-pressed={isFavorited}
+        >
+          {isFavorited ? '★ 저장됨' : '☆ 저장'}
+        </button>
       </footer>
       </article>
     </Link>

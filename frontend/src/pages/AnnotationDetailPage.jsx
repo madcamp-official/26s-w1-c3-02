@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { deleteAnnotation, getAnnotation } from '../api/annotations';
+import { deleteAnnotation, favoriteAnnotation, getAnnotation, unfavoriteAnnotation } from '../api/annotations';
 import { createComment, deleteComment, getComments } from '../api/comments';
 import { like, unlike } from '../api/likes';
 import { getPageData } from '../api/client';
@@ -73,6 +73,7 @@ function normalizeAnnotation(annotation) {
     visibility: visibilityLabels[annotation.visibility] ?? annotation.visibility ?? '공개',
     likeCount: annotation.likeCount ?? 0,
     isLiked: Boolean(annotation.isLiked),
+    isFavorited: Boolean(annotation.isFavorited),
     isSpoiler: Boolean(annotation.isSpoiler),
     createdAt: annotation.createdAt,
   };
@@ -105,7 +106,9 @@ function formatDate(value) {
 function AnnotationCard({ annotation, isMine, onDelete }) {
   const [isRevealed, setIsRevealed] = useState(!annotation.isSpoiler);
   const [isLiked, setIsLiked] = useState(annotation.isLiked);
+  const [isFavorited, setIsFavorited] = useState(annotation.isFavorited);
   const [likeCount, setLikeCount] = useState(annotation.likeCount);
+  const [isFavoritePending, setIsFavoritePending] = useState(false);
   const shouldHideContent = annotation.isSpoiler && !isRevealed;
 
   const handleLike = async () => {
@@ -122,6 +125,26 @@ function AnnotationCard({ annotation, isMine, onDelete }) {
     } catch {
       setIsLiked(!nextLiked);
       setLikeCount((count) => Math.max(count + (nextLiked ? -1 : 1), 0));
+    }
+  };
+
+  const handleFavorite = async () => {
+    if (isFavoritePending) return;
+
+    const nextFavorited = !isFavorited;
+    setIsFavoritePending(true);
+    setIsFavorited(nextFavorited);
+
+    try {
+      if (nextFavorited) {
+        await favoriteAnnotation(annotation.id);
+      } else {
+        await unfavoriteAnnotation(annotation.id);
+      }
+    } catch {
+      setIsFavorited(!nextFavorited);
+    } finally {
+      setIsFavoritePending(false);
     }
   };
 
@@ -165,6 +188,15 @@ function AnnotationCard({ annotation, isMine, onDelete }) {
               )}
               <button className={`button button--sm ${isLiked ? 'button--primary' : 'button--secondary'}`} type="button" onClick={handleLike}>
                 ▲ 좋아요 {likeCount}
+              </button>
+              <button
+                className={`button button--sm ${isFavorited ? 'button--primary' : 'button--secondary'}`}
+                type="button"
+                onClick={handleFavorite}
+                disabled={isFavoritePending}
+                aria-pressed={isFavorited}
+              >
+                {isFavorited ? '★ 저장됨' : '☆ 저장'}
               </button>
             </div>
           </footer>
