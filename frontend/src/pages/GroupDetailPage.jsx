@@ -10,12 +10,9 @@ import {
   addGroupMember,
   removeGroupMember,
   addGroupBook,
-  removeGroupBook,
-  getGroupAnnotations,
 } from '../api/groups';
 import { searchUsers } from '../api/users';
 import { getBooks } from '../api/books';
-import { createAnnotation } from '../api/annotations';
 import { getErrorMessage } from '../utils/error';
 
 const iconProps = {
@@ -36,12 +33,6 @@ const PlusIcon = (props) => (
 const EditIcon = (props) => (
   <svg {...iconProps} {...props}>
     <path d="M12.5 3.5 16 7l-9 9-4 1 1-4 8.5-9.5Z" />
-  </svg>
-);
-
-const TrashIcon = (props) => (
-  <svg {...iconProps} {...props}>
-    <path d="M4 5.5h12M8 5.5v-1a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1M6 5.5 6.6 16a1 1 0 0 0 1 1h4.8a1 1 0 0 0 1-1L14 5.5" />
   </svg>
 );
 
@@ -67,67 +58,6 @@ const BookIcon = (props) => (
   </svg>
 );
 
-// 주석 유형 메타 — 마이페이지(AnnotationRow)와 동일한 태그 색 규칙을 따른다.
-const TYPE_META = {
-  QUESTION: { label: '질문', tagClass: 'tag--cream' },
-  DISCUSSION: { label: '토론', tagClass: 'tag--green' },
-  REVIEW: { label: '감상', tagClass: 'tag--rose' },
-};
-const getTypeMeta = (type) => TYPE_META[type] || { label: '일반', tagClass: '' };
-
-const FILTERS = [
-  { value: '', label: '전체' },
-  { value: 'QUESTION', label: '질문' },
-  { value: 'DISCUSSION', label: '토론' },
-  { value: 'REVIEW', label: '감상' },
-  { value: 'NORMAL', label: '일반' },
-];
-
-const formatDate = (iso) => {
-  if (!iso) return '';
-  const d = new Date(iso);
-  return `${d.getFullYear()}. ${String(d.getMonth() + 1).padStart(2, '0')}. ${String(d.getDate()).padStart(2, '0')}`;
-};
-
-function EmptyState({ message }) {
-  return (
-    <div className="py-10 text-center card card--padded bg-white/50">
-      <p className="text-sm font-semibold text-text-muted">{message}</p>
-    </div>
-  );
-}
-
-// 그룹 주석 피드 카드 — 마이페이지의 AnnotationRow보다 단순한 형태(작성자 정보 포함)
-function GroupAnnotationCard({ item }) {
-  const { label, tagClass } = getTypeMeta(item.type);
-  return (
-    <article className="card card--padded bg-white">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary-soft text-[10px] font-bold text-primary">
-            {item.author?.nickname?.charAt(0).toUpperCase()}
-          </span>
-          <strong className="truncate text-xs text-text">{item.author?.nickname}</strong>
-          <span className="text-xs text-text-subtle">· {item.book?.title}</span>
-        </div>
-        <span className="shrink-0 text-xs text-text-subtle">{formatDate(item.createdAt)}</span>
-      </div>
-      <p className="annotation-quote line-clamp-2 text-base font-bold text-text my-3">"{item.passage}"</p>
-      {item.review && <p className="text-sm text-text-muted line-clamp-2 mb-4 leading-relaxed">{item.review}</p>}
-      <footer className="card-actions border-t border-line pt-3">
-        <div className="flex gap-2">
-          <span className={`tag ${tagClass}`}>{label}</span>
-          {item.isSpoiler && <span className="tag tag--danger">스포일러</span>}
-        </div>
-        <div className="flex gap-3 text-text-subtle font-medium">
-          <span>♡ {item.likeCount || 0}</span>
-          <span>💬 {item.commentCount || 0}</span>
-        </div>
-      </footer>
-    </article>
-  );
-}
-
 export default function GroupDetailPage() {
   const { groupId } = useParams();
   const { user } = useAuth();
@@ -141,14 +71,6 @@ export default function GroupDetailPage() {
   const [editedName, setEditedName] = useState('');
   const [isSavingName, setIsSavingName] = useState(false);
 
-  const [annotations, setAnnotations] = useState([]);
-  const [annotationPagination, setAnnotationPagination] = useState(null);
-  const [annotationPage, setAnnotationPage] = useState(1);
-  const [typeFilter, setTypeFilter] = useState('');
-  const [sortOption, setSortOption] = useState('latest');
-  const [isLoadingAnnotations, setIsLoadingAnnotations] = useState(true);
-  const [annotationError, setAnnotationError] = useState('');
-
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteKeyword, setInviteKeyword] = useState('');
   const [inviteResults, setInviteResults] = useState([]);
@@ -161,20 +83,10 @@ export default function GroupDetailPage() {
   const [isSearchingBooks, setIsSearchingBooks] = useState(false);
   const [addBookError, setAddBookError] = useState('');
 
-  const [showComposeModal, setShowComposeModal] = useState(false);
-  const [composeBookId, setComposeBookId] = useState('');
-  const [composePassage, setComposePassage] = useState('');
-  const [composeReview, setComposeReview] = useState('');
-  const [composeType, setComposeType] = useState('NORMAL');
-  const [composeIsSpoiler, setComposeIsSpoiler] = useState(false);
-  const [isSubmittingAnnotation, setIsSubmittingAnnotation] = useState(false);
-  const [composeError, setComposeError] = useState('');
-
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState('success');
 
   const latestGroupRequestId = useRef(0);
-  const latestAnnotationRequestId = useRef(0);
 
   const showToast = (message, type = 'success') => {
     setToastMessage(message);
@@ -205,35 +117,6 @@ export default function GroupDetailPage() {
     loadGroup();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupId]);
-
-  const loadAnnotations = async () => {
-    const requestId = ++latestAnnotationRequestId.current;
-    setIsLoadingAnnotations(true);
-    setAnnotationError('');
-    try {
-      const res = await getGroupAnnotations(groupId, {
-        type: typeFilter || undefined,
-        sort: sortOption,
-        page: annotationPage,
-        size: 10,
-      });
-      if (requestId !== latestAnnotationRequestId.current) return;
-      setAnnotations(res.data || []);
-      setAnnotationPagination(res.pagination || null);
-    } catch (err) {
-      if (requestId !== latestAnnotationRequestId.current) return;
-      console.error(err);
-      setAnnotationError(getErrorMessage(err));
-    } finally {
-      if (requestId === latestAnnotationRequestId.current) setIsLoadingAnnotations(false);
-    }
-  };
-
-  useEffect(() => {
-    if (!group) return;
-    loadAnnotations();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [group, typeFilter, sortOption, annotationPage]);
 
   // 그룹 이름 수정 (방장 전용)
   const handleStartEditName = () => {
@@ -350,67 +233,8 @@ export default function GroupDetailPage() {
     }
   };
 
-  const handleRemoveBook = async (book) => {
-    if (!window.confirm(`${book.title}을(를) 그룹 도서에서 제거하시겠습니까?`)) return;
-    try {
-      await removeGroupBook(groupId, book.bookId);
-      setGroup((prev) => ({ ...prev, books: prev.books.filter((b) => b.bookId !== book.bookId) }));
-      showToast('그룹 도서에서 제거했습니다.');
-    } catch (err) {
-      console.error(err);
-      showToast(getErrorMessage(err), 'error');
-    }
-  };
-
-  // 그룹 안에서 새 주석 작성
-  const openComposeModal = () => {
-    setComposeBookId(group?.books?.[0]?.bookId || '');
-    setComposePassage('');
-    setComposeReview('');
-    setComposeType('NORMAL');
-    setComposeIsSpoiler(false);
-    setComposeError('');
-    setShowComposeModal(true);
-  };
-
-  const handleSubmitAnnotation = async (e) => {
-    e.preventDefault();
-    setComposeError('');
-    if (!composeBookId) {
-      setComposeError('책을 선택해 주세요. 그룹에 등록된 책이 없다면 먼저 책을 추가해 주세요.');
-      return;
-    }
-    if (!composePassage.trim()) {
-      setComposeError('인용 문장을 입력해 주세요.');
-      return;
-    }
-
-    setIsSubmittingAnnotation(true);
-    try {
-      await createAnnotation({
-        bookId: Number(composeBookId),
-        passage: composePassage.trim(),
-        review: composeReview.trim(),
-        type: composeType,
-        isSpoiler: composeIsSpoiler,
-        visibility: 'group',
-        groupId: Number(groupId),
-      });
-      setShowComposeModal(false);
-      showToast('주석을 작성했습니다.');
-      setAnnotationPage(1);
-      loadAnnotations();
-    } catch (err) {
-      console.error(err);
-      setComposeError(getErrorMessage(err));
-    } finally {
-      setIsSubmittingAnnotation(false);
-    }
-  };
-
   const existingMemberIds = new Set((group?.members || []).map((m) => m.id));
   const existingBookIds = new Set((group?.books || []).map((b) => b.bookId));
-  const totalPages = annotationPagination?.totalPages || 1;
 
   return (
     <div className="min-h-screen bg-page flex flex-col">
@@ -504,183 +328,102 @@ export default function GroupDetailPage() {
                 </div>
               </section>
 
-              <div className="grid md:grid-cols-[1fr_300px] gap-6 items-start">
-                {/* 그룹 주석 피드 */}
-                <section className="grid gap-4 min-w-0">
-                  <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                    <div className="flex flex-wrap gap-2">
-                      {FILTERS.map((f) => (
-                        <button
-                          key={f.value}
-                          onClick={() => {
-                            setTypeFilter(f.value);
-                            setAnnotationPage(1);
-                          }}
-                          className={`button button--sm ${typeFilter === f.value ? 'button--primary' : 'button--secondary'}`}
-                        >
-                          {f.label}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <select
-                        className="select w-[130px]"
-                        value={sortOption}
-                        onChange={(e) => {
-                          setSortOption(e.target.value);
-                          setAnnotationPage(1);
-                        }}
-                        aria-label="정렬"
-                      >
-                        <option value="latest">최신순</option>
-                        <option value="popular">인기순</option>
-                        <option value="pageNumber">페이지순</option>
-                      </select>
-                      <button type="button" onClick={openComposeModal} className="button button--primary button--sm shrink-0">
-                        <PlusIcon className="h-4 w-4" /> 주석 작성
-                      </button>
-                    </div>
-                  </div>
-
-                  {isLoadingAnnotations ? (
-                    <div className="grid gap-4">
-                      <div className="card card--padded h-[160px] animate-pulse bg-surfaceMuted" />
-                      <div className="card card--padded h-[160px] animate-pulse bg-surfaceMuted" />
-                    </div>
-                  ) : annotationError ? (
-                    <div className="py-10 text-center">
-                      <p className="text-sm font-semibold text-danger">{annotationError}</p>
-                    </div>
-                  ) : annotations.length === 0 ? (
-                    <EmptyState message="아직 이 그룹에 작성된 주석이 없습니다" />
-                  ) : (
-                    <>
-                      <div className="grid gap-4">
-                        {annotations.map((item) => (
-                          <GroupAnnotationCard key={item.annotationId} item={item} />
-                        ))}
-                      </div>
-                      {totalPages > 1 && (
-                        <div className="pagination">
-                          <button
-                            className="pagination__item"
-                            onClick={() => setAnnotationPage((p) => Math.max(1, p - 1))}
-                            disabled={annotationPage <= 1}
-                            aria-label="이전 페이지"
-                          >
-                            ‹
-                          </button>
-                          <span className="text-sm text-text-muted px-2">
-                            {annotationPage} / {totalPages}
-                          </span>
-                          <button
-                            className="pagination__item"
-                            onClick={() => setAnnotationPage((p) => Math.min(totalPages, p + 1))}
-                            disabled={annotationPage >= totalPages}
-                            aria-label="다음 페이지"
-                          >
-                            ›
-                          </button>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </section>
-
-                {/* 사이드바: 멤버 / 도서 */}
-                <aside className="grid gap-6">
-                  <section className="card card--padded bg-white">
-                    <div className="mb-3 flex items-center justify-between">
-                      <h2 className="section-title !text-base">멤버 ({group.members?.length ?? 0})</h2>
-                      {isOwner && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setInviteKeyword('');
-                            setInviteResults([]);
-                            setInviteError('');
-                            setShowInviteModal(true);
-                          }}
-                          className="flex h-7 w-7 items-center justify-center rounded-full border border-transparent text-text-muted transition hover:border-primary hover:text-primary"
-                          aria-label="멤버 초대"
-                          title="멤버 초대"
-                        >
-                          <PlusIcon className="h-4 w-4" />
-                        </button>
-                      )}
-                    </div>
-                    <ul className="grid gap-2">
-                      {(group.members || []).map((member) => (
-                        <li key={member.id} className="flex items-center justify-between gap-2 p-2 rounded bg-pageSoft">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-soft text-xs font-bold text-primary">
-                              {member.nickname?.charAt(0).toUpperCase()}
-                            </span>
-                            <span className="truncate text-sm font-semibold text-text">{member.nickname}</span>
-                            {member.id === group.owner?.id && (
-                              <span className="tag shrink-0 text-[10px]">방장</span>
+              {/* 그룹 도서 — 마이페이지 "내 서재"와 같은 카드 그리드. 책을 고르면 책 상세 페이지로 이동하고,
+                  거기서는 이 그룹 멤버들이 쓴 주석만 모아 보여준다(?groupId= 쿼리로 전달). */}
+              <section className="card card--padded bg-white">
+                <div className="mb-4 flex items-center justify-between">
+                  <h2 className="section-title !text-lg">그룹 도서 ({group.books?.length ?? 0})</h2>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBookKeyword('');
+                      setBookResults([]);
+                      setAddBookError('');
+                      setShowAddBookModal(true);
+                    }}
+                    className="button button--primary button--sm !min-h-8 !px-3 text-xs"
+                  >
+                    <PlusIcon className="h-3.5 w-3.5" /> 책 추가
+                  </button>
+                </div>
+                {(group.books || []).length === 0 ? (
+                  <p className="text-sm text-text-muted py-6 text-center">
+                    등록된 책이 없습니다. "책 추가"로 그룹에서 함께 읽을 책을 등록해 보세요.
+                  </p>
+                ) : (
+                  <div className="flex flex-wrap gap-4">
+                    {group.books.map((book) => (
+                      <Link to={`/books/${book.bookId}?groupId=${groupId}`} key={book.bookId} className="block">
+                        <article className="card book-card !w-[280px] !max-w-none bg-white transition hover:-translate-y-1 hover:shadow-card">
+                          {book.coverImageUrl ? (
+                            <img className="book-cover" src={book.coverImageUrl} alt={book.title} />
+                          ) : (
+                            <div className="book-cover flex items-center justify-center text-center text-xs font-bold text-text-subtle p-2">
+                              No Cover
+                            </div>
+                          )}
+                          <div className="min-w-0 flex h-full flex-col justify-center">
+                            <h3 className="truncate text-base font-bold text-text leading-tight">{book.title}</h3>
+                            <p className="mt-1 text-xs text-text-muted truncate">{book.author}</p>
+                            {book.genreCode && (
+                              <div className="mt-3">
+                                <span className="tag tag--blue">{book.genreCode}</span>
+                              </div>
                             )}
                           </div>
-                          {isOwner && member.id !== group.owner?.id && (
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveMember(member)}
-                              className="shrink-0 text-text-subtle transition hover:text-danger"
-                              aria-label={`${member.nickname} 내보내기`}
-                              title="내보내기"
-                            >
-                              <CloseIcon className="h-4 w-4" />
-                            </button>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  </section>
+                        </article>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </section>
 
-                  <section className="card card--padded bg-white">
-                    <div className="mb-3 flex items-center justify-between">
-                      <h2 className="section-title !text-base">그룹 도서 ({group.books?.length ?? 0})</h2>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setBookKeyword('');
-                          setBookResults([]);
-                          setAddBookError('');
-                          setShowAddBookModal(true);
-                        }}
-                        className="flex h-7 w-7 items-center justify-center rounded-full border border-transparent text-text-muted transition hover:border-primary hover:text-primary"
-                        aria-label="책 추가"
-                        title="책 추가"
-                      >
-                        <PlusIcon className="h-4 w-4" />
-                      </button>
-                    </div>
-                    {(group.books || []).length === 0 ? (
-                      <p className="text-xs text-text-muted py-3">등록된 책이 없습니다</p>
-                    ) : (
-                      <ul className="grid gap-2">
-                        {group.books.map((book) => (
-                          <li key={book.bookId} className="flex items-center justify-between gap-2 p-2 rounded bg-pageSoft">
-                            <Link to={`/books/${book.bookId}`} className="min-w-0">
-                              <p className="truncate text-sm font-semibold text-text">{book.title}</p>
-                              <p className="truncate text-xs text-text-muted">{book.author}</p>
-                            </Link>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveBook(book)}
-                              className="shrink-0 text-text-subtle transition hover:text-danger"
-                              aria-label={`${book.title} 제거`}
-                              title="제거"
-                            >
-                              <CloseIcon className="h-4 w-4" />
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </section>
-                </aside>
-              </div>
+              {/* 멤버 */}
+              <section className="card card--padded bg-white">
+                <div className="mb-3 flex items-center justify-between">
+                  <h2 className="section-title !text-base">멤버 ({group.members?.length ?? 0})</h2>
+                  {isOwner && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setInviteKeyword('');
+                        setInviteResults([]);
+                        setInviteError('');
+                        setShowInviteModal(true);
+                      }}
+                      className="button button--primary button--sm !min-h-8 !px-3 text-xs"
+                    >
+                      <PlusIcon className="h-3.5 w-3.5" /> 멤버 초대
+                    </button>
+                  )}
+                </div>
+                <ul className="grid gap-2 sm:grid-cols-2">
+                  {(group.members || []).map((member) => (
+                    <li key={member.id} className="flex items-center justify-between gap-2 p-2 rounded bg-pageSoft">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-soft text-xs font-bold text-primary">
+                          {member.nickname?.charAt(0).toUpperCase()}
+                        </span>
+                        <span className="truncate text-sm font-semibold text-text">{member.nickname}</span>
+                        {member.id === group.owner?.id && (
+                          <span className="tag shrink-0 text-[10px]">방장</span>
+                        )}
+                      </div>
+                      {isOwner && member.id !== group.owner?.id && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveMember(member)}
+                          className="shrink-0 text-text-subtle transition hover:text-danger"
+                          aria-label={`${member.nickname} 내보내기`}
+                          title="내보내기"
+                        >
+                          <CloseIcon className="h-4 w-4" />
+                        </button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </section>
             </>
           )}
         </div>
@@ -786,84 +529,6 @@ export default function GroupDetailPage() {
                 닫기
               </button>
             </div>
-          </section>
-        </div>
-      )}
-
-      {/* 주석 작성 모달 */}
-      {showComposeModal && (
-        <div className="modal-overlay">
-          <section className="modal card card--padded">
-            <h2 className="section-title mb-4">그룹 안에서 주석 작성</h2>
-            <form onSubmit={handleSubmitAnnotation} className="grid gap-3">
-              <div>
-                <label className="mb-1.5 block text-xs font-bold text-text-muted">책</label>
-                <select className="select" value={composeBookId} onChange={(e) => setComposeBookId(e.target.value)}>
-                  <option value="">책을 선택하세요</option>
-                  {(group?.books || []).map((book) => (
-                    <option key={book.bookId} value={book.bookId}>
-                      {book.title}
-                    </option>
-                  ))}
-                </select>
-                {(group?.books || []).length === 0 && (
-                  <span className="form-help">먼저 사이드바에서 그룹에 책을 추가해 주세요.</span>
-                )}
-              </div>
-              <div>
-                <label className="mb-1.5 block text-xs font-bold text-text-muted">인용 문장</label>
-                <textarea
-                  className="textarea"
-                  rows={2}
-                  maxLength={200}
-                  value={composePassage}
-                  onChange={(e) => setComposePassage(e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="mb-1.5 block text-xs font-bold text-text-muted">감상/설명</label>
-                <textarea
-                  className="textarea"
-                  rows={3}
-                  value={composeReview}
-                  onChange={(e) => setComposeReview(e.target.value)}
-                />
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="flex-1">
-                  <label className="mb-1.5 block text-xs font-bold text-text-muted">유형</label>
-                  <select className="select" value={composeType} onChange={(e) => setComposeType(e.target.value)}>
-                    <option value="NORMAL">일반</option>
-                    <option value="QUESTION">질문</option>
-                    <option value="DISCUSSION">토론</option>
-                    <option value="REVIEW">감상</option>
-                  </select>
-                </div>
-                <label className="flex items-center gap-2 text-sm font-semibold text-text-muted mt-5">
-                  <input
-                    type="checkbox"
-                    checked={composeIsSpoiler}
-                    onChange={(e) => setComposeIsSpoiler(e.target.checked)}
-                  />
-                  스포일러
-                </label>
-              </div>
-
-              {composeError && <p className="text-xs text-danger">{composeError}</p>}
-
-              <div className="flex justify-end gap-2 mt-3">
-                <button
-                  type="button"
-                  onClick={() => setShowComposeModal(false)}
-                  className="button button--secondary"
-                >
-                  취소
-                </button>
-                <button type="submit" className="button button--primary" disabled={isSubmittingAnnotation}>
-                  {isSubmittingAnnotation ? '작성 중...' : '작성'}
-                </button>
-              </div>
-            </form>
           </section>
         </div>
       )}

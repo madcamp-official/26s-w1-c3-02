@@ -505,7 +505,7 @@ Authorization: Bearer <accessToken>
   "groupName": "데미안 같이 읽기",
   "owner": { "id": 1, "nickname": "reader01" },
   "members": [ { "id": 1, "nickname": "reader01" }, { "id": 5, "nickname": "reader_kim" } ],
-  "books": [ { "bookId": 3, "title": "데미안", "author": "헤르만 헤세" } ]
+  "books": [ { "bookId": 3, "title": "데미안", "author": "헤르만 헤세", "genreCode": "NOVEL", "coverImageUrl": "https://.../cover.jpg" } ]
 }
 ```
 - 에러 `403` 멤버 아님 · `404` 없음
@@ -557,7 +557,8 @@ Authorization: Bearer <accessToken>
 | GET | `/api/groups/{groupId}/annotations` | 그룹 안에서 작성된 주석 모아보기 | 🔒(멤버) |
 
 - 조회 조건: `annotations.group_id = {groupId}` (그룹 안에서 작성돼 `group_id`가 채워진 주석).
-- 쿼리: `type`, `sort`(`latest`/`popular`/`pageNumber`), `page`, `size` 지원.
+- 쿼리: `bookId`(그룹에 등록된 특정 책으로 좁혀보기), `type`, `sort`(`latest`/`popular`/`pageNumber`), `page`, `size` 지원.
+- `bookId`는 그룹 상세 페이지에서 책 카드를 선택했을 때 "이 책에 대해 그룹 멤버들이 쓴 주석만" 보여주기 위한 필터. 그룹의 `books` 목록에 없는 `bookId`를 주면 빈 배열을 반환.
 - 그룹 안 작성 주석은 `POST /api/annotations`에 `groupId`를 담아 생성(§5 참고).
 응답 `200` — 주석 카드 객체 배열(페이지네이션) · 에러 `403` 멤버 아님
 

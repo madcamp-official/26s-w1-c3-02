@@ -1,38 +1,38 @@
+import { useEffect, useRef, useState } from 'react';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { getBook } from '../api/books';
+import { getBookAnnotations } from '../api/annotations';
+import { getGroup, getGroupAnnotations } from '../api/groups';
+import { getErrorMessage } from '../utils/error';
 
-import { Link, useParams } from 'react-router-dom';
-
-const book = {
-  id: 1,
-  title: '냇물이 흐르듯',
-  author: '오채린',
-  genre: '자기계발',
-  stats: '구절 노트 1개',
-};
-
-const annotations = [
-  {
-    id: 1,
-    page: 33,
-    visibility: '공개',
-    quote: '흐르는 것은 멈추지 않기에 아름답다.',
-    review: '완벽하지 않아도 계속 나아가면 된다는 위로.',
-    author: '하윤',
-    time: '2일 전',
-    comments: 0,
-  },
-  {
-    id: 2,
-    page: 48,
-    visibility: '공개',
-    quote: '삶은 고여 있는 답보다 매일 갱신되는 질문에 가깝다.',
-    review: '읽는 시점마다 다르게 다가올 문장이라 남겨둔다.',
-    author: '서연',
-    time: '4일 전',
-    comments: 3,
-  },
+const FILTERS = [
+  { value: '', label: '전체' },
+  { value: 'QUESTION', label: '질문' },
+  { value: 'DISCUSSION', label: '토론' },
+  { value: 'REVIEW', label: '감상' },
+  { value: 'NORMAL', label: '일반' },
 ];
 
-const filters = ['전체', '질문', '토론', '감상', '일반'];
+const VISIBILITY_LABEL = {
+  public: '공개',
+  friends: '친구공개',
+  group: '그룹',
+  private: '비공개',
+};
+
+const formatRelativeTime = (iso) => {
+  if (!iso) return '';
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 60) return `${Math.max(diffMin, 0)}분 전`;
+  const diffHour = Math.floor(diffMin / 60);
+  if (diffHour < 24) return `${diffHour}시간 전`;
+  const diffDay = Math.floor(diffHour / 24);
+  if (diffDay === 1) return '어제';
+  if (diffDay < 7) return `${diffDay}일 전`;
+  const d = new Date(iso);
+  return `${d.getFullYear()}. ${String(d.getMonth() + 1).padStart(2, '0')}. ${String(d.getDate()).padStart(2, '0')}`;
+};
 
 function LogoMark() {
   return (
@@ -89,41 +89,43 @@ function Header() {
   );
 }
 
-function BookCover() {
+function BookCover({ book }) {
   return (
     <div className="relative aspect-[3/4] w-full max-w-[180px] rounded-md bg-gradient-to-br from-teal-200 via-teal-300 to-teal-600 shadow-float md:max-w-[220px]">
-      <div className="absolute inset-y-0 left-0 w-5 rounded-l-md bg-teal-900/70" />
-      <div className="absolute inset-8 flex flex-col items-center justify-center border border-white/60 text-center text-white">
-        <span className="mb-8 h-px w-10 bg-white/70" />
-        <strong className="text-3xl font-bold leading-snug md:text-4xl">
-          냇물이
-          <br />
-          흐르듯
-        </strong>
-        <span className="mt-8 h-px w-10 bg-white/70" />
-        <span className="mt-5 text-base font-semibold">오채린</span>
-      </div>
+      {book?.coverImageUrl ? (
+        <img className="absolute inset-0 h-full w-full rounded-md object-cover" src={book.coverImageUrl} alt={book.title} />
+      ) : (
+        <>
+          <div className="absolute inset-y-0 left-0 w-5 rounded-l-md bg-teal-900/70" />
+          <div className="absolute inset-8 flex flex-col items-center justify-center border border-white/60 text-center text-white">
+            <span className="mb-8 h-px w-10 bg-white/70" />
+            <strong className="text-3xl font-bold leading-snug md:text-4xl">{book?.title}</strong>
+            <span className="mt-8 h-px w-10 bg-white/70" />
+            <span className="mt-5 text-base font-semibold">{book?.author}</span>
+          </div>
+        </>
+      )}
       <div className="absolute -bottom-2 left-4 right-0 h-3 rounded-b-md bg-black/15 blur-[2px]" />
     </div>
   );
 }
 
-function BookHero() {
+function BookHero({ book }) {
   return (
     <section className="mx-auto grid w-full max-w-[900px] gap-6 py-10 md:grid-cols-[240px_1fr] md:items-center md:py-16">
       <div className="flex justify-center md:justify-start">
-        <BookCover />
+        <BookCover book={book} />
       </div>
 
       <div className="min-w-0 text-center md:text-left">
-        <span className="tag tag--blue mx-auto md:mx-0">{book.genre}</span>
+        <span className="tag tag--blue mx-auto md:mx-0">{book.genreCode}</span>
         <h1 className="mt-5 break-words text-4xl font-extrabold leading-tight text-text md:text-5xl">
           {book.title}
         </h1>
         <p className="mt-5 text-xl font-medium text-text-muted">{book.author} 지음</p>
         <div className="mt-7 flex flex-wrap items-center justify-center gap-4 md:justify-start">
           <button className="button button--secondary button--lg">☆ 서재에 담기</button>
-          <span className="text-base font-medium text-text-subtle">{book.stats}</span>
+          <span className="text-base font-medium text-text-subtle">주석 {book.annotationCount ?? 0}개</span>
         </div>
       </div>
     </section>
@@ -133,30 +135,33 @@ function BookHero() {
 function AnnotationCard({ annotation }) {
   return (
     <Link
-      to={`/annotations/${annotation.id}`}
+      to={`/annotations/${annotation.annotationId}`}
       className="card card--padded block transition hover:-translate-y-1 hover:shadow-card"
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex flex-wrap gap-2">
-          <span className="tag">p.{annotation.page}</span>
-          <span className="tag tag--blue">{annotation.visibility}</span>
+          {annotation.page != null && <span className="tag">p.{annotation.page}</span>}
+          <span className="tag tag--blue">{VISIBILITY_LABEL[annotation.visibility] || annotation.visibility}</span>
+          {annotation.isSpoiler && <span className="tag tag--danger">스포일러</span>}
         </div>
-        <span className="shrink-0 text-sm font-medium text-text-subtle">{annotation.time}</span>
+        <span className="shrink-0 text-sm font-medium text-text-subtle">{formatRelativeTime(annotation.createdAt)}</span>
       </div>
 
       <blockquote className="mt-5 border-l-4 border-primary-soft pl-5 text-2xl font-medium leading-[1.7] text-text">
-        “{annotation.quote}”
+        "{annotation.passage}"
       </blockquote>
-      <p className="mt-4 text-base leading-[1.8] text-text-muted">{annotation.review}</p>
+      {annotation.review && <p className="mt-4 text-base leading-[1.8] text-text-muted">{annotation.review}</p>}
 
       <footer className="mt-7 flex items-center justify-between gap-4 text-sm text-text-muted">
         <div className="flex items-center gap-2">
           <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary-soft text-xs font-bold text-primary">
-            {annotation.author.slice(0, 1)}
+            {annotation.author?.nickname?.slice(0, 1)}
           </span>
-          <span>{annotation.author}</span>
+          <span>{annotation.author?.nickname}</span>
         </div>
-        <span>주석 {annotation.comments}개</span>
+        <span>
+          ♡ {annotation.likeCount || 0} · 댓글 {annotation.commentCount || 0}개
+        </span>
       </footer>
     </Link>
   );
@@ -181,6 +186,85 @@ function SearchAndAction() {
 
 export default function BookDetailPage() {
   const { bookId } = useParams();
+  const [searchParams] = useSearchParams();
+  const groupId = searchParams.get('groupId');
+
+  const [book, setBook] = useState(null);
+  const [isLoadingBook, setIsLoadingBook] = useState(true);
+  const [bookError, setBookError] = useState('');
+
+  const [group, setGroup] = useState(null);
+
+  const [annotations, setAnnotations] = useState([]);
+  const [isLoadingAnnotations, setIsLoadingAnnotations] = useState(true);
+  const [annotationError, setAnnotationError] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
+  const [sortOption, setSortOption] = useState('latest');
+
+  const latestAnnotationRequestId = useRef(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    setIsLoadingBook(true);
+    setBookError('');
+    getBook(bookId)
+      .then((res) => {
+        if (!cancelled) setBook(res);
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          console.error(err);
+          setBookError(getErrorMessage(err));
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingBook(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [bookId]);
+
+  // 그룹 경유로 들어온 경우 배너/뒤로가기용으로 그룹 이름을 함께 불러온다
+  useEffect(() => {
+    if (!groupId) {
+      setGroup(null);
+      return;
+    }
+    let cancelled = false;
+    getGroup(groupId)
+      .then((res) => {
+        if (!cancelled) setGroup(res);
+      })
+      .catch((err) => console.error(err));
+    return () => {
+      cancelled = true;
+    };
+  }, [groupId]);
+
+  useEffect(() => {
+    const requestId = ++latestAnnotationRequestId.current;
+    setIsLoadingAnnotations(true);
+    setAnnotationError('');
+
+    const request = groupId
+      ? getGroupAnnotations(groupId, { bookId, type: typeFilter || undefined, sort: sortOption })
+      : getBookAnnotations(bookId, { type: typeFilter || undefined, sort: sortOption });
+
+    request
+      .then((res) => {
+        if (requestId !== latestAnnotationRequestId.current) return;
+        setAnnotations(res.data || []);
+      })
+      .catch((err) => {
+        if (requestId !== latestAnnotationRequestId.current) return;
+        console.error(err);
+        setAnnotationError(getErrorMessage(err));
+      })
+      .finally(() => {
+        if (requestId === latestAnnotationRequestId.current) setIsLoadingAnnotations(false);
+      });
+  }, [bookId, groupId, typeFilter, sortOption]);
 
   return (
     <div className="min-h-screen bg-page">
@@ -188,44 +272,89 @@ export default function BookDetailPage() {
 
       <div className="border-b border-line bg-white/40">
         <div className="container flex min-h-[58px] items-center gap-2 text-sm font-semibold text-text-muted">
-          <Link to="/search">둘러보기</Link>
+          {groupId ? (
+            <Link to={`/groups/${groupId}`}>{group?.groupName || '그룹'}</Link>
+          ) : (
+            <Link to="/search">둘러보기</Link>
+          )}
           <span>/</span>
-          <span className="text-text">{book.title}</span>
-          <span className="sr-only">현재 책 ID {bookId}</span>
+          <span className="text-text">{book?.title || `책 ${bookId}`}</span>
         </div>
       </div>
 
       <main className="page">
         <div className="container mx-auto grid max-w-[980px] gap-8">
-          <BookHero />
-          <SearchAndAction />
+          {isLoadingBook ? (
+            <div className="card card--padded h-[220px] animate-pulse bg-surfaceMuted" />
+          ) : bookError ? (
+            <div className="card card--padded bg-white text-center py-12">
+              <p className="text-sm font-semibold text-danger">{bookError}</p>
+            </div>
+          ) : (
+            <>
+              <BookHero book={book} />
+              <SearchAndAction />
 
-          <section className="grid gap-4">
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div className="flex flex-wrap gap-2">
-                {filters.map((filter, index) => (
-                  <button
-                    key={filter}
-                    className={`button button--sm ${index === 0 ? 'button--primary' : 'button--secondary'}`}
+              {groupId && (
+                <div className="card card--padded bg-primary-soft text-sm font-semibold text-primary">
+                  🔒 이 목록은 <strong>{group?.groupName || '그룹'}</strong> 멤버들이 작성한 주석만 보여줍니다.{' '}
+                  <Link to={`/groups/${groupId}`} className="underline">
+                    그룹으로 돌아가기
+                  </Link>
+                </div>
+              )}
+
+              <section className="grid gap-4">
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <div className="flex flex-wrap gap-2">
+                    {FILTERS.map((f) => (
+                      <button
+                        key={f.value}
+                        onClick={() => setTypeFilter(f.value)}
+                        className={`button button--sm ${typeFilter === f.value ? 'button--primary' : 'button--secondary'}`}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  <select
+                    className="select w-full md:w-[140px]"
+                    aria-label="정렬"
+                    value={sortOption}
+                    onChange={(e) => setSortOption(e.target.value)}
                   >
-                    {filter}
-                  </button>
-                ))}
-              </div>
+                    <option value="latest">최신순</option>
+                    <option value="popular">인기순</option>
+                    <option value="pageNumber">페이지순</option>
+                  </select>
+                </div>
 
-              <select className="select w-full md:w-[140px]" aria-label="정렬">
-                <option>최신순</option>
-                <option>인기순</option>
-                <option>페이지순</option>
-              </select>
-            </div>
-
-            <div className="grid gap-4">
-              {annotations.map((annotation) => (
-                <AnnotationCard key={annotation.id} annotation={annotation} />
-              ))}
-            </div>
-          </section>
+                {isLoadingAnnotations ? (
+                  <div className="grid gap-4">
+                    <div className="card card--padded h-[180px] animate-pulse bg-surfaceMuted" />
+                    <div className="card card--padded h-[180px] animate-pulse bg-surfaceMuted" />
+                  </div>
+                ) : annotationError ? (
+                  <div className="py-10 text-center">
+                    <p className="text-sm font-semibold text-danger">{annotationError}</p>
+                  </div>
+                ) : annotations.length === 0 ? (
+                  <div className="py-12 text-center card card--padded bg-white/50">
+                    <p className="text-sm font-semibold text-text-muted">
+                      {groupId ? '아직 이 그룹 멤버가 이 책에 남긴 주석이 없습니다' : '아직 작성된 주석이 없습니다'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid gap-4">
+                    {annotations.map((annotation) => (
+                      <AnnotationCard key={annotation.annotationId} annotation={annotation} />
+                    ))}
+                  </div>
+                )}
+              </section>
+            </>
+          )}
         </div>
       </main>
     </div>

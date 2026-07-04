@@ -506,6 +506,25 @@ breakpoint:
 - 운영 도구처럼 명확하고 단순하게 만든다.
 - 검색, 목록, 요청 상태, 액션 버튼을 한눈에 보이게 한다.
 
+### GroupDetailPage (`/groups/:groupId`, `src/pages/GroupDetailPage.jsx`)
+
+- 초안(1차 구현) — `GET /api/groups/{groupId}`(§10)로 그룹 상세(방장·멤버·도서)를 불러온다. **그룹 안에 자체 주석 피드는 없다** — 주석은 항상 책 상세 페이지에서 본다(아래 참고).
+- 레이아웃(위→아래): 그룹 정보 카드 → **그룹 도서**(전체 폭) → **멤버**.
+  - **그룹 정보 카드**: 그룹 이름(방장만 연필 아이콘으로 인라인 수정, `PATCH /api/groups/{id}`) · 방장 닉네임 · 멤버/책 수. 우측에 방장은 "그룹 삭제"(`DELETE /api/groups/{id}`), 일반 멤버는 "그룹 나가기"(`DELETE /api/groups/{id}/members/{내id}`) 버튼 — 둘 다 `window.confirm` 확인 후 실행하고 성공 시 마이페이지로 이동.
+  - **그룹 도서**: 마이페이지 "내 서재"와 동일한 `.book-card`/`.grid--books` 그리드로, 그룹이 선정한 책들을 나열한다. **각 책 카드는 `/books/{bookId}?groupId={groupId}`로 이동하는 링크**다(마이페이지 "내 서재"처럼 책 상세로 이동 — 그룹 안에서 필터링하는 대신 책 상세 페이지에서 그룹 컨텍스트를 넘겨받는다). 카드 좌상단 × 버튼(제거, `DELETE .../books/{bookId}`)은 `preventDefault`+`stopPropagation`으로 카드 이동과 분리. 헤더의 "책 추가" 버튼은 검색 모달(`GET /api/books?keyword=` → `POST /api/groups/{id}/books`)을 연다.
+  - **멤버**: 아바타(이니셜)+닉네임, 방장은 `tag`로 표시. 방장만 "멤버 초대"(닉네임 검색 → `POST /api/groups/{id}/members`)와 각 멤버 옆 ×(내보내기, `DELETE .../members/{userId}`) 버튼을 볼 수 있다.
+- 초대/책검색 모달은 마이페이지의 "친구 찾기"/"라운지 만들기" 모달과 동일한 시각 패턴(`modal-overlay`/`modal`, 검색창+결과 리스트)을 따른다.
+- 로딩/에러/빈 상태는 다른 탭들과 동일하게 스켈레톤(`animate-pulse`)·인라인 에러 텍스트 패턴을 사용.
+- 아직 다듬지 않은 부분(다음 단계에서 보강): 멤버·도서 변경 시 목록 재조회(`loadGroup()`)가 그룹 전체를 다시 불러오는 단순한 방식이라 데이터가 많아지면 최적화 필요.
+
+### BookDetailPage — 그룹 경유 진입 (`?groupId=` 쿼리)
+
+- `GroupDetailPage`의 책 카드에서 넘어오면 URL이 `/books/{bookId}?groupId={groupId}` 형태가 된다. `BookDetailPage`는 이 쿼리 파라미터 유무로 두 가지 모드를 구분한다.
+  - **groupId 없음(일반 진입, 예: 검색/홈에서)**: `GET /api/books/{bookId}/annotations`(§5)로 공개 주석 피드를 보여준다.
+  - **groupId 있음(그룹 경유)**: `GET /api/groups/{groupId}/annotations?bookId={bookId}`(§13)로 **그 그룹 멤버들이 이 책에 남긴 주석만** 보여준다. 상단에 "🔒 이 목록은 《그룹 이름》 멤버들이 작성한 주석만 보여줍니다" 배너 + 그룹으로 돌아가는 링크를 표시하고, 상단 브레드크럼도 "둘러보기" 대신 그룹 이름으로 바뀐다.
+- 유형 필터(전체/질문/토론/감상/일반)와 정렬(최신순/인기순/페이지순)은 두 모드 모두에서 동작하며, 필터가 바뀌면 API에 다시 쿼리해 서버 필터링 결과를 그대로 쓴다(클라이언트 재필터링 없음).
+- 이 페이지는 원래 A(도서/주석) 담당 정적 목업이었으나, 그룹 기능과 맞물리는 부분이라 실제 `GET /api/books/{bookId}`·`GET /api/books/{bookId}/annotations` 연동까지 포함해 이번에 함께 구현했다. 헤더/히어로 레이아웃 등 기존 시각 디자인은 그대로 유지했다.
+
 ## 19. 공통 CSS 시작점
 
 추후 `src/styles/global.css`를 만든다면 아래를 기준으로 시작한다.

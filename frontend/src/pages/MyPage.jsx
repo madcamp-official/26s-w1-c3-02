@@ -300,12 +300,14 @@ function AnnotationRow({ item, meta, onEdit, onDelete }) {
           )}
         </header>
         )}
-        <p className={`annotation-quote line-clamp-2 text-[17px] font-bold text-text mb-3 ${(meta || onEdit || onDelete) ? 'mt-3' : 'mt-0'}`}>
-          "{item.passage}"
-        </p>
-        <p className="text-sm text-text-muted line-clamp-2 mb-4 leading-relaxed">
-          {item.review}
-        </p>
+        <Link to={`/annotations/${item.annotationId}`} className="block transition hover:opacity-80">
+          <p className={`annotation-quote line-clamp-2 text-[17px] font-bold text-text mb-3 ${(meta || onEdit || onDelete) ? 'mt-3' : 'mt-0'}`}>
+            "{item.passage}"
+          </p>
+          <p className="text-sm text-text-muted line-clamp-2 mb-4 leading-relaxed">
+            {item.review}
+          </p>
+        </Link>
         <footer className="card-actions mt-auto border-t border-line pt-3">
           <div className="flex gap-2">
             <span className={`tag ${tagClass}`}>{label}</span>
