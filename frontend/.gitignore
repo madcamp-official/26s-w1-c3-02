@@ -34,10 +34,10 @@ logs/
 Thumbs.db
 
 # 로컬 Mock 서버
-mock-server.js
-db.json
-mock-data.json
-mock-data.local.json
-mock-server.local.js
-.mock/
-.mock-token
+# mock-server.js
+# db.json
+# mock-data.json
+# mock-data.local.json
+# mock-server.local.js
+# .mock/
+# .mock-token
