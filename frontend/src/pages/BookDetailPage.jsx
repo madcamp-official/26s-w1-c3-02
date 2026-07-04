@@ -1,38 +1,71 @@
-
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { getBook } from '../api/books';
+import { getBookAnnotations, searchAnnotations } from '../api/annotations';
+import { getPageData } from '../api/client';
 
-const book = {
-  id: 1,
-  title: '냇물이 흐르듯',
-  author: '오채린',
-  genre: '자기계발',
-  stats: '구절 노트 1개',
-};
-
-const annotations = [
-  {
-    id: 1,
-    page: 33,
-    visibility: '공개',
-    quote: '흐르는 것은 멈추지 않기에 아름답다.',
-    review: '완벽하지 않아도 계속 나아가면 된다는 위로.',
-    author: '하윤',
-    time: '2일 전',
-    comments: 0,
-  },
-  {
-    id: 2,
-    page: 48,
-    visibility: '공개',
-    quote: '삶은 고여 있는 답보다 매일 갱신되는 질문에 가깝다.',
-    review: '읽는 시점마다 다르게 다가올 문장이라 남겨둔다.',
-    author: '서연',
-    time: '4일 전',
-    comments: 3,
-  },
+const typeFilters = [
+  { label: '전체', value: '' },
+  { label: '질문', value: 'QUESTION' },
+  { label: '토론', value: 'DISCUSSION' },
+  { label: '감상', value: 'REVIEW' },
+  { label: '일반', value: 'NORMAL' },
 ];
 
-const filters = ['전체', '질문', '토론', '감상', '일반'];
+const sortOptions = [
+  { label: '최신순', value: 'recent,desc' },
+  { label: '인기순', value: 'likes,desc' },
+  { label: '페이지순', value: 'pageNumber' },
+];
+
+const genreLabels = {
+  NOVEL: '소설',
+  ESSAY: '시/에세이',
+  HUMANITIES: '인문',
+  SCIENCE: '과학',
+  SELF_HELP: '자기계발',
+};
+
+const visibilityLabels = {
+  public: '공개',
+  friends: '친구',
+  private: '비공개',
+  group: '그룹',
+};
+
+function normalizeBook(book) {
+  return {
+    id: book.bookId ?? book.id,
+    title: book.title ?? '제목 없음',
+    author: book.author ?? '작가 미상',
+    genre: book.genreName ?? genreLabels[book.genreCode] ?? book.genre ?? '일반',
+    coverImageUrl: book.coverImageUrl,
+    annotationCount: book.annotationCount ?? 0,
+    isFavorited: Boolean(book.isFavorited),
+  };
+}
+
+function normalizeAnnotation(annotation) {
+  return {
+    id: annotation.annotationId ?? annotation.id,
+    page: annotation.page ?? annotation.pageNumber ?? '-',
+    visibility: visibilityLabels[annotation.visibility] ?? annotation.visibility ?? '공개',
+    quote: annotation.passage ?? annotation.quote ?? '',
+    review: annotation.review ?? annotation.content ?? '',
+    author: annotation.author?.nickname ?? annotation.authorName ?? annotation.author ?? '익명',
+    time: formatDate(annotation.createdAt),
+    comments: annotation.commentCount ?? annotation.comments ?? 0,
+    type: annotation.type,
+    likeCount: annotation.likeCount ?? 0,
+  };
+}
+
+function formatDate(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return new Intl.DateTimeFormat('ko-KR', { month: 'short', day: 'numeric' }).format(date);
+}
 
 function LogoMark() {
   return (
@@ -58,7 +91,8 @@ function Header() {
             <span aria-hidden="true">⌕</span>
             <input
               className="w-full min-w-0 bg-transparent text-text outline-none placeholder:text-text-subtle"
-              placeholder="책 제목, 저자, 문장 검색"
+              placeholder="책 제목, 저자 검색"
+              readOnly
             />
           </label>
         </div>
@@ -89,30 +123,49 @@ function Header() {
   );
 }
 
-function BookCover() {
+function BookCover({ book }) {
+  if (book?.coverImageUrl) {
+    return (
+      <img
+        className="aspect-[3/4] w-full max-w-[180px] rounded-md object-cover shadow-float md:max-w-[220px]"
+        src={book.coverImageUrl}
+        alt={`${book.title} 표지`}
+      />
+    );
+  }
+
   return (
     <div className="relative aspect-[3/4] w-full max-w-[180px] rounded-md bg-gradient-to-br from-teal-200 via-teal-300 to-teal-600 shadow-float md:max-w-[220px]">
       <div className="absolute inset-y-0 left-0 w-5 rounded-l-md bg-teal-900/70" />
       <div className="absolute inset-8 flex flex-col items-center justify-center border border-white/60 text-center text-white">
         <span className="mb-8 h-px w-10 bg-white/70" />
-        <strong className="text-3xl font-bold leading-snug md:text-4xl">
-          냇물이
-          <br />
-          흐르듯
-        </strong>
+        <strong className="break-words text-3xl font-bold leading-snug md:text-4xl">{book?.title ?? '책'}</strong>
         <span className="mt-8 h-px w-10 bg-white/70" />
-        <span className="mt-5 text-base font-semibold">오채린</span>
+        <span className="mt-5 text-base font-semibold">{book?.author ?? '작가 미상'}</span>
       </div>
       <div className="absolute -bottom-2 left-4 right-0 h-3 rounded-b-md bg-black/15 blur-[2px]" />
     </div>
   );
 }
 
-function BookHero() {
+function BookHero({ book, isLoading }) {
+  if (isLoading) {
+    return (
+      <section className="mx-auto grid w-full max-w-[900px] gap-6 py-10 md:grid-cols-[240px_1fr] md:items-center md:py-16">
+        <div className="mx-auto aspect-[3/4] w-full max-w-[180px] animate-pulse rounded-md bg-surfaceMuted md:mx-0 md:max-w-[220px]" />
+        <div className="grid gap-4">
+          <div className="h-6 w-20 rounded-full bg-surfaceMuted" />
+          <div className="h-12 w-2/3 rounded bg-surfaceMuted" />
+          <div className="h-5 w-1/3 rounded bg-surfaceMuted" />
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="mx-auto grid w-full max-w-[900px] gap-6 py-10 md:grid-cols-[240px_1fr] md:items-center md:py-16">
       <div className="flex justify-center md:justify-start">
-        <BookCover />
+        <BookCover book={book} />
       </div>
 
       <div className="min-w-0 text-center md:text-left">
@@ -122,8 +175,10 @@ function BookHero() {
         </h1>
         <p className="mt-5 text-xl font-medium text-text-muted">{book.author} 지음</p>
         <div className="mt-7 flex flex-wrap items-center justify-center gap-4 md:justify-start">
-          <button className="button button--secondary button--lg">☆ 서재에 담기</button>
-          <span className="text-base font-medium text-text-subtle">{book.stats}</span>
+          <button className="button button--secondary button--lg" type="button">
+            {book.isFavorited ? '★ 서재에 담김' : '☆ 서재에 담기'}
+          </button>
+          <span className="text-base font-medium text-text-subtle">구절 노트 {book.annotationCount}개</span>
         </div>
       </div>
     </section>
@@ -140,6 +195,7 @@ function AnnotationCard({ annotation }) {
         <div className="flex flex-wrap gap-2">
           <span className="tag">p.{annotation.page}</span>
           <span className="tag tag--blue">{annotation.visibility}</span>
+          {annotation.type && <span className="tag tag--rose">{typeFilters.find((item) => item.value === annotation.type)?.label}</span>}
         </div>
         <span className="shrink-0 text-sm font-medium text-text-subtle">{annotation.time}</span>
       </div>
@@ -156,22 +212,46 @@ function AnnotationCard({ annotation }) {
           </span>
           <span>{annotation.author}</span>
         </div>
-        <span>주석 {annotation.comments}개</span>
+        <span>♡ {annotation.likeCount} · 댓글 {annotation.comments}개</span>
       </footer>
     </Link>
   );
 }
 
-function SearchAndAction() {
+function AnnotationSkeleton() {
+  return (
+    <article className="card card--padded animate-pulse">
+      <div className="flex justify-between">
+        <div className="h-6 w-24 rounded-full bg-surfaceMuted" />
+        <div className="h-4 w-16 rounded bg-surfaceMuted" />
+      </div>
+      <div className="mt-5 h-16 rounded bg-surfaceMuted" />
+      <div className="mt-4 h-5 w-3/4 rounded bg-surfaceMuted" />
+      <div className="mt-7 h-5 w-1/2 rounded bg-surfaceMuted" />
+    </article>
+  );
+}
+
+function SearchAndAction({ value, onChange, onSearch, onReset }) {
   return (
     <section className="grid gap-4 border-t border-line pt-7 md:grid-cols-[1fr_auto] md:items-center">
-      <label className="flex min-h-14 items-center gap-3 rounded-full border border-line bg-white px-5 text-base text-text-muted shadow-soft focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10">
+      <form className="flex min-h-14 items-center gap-3 rounded-full border border-line bg-white px-5 text-base text-text-muted shadow-soft focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10" onSubmit={onSearch}>
         <span aria-hidden="true">⌕</span>
         <input
           className="w-full min-w-0 bg-transparent text-text outline-none placeholder:text-text-subtle"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
           placeholder="페이지 번호 또는 구절로 검색"
         />
-      </label>
+        {value && (
+          <button className="button button--ghost button--sm shrink-0" type="button" onClick={onReset}>
+            초기화
+          </button>
+        )}
+        <button className="button button--primary button--sm shrink-0" type="submit">
+          검색
+        </button>
+      </form>
       <Link to="/annotations/new" className="button button--primary button--lg rounded-full px-8">
         + 구절 노트 작성
       </Link>
@@ -181,6 +261,103 @@ function SearchAndAction() {
 
 export default function BookDetailPage() {
   const { bookId } = useParams();
+  const [book, setBook] = useState(null);
+  const [annotations, setAnnotations] = useState([]);
+  const [type, setType] = useState('');
+  const [sort, setSort] = useState('recent,desc');
+  const [searchInput, setSearchInput] = useState('');
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [isBookLoading, setIsBookLoading] = useState(true);
+  const [isAnnotationsLoading, setIsAnnotationsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const visibleBook = useMemo(
+    () =>
+      book ?? {
+        title: '책 상세',
+        author: '',
+        genre: '일반',
+        annotationCount: 0,
+        isFavorited: false,
+      },
+    [book],
+  );
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadBook() {
+      setIsBookLoading(true);
+
+      try {
+        const response = await getBook(bookId);
+        if (!ignore) setBook(normalizeBook(response));
+      } catch (error) {
+        if (!ignore) setErrorMessage(error.message || '책 정보를 불러오지 못했습니다.');
+      } finally {
+        if (!ignore) setIsBookLoading(false);
+      }
+    }
+
+    loadBook();
+
+    return () => {
+      ignore = true;
+    };
+  }, [bookId]);
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadAnnotations() {
+      setIsAnnotationsLoading(true);
+      setErrorMessage('');
+
+      try {
+        const params = {
+          type: type || undefined,
+          sort,
+          page: 1,
+          size: 20,
+        };
+        const trimmedSearch = searchKeyword.trim();
+        const pageNumber = Number(trimmedSearch);
+        const response = trimmedSearch
+          ? await searchAnnotations({
+              ...params,
+              bookId,
+              keyword: Number.isNaN(pageNumber) ? trimmedSearch : undefined,
+              pageNumber: Number.isNaN(pageNumber) ? undefined : pageNumber,
+            })
+          : await getBookAnnotations(bookId, params);
+        const page = getPageData(response);
+        if (!ignore) setAnnotations(page.data.map(normalizeAnnotation));
+      } catch (error) {
+        if (!ignore) {
+          setAnnotations([]);
+          setErrorMessage(error.message || '주석 목록을 불러오지 못했습니다.');
+        }
+      } finally {
+        if (!ignore) setIsAnnotationsLoading(false);
+      }
+    }
+
+    loadAnnotations();
+
+    return () => {
+      ignore = true;
+    };
+  }, [bookId, type, sort, searchKeyword]);
+
+  const handleSearch = (event) => {
+    event.preventDefault();
+    setSearchKeyword(searchInput.trim());
+  };
+
+  const resetSearch = () => {
+    setSearchInput('');
+    setSearchKeyword('');
+  };
 
   return (
     <div className="min-h-screen bg-page">
@@ -188,43 +365,71 @@ export default function BookDetailPage() {
 
       <div className="border-b border-line bg-white/40">
         <div className="container flex min-h-[58px] items-center gap-2 text-sm font-semibold text-text-muted">
-          <Link to="/search">둘러보기</Link>
+          <Link to="/">홈</Link>
           <span>/</span>
-          <span className="text-text">{book.title}</span>
+          <span className="text-text">{visibleBook.title}</span>
           <span className="sr-only">현재 책 ID {bookId}</span>
         </div>
       </div>
 
       <main className="page">
         <div className="container mx-auto grid max-w-[980px] gap-8">
-          <BookHero />
-          <SearchAndAction />
+          <BookHero book={visibleBook} isLoading={isBookLoading} />
+          <SearchAndAction
+            value={searchInput}
+            onChange={setSearchInput}
+            onSearch={handleSearch}
+            onReset={resetSearch}
+          />
 
           <section className="grid gap-4">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div className="flex flex-wrap gap-2">
-                {filters.map((filter, index) => (
+                {typeFilters.map((filter) => (
                   <button
-                    key={filter}
-                    className={`button button--sm ${index === 0 ? 'button--primary' : 'button--secondary'}`}
+                    key={filter.value || 'all'}
+                    className={`button button--sm ${type === filter.value ? 'button--primary' : 'button--secondary'}`}
+                    type="button"
+                    onClick={() => setType(filter.value)}
                   >
-                    {filter}
+                    {filter.label}
                   </button>
                 ))}
               </div>
 
-              <select className="select w-full md:w-[140px]" aria-label="정렬">
-                <option>최신순</option>
-                <option>인기순</option>
-                <option>페이지순</option>
+              <select
+                className="select w-full md:w-[140px]"
+                aria-label="정렬"
+                value={sort}
+                onChange={(event) => setSort(event.target.value)}
+              >
+                {sortOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </div>
 
-            <div className="grid gap-4">
-              {annotations.map((annotation) => (
-                <AnnotationCard key={annotation.id} annotation={annotation} />
-              ))}
-            </div>
+            {errorMessage && (
+              <div className="py-12 text-center">
+                <p className="text-sm font-semibold text-text-muted">{errorMessage}</p>
+              </div>
+            )}
+
+            {!errorMessage && (
+              <div className="grid gap-4">
+                {isAnnotationsLoading
+                  ? Array.from({ length: 2 }).map((_, index) => <AnnotationSkeleton key={index} />)
+                  : annotations.map((annotation) => <AnnotationCard key={annotation.id} annotation={annotation} />)}
+              </div>
+            )}
+
+            {!isAnnotationsLoading && !errorMessage && annotations.length === 0 && (
+              <div className="py-12 text-center">
+                <p className="text-sm font-semibold text-text-muted">아직 등록된 주석이 없습니다</p>
+              </div>
+            )}
           </section>
         </div>
       </main>
