@@ -3,14 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { getBook } from '../api/books';
 import { getBookAnnotations, searchAnnotations } from '../api/annotations';
 import { getPageData } from '../api/client';
-
-const typeFilters = [
-  { label: '전체', value: '' },
-  { label: '질문', value: 'QUESTION' },
-  { label: '토론', value: 'DISCUSSION' },
-  { label: '감상', value: 'REVIEW' },
-  { label: '일반', value: 'NORMAL' },
-];
+import { like, unlike } from '../api/likes';
 
 const sortOptions = [
   { label: '최신순', value: 'recent,desc' },
@@ -55,8 +48,9 @@ function normalizeAnnotation(annotation) {
     author: annotation.author?.nickname ?? annotation.authorName ?? annotation.author ?? '익명',
     time: formatDate(annotation.createdAt),
     comments: annotation.commentCount ?? annotation.comments ?? 0,
-    type: annotation.type,
     likeCount: annotation.likeCount ?? 0,
+    isLiked: Boolean(annotation.isLiked),
+    isSpoiler: Boolean(annotation.isSpoiler),
   };
 }
 
@@ -186,6 +180,35 @@ function BookHero({ book, isLoading }) {
 }
 
 function AnnotationCard({ annotation }) {
+  const [isRevealed, setIsRevealed] = useState(!annotation.isSpoiler);
+  const [isLiked, setIsLiked] = useState(annotation.isLiked);
+  const [likeCount, setLikeCount] = useState(annotation.likeCount);
+  const [isLikePending, setIsLikePending] = useState(false);
+  const shouldHideContent = annotation.isSpoiler && !isRevealed;
+
+  const handleLike = async (event) => {
+    event.preventDefault();
+    if (isLikePending) return;
+
+    setIsLikePending(true);
+    const nextLiked = !isLiked;
+    setIsLiked(nextLiked);
+    setLikeCount((count) => Math.max(count + (nextLiked ? 1 : -1), 0));
+
+    try {
+      if (nextLiked) {
+        await like({ targetType: 'annotation', targetId: annotation.id });
+      } else {
+        await unlike({ targetType: 'annotation', targetId: annotation.id });
+      }
+    } catch {
+      setIsLiked(!nextLiked);
+      setLikeCount((count) => Math.max(count + (nextLiked ? -1 : 1), 0));
+    } finally {
+      setIsLikePending(false);
+    }
+  };
+
   return (
     <Link
       to={`/annotations/${annotation.id}`}
@@ -195,25 +218,52 @@ function AnnotationCard({ annotation }) {
         <div className="flex flex-wrap gap-2">
           <span className="tag">p.{annotation.page}</span>
           <span className="tag tag--blue">{annotation.visibility}</span>
-          {annotation.type && <span className="tag tag--rose">{typeFilters.find((item) => item.value === annotation.type)?.label}</span>}
+          {annotation.isSpoiler && <span className="tag tag--danger">스포일러</span>}
         </div>
         <span className="shrink-0 text-sm font-medium text-text-subtle">{annotation.time}</span>
       </div>
 
-      <blockquote className="mt-5 border-l-4 border-primary-soft pl-5 text-2xl font-medium leading-[1.7] text-text">
-        “{annotation.quote}”
-      </blockquote>
-      <p className="mt-4 text-base leading-[1.8] text-text-muted">{annotation.review}</p>
-
-      <footer className="mt-7 flex items-center justify-between gap-4 text-sm text-text-muted">
-        <div className="flex items-center gap-2">
-          <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary-soft text-xs font-bold text-primary">
-            {annotation.author.slice(0, 1)}
-          </span>
-          <span>{annotation.author}</span>
+      {shouldHideContent ? (
+        <div className="mt-5 rounded-sm border border-line bg-surfaceMuted p-5 text-center">
+          <p className="text-sm font-bold text-text-muted">스포일러가 포함된 구절 노트입니다.</p>
+          <button
+            className="button button--secondary button--sm mt-4"
+            type="button"
+            onClick={(event) => {
+              event.preventDefault();
+              setIsRevealed(true);
+            }}
+          >
+            보기
+          </button>
         </div>
-        <span>♡ {annotation.likeCount} · 댓글 {annotation.comments}개</span>
-      </footer>
+      ) : (
+        <>
+          <blockquote className="mt-5 border-l-4 border-primary-soft pl-5 text-2xl font-medium leading-[1.7] text-text">
+            “{annotation.quote}”
+          </blockquote>
+          <p className="mt-4 text-base leading-[1.8] text-text-muted">{annotation.review}</p>
+        </>
+      )}
+
+      {!shouldHideContent && (
+        <footer className="mt-7 flex items-center justify-between gap-4 text-sm text-text-muted">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary-soft text-xs font-bold text-primary">
+              {annotation.author.slice(0, 1)}
+            </span>
+            <span>{annotation.author}</span>
+          </div>
+          <button
+            className={`button button--sm ${isLiked ? 'button--primary' : 'button--secondary'}`}
+            type="button"
+            disabled={isLikePending}
+            onClick={handleLike}
+          >
+            ▲ 좋아요 {likeCount}
+          </button>
+        </footer>
+      )}
     </Link>
   );
 }
@@ -232,7 +282,7 @@ function AnnotationSkeleton() {
   );
 }
 
-function SearchAndAction({ value, onChange, onSearch, onReset }) {
+function SearchAndAction({ bookId, value, onChange, onSearch, onReset }) {
   return (
     <section className="grid gap-4 border-t border-line pt-7 md:grid-cols-[1fr_auto] md:items-center">
       <form className="flex min-h-14 items-center gap-3 rounded-full border border-line bg-white px-5 text-base text-text-muted shadow-soft focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10" onSubmit={onSearch}>
@@ -252,7 +302,7 @@ function SearchAndAction({ value, onChange, onSearch, onReset }) {
           검색
         </button>
       </form>
-      <Link to="/annotations/new" className="button button--primary button--lg rounded-full px-8">
+      <Link to={`/annotations/new?bookId=${bookId}`} className="button button--primary button--lg rounded-full px-8">
         + 구절 노트 작성
       </Link>
     </section>
@@ -263,7 +313,6 @@ export default function BookDetailPage() {
   const { bookId } = useParams();
   const [book, setBook] = useState(null);
   const [annotations, setAnnotations] = useState([]);
-  const [type, setType] = useState('');
   const [sort, setSort] = useState('recent,desc');
   const [searchInput, setSearchInput] = useState('');
   const [searchKeyword, setSearchKeyword] = useState('');
@@ -315,7 +364,6 @@ export default function BookDetailPage() {
 
       try {
         const params = {
-          type: type || undefined,
           sort,
           page: 1,
           size: 20,
@@ -347,7 +395,7 @@ export default function BookDetailPage() {
     return () => {
       ignore = true;
     };
-  }, [bookId, type, sort, searchKeyword]);
+  }, [bookId, sort, searchKeyword]);
 
   const handleSearch = (event) => {
     event.preventDefault();
@@ -376,6 +424,7 @@ export default function BookDetailPage() {
         <div className="container mx-auto grid max-w-[980px] gap-8">
           <BookHero book={visibleBook} isLoading={isBookLoading} />
           <SearchAndAction
+            bookId={bookId}
             value={searchInput}
             onChange={setSearchInput}
             onSearch={handleSearch}
@@ -384,19 +433,6 @@ export default function BookDetailPage() {
 
           <section className="grid gap-4">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div className="flex flex-wrap gap-2">
-                {typeFilters.map((filter) => (
-                  <button
-                    key={filter.value || 'all'}
-                    className={`button button--sm ${type === filter.value ? 'button--primary' : 'button--secondary'}`}
-                    type="button"
-                    onClick={() => setType(filter.value)}
-                  >
-                    {filter.label}
-                  </button>
-                ))}
-              </div>
-
               <select
                 className="select w-full md:w-[140px]"
                 aria-label="정렬"

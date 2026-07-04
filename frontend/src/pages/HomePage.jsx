@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { getBooks } from '../api/books';
 import { getPageData } from '../api/client';
 
@@ -350,9 +350,9 @@ function Footer() {
 }
 
 export default function HomePage() {
+  const navigate = useNavigate();
   const [books, setBooks] = useState([]);
   const [keyword, setKeyword] = useState('');
-  const [submittedKeyword, setSubmittedKeyword] = useState('');
   const [searchCategory, setSearchCategory] = useState('all');
   const [genreCode, setGenreCode] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -372,7 +372,6 @@ export default function HomePage() {
 
       try {
         const response = await getBooks({
-          keyword: submittedKeyword || undefined,
           genreCode: genreCode || undefined,
           page: 1,
           size: 4,
@@ -394,11 +393,18 @@ export default function HomePage() {
     return () => {
       ignore = true;
     };
-  }, [submittedKeyword, genreCode]);
+  }, [genreCode]);
 
   const handleSearch = (event) => {
     event.preventDefault();
-    setSubmittedKeyword(keyword.trim());
+    const params = new URLSearchParams({ category: searchCategory });
+    const trimmedKeyword = keyword.trim();
+
+    if (trimmedKeyword) {
+      params.set('q', trimmedKeyword);
+    }
+
+    navigate(`/search?${params.toString()}`);
   };
 
   return (
@@ -437,18 +443,6 @@ export default function HomePage() {
 
             <div className="flex items-center justify-between gap-4 text-sm font-semibold text-text-muted">
               <span>{selectedGenreLabel} 책</span>
-              {submittedKeyword && (
-                <button
-                  className="button button--ghost button--sm"
-                  type="button"
-                  onClick={() => {
-                    setKeyword('');
-                    setSubmittedKeyword('');
-                  }}
-                >
-                  검색 초기화
-                </button>
-              )}
             </div>
 
             {errorMessage && (
@@ -475,9 +469,7 @@ export default function HomePage() {
           <section className="grid gap-4 border-t border-line pt-7">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <h2 className="section-title mr-2">오늘의 문장 피드</h2>
-              <Link to="/annotations/new" className="button button--primary">
-                문장 공유하기
-              </Link>
+              
             </div>
 
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
