@@ -1,9 +1,49 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { getBooks } from '../api/books';
-import { getAnnotationFeed } from '../api/annotations';
-import { getPageData } from '../api/client';
-import SiteHeader from '../components/SiteHeader';
+import { Link } from 'react-router-dom';
+import Header from '../components/layout/Header';
+import Footer from '../components/layout/Footer';
+
+const recommendedBooks = [
+  {
+    id: 1,
+    title: '순간의 나와 영원의 당신',
+    author: '김초엽',
+    genre: '소설',
+    saves: '1.2k',
+    cover: 'from-sky-100 via-blue-100 to-slate-200',
+  },
+  {
+    id: 2,
+    title: '연금술사',
+    author: '파울로 코엘료',
+    genre: '소설',
+    saves: '2.8k',
+    cover: 'from-slate-900 via-indigo-900 to-amber-700',
+  },
+  {
+    id: 3,
+    title: '달과 6펜스',
+    author: '서머싯 몸',
+    genre: '소설',
+    saves: '1.6k',
+    cover: 'from-emerald-200 via-stone-300 to-rose-200',
+  },
+  {
+    id: 4,
+    title: '나를 소모하지 않는 현명한 태도',
+    author: '마티아스 뇔케',
+    genre: '에세이',
+    saves: '3.1k',
+    cover: 'from-slate-100 via-white to-blue-200',
+  },
+  {
+    id: 5,
+    title: '카라마조프가의 형제들',
+    author: '도스토예프스키',
+    genre: '소설',
+    saves: '2.2k',
+    cover: 'from-stone-100 via-amber-100 to-stone-300',
+  },
+];
 
 const feedItems = [
   {
@@ -41,198 +81,7 @@ const feedItems = [
   },
 ];
 
-const genreFilters = [
-  { label: '전체', value: '' },
-  { label: '소설', value: 'NOVEL' },
-  { label: '시/에세이', value: 'ESSAY' },
-  { label: '인문', value: 'HUMANITIES' },
-  { label: '과학', value: 'SCIENCE' },
-  { label: '자기계발', value: 'SELF_HELP' },
-];
-
-const genreLabels = {
-  NOVEL: '소설',
-  ESSAY: '시/에세이',
-  HUMANITIES: '인문',
-  SCIENCE: '과학',
-  SELF_HELP: '자기계발',
-};
-
-const searchCategories = [
-  { label: '통합검색', value: 'all' },
-  { label: '책', value: 'book' },
-  { label: '주석', value: 'annotation' },
-  { label: '저자', value: 'author' },
-];
-
-function normalizeBook(book) {
-  const bookId = book.bookId ?? book.id;
-
-  return {
-    id: bookId,
-    title: book.title ?? '제목 없음',
-    author: book.author ?? '작가 미상',
-    genre: book.genreName ?? genreLabels[book.genreCode] ?? book.genre ?? '일반',
-    saves: book.favoriteCount ?? book.annotationCount ?? 0,
-    coverImageUrl: book.coverImageUrl,
-  };
-}
-
-function normalizeFeedItem(annotation) {
-  return {
-    id: annotation.annotationId ?? annotation.id,
-    author: annotation.author?.nickname ?? annotation.authorName ?? annotation.author ?? '익명',
-    time: formatRelativeTime(annotation.createdAt),
-    book: annotation.book?.title ?? annotation.bookTitle ?? '책 정보 없음',
-    quote: annotation.passage ?? annotation.quote ?? '',
-    review: annotation.review ?? '',
-    likes: annotation.likeCount ?? 0,
-    comments: annotation.commentCount ?? annotation.comments ?? 0,
-    avatar: 'bg-primary-soft',
-  };
-}
-
-function formatRelativeTime(value) {
-  if (!value) return '';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
-
-  const diffMs = Date.now() - date.getTime();
-  const diffMinutes = Math.max(Math.floor(diffMs / 60000), 0);
-  if (diffMinutes < 60) return `${Math.max(diffMinutes, 1)}분 전`;
-
-  const diffHours = Math.floor(diffMinutes / 60);
-  if (diffHours < 24) return `${diffHours}시간 전`;
-
-  return `${Math.floor(diffHours / 24)}일 전`;
-}
-
-function LogoMark() {
-  return (
-    <span className="relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-primary-soft">
-      <span className="absolute left-2 top-1.5 h-5 w-2 -skew-y-12 rounded-[2px] bg-primary" />
-      <span className="absolute right-2 top-1.5 h-5 w-2 skew-y-12 rounded-[2px] bg-primary/85" />
-    </span>
-  );
-}
-
-function BookSearchForm({
-  value,
-  onChange,
-  onSubmit,
-  className = '',
-  showCategory = false,
-  category = 'all',
-  onCategoryChange,
-}) {
-  if (showCategory) {
-    return (
-      <form
-        className={`flex min-h-11 w-full items-center overflow-hidden rounded-full border border-line bg-white shadow-soft focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10 ${className}`}
-        onSubmit={onSubmit}
-      >
-        <label className="sr-only" htmlFor="header-search-category">
-          검색 카테고리
-        </label>
-        <select
-          id="header-search-category"
-          className="h-11 w-[116px] shrink-0 border-0 bg-transparent px-4 text-sm font-bold text-text outline-none"
-          value={category}
-          onChange={(event) => onCategoryChange(event.target.value)}
-        >
-          {searchCategories.map((item) => (
-            <option key={item.value} value={item.value}>
-              {item.label}
-            </option>
-          ))}
-        </select>
-        <span className="h-5 w-px shrink-0 bg-line" aria-hidden="true" />
-        <label className="flex min-w-0 flex-1 items-center">
-          <span className="sr-only">검색어</span>
-          <input
-            className="h-11 w-full min-w-0 bg-transparent px-4 text-sm text-text outline-none placeholder:text-text-subtle"
-            value={value}
-            onChange={(event) => onChange(event.target.value)}
-            placeholder="책 제목, 주석, 저자 검색"
-          />
-        </label>
-        <button
-          className="flex h-11 w-12 shrink-0 items-center justify-center text-xl font-bold text-primary transition hover:bg-primary-soft"
-          type="submit"
-          aria-label="검색"
-        >
-          ⌕
-        </button>
-      </form>
-    );
-  }
-
-  return (
-    <form className={`flex w-full flex-col gap-2 sm:flex-row ${className}`} onSubmit={onSubmit}>
-      <label className="form-field flex-1">
-        <span className="sr-only">책 검색</span>
-        <input
-          className="input"
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          placeholder="책 제목 또는 저자"
-        />
-      </label>
-      <button className="button button--primary shrink-0" type="submit">
-        검색
-      </button>
-    </form>
-  );
-}
-
-function Header({ keyword, onKeywordChange, onSearch, searchCategory, onSearchCategoryChange }) {
-  return (
-    <header className="site-header">
-      <div className="container grid min-h-[72px] grid-cols-[auto_1fr_auto] items-center gap-4 lg:gap-8">
-        <Link to="/" className="brand justify-self-start">
-          <LogoMark />
-          <span>문장서재</span>
-          <span className="brand__subtitle hidden xl:inline">문장을 수집하고, 생각을 나누는 공간</span>
-        </Link>
-
-        <div className="w-full min-w-[220px] max-w-[520px] md:w-[min(44vw,520px)] md:max-w-none lg:w-[min(38vw,520px)]">
-          <BookSearchForm
-            value={keyword}
-            onChange={onKeywordChange}
-            onSubmit={onSearch}
-            showCategory
-            category={searchCategory}
-            onCategoryChange={onSearchCategoryChange}
-          />
-        </div>
-
-        <div className="flex justify-self-end">
-          <nav className="hidden items-center gap-3 md:flex lg:gap-5 xl:gap-7" aria-label="주요 메뉴">
-            <Link className="nav__link nav__link--active shrink-0" to="/">
-              홈
-            </Link>
-            <Link className="nav__link shrink-0" to="/search">
-              둘러보기
-            </Link>
-            <Link className="nav__link shrink-0" to="/mypage">
-              내 서재
-            </Link>
-            <Link className="nav__link shrink-0" to="/groups">
-              활동
-            </Link>
-            <Link className="nav__link shrink-0" to="/login">
-              로그인
-            </Link>
-          </nav>
-
-          <Link className="button button--primary button--sm shrink-0 whitespace-nowrap md:hidden" to="/login">
-            로그인
-          </Link>
-        </div>
-      </div>
-    </header>
-  );
-}
+const filters = ['전체',  '소설', '시/에세이', '인문', '자기계발'];
 
 function HeroScene() {
   return (
@@ -270,14 +119,27 @@ function HomeHero() {
             <p className="mt-5 text-base font-medium text-text-muted">- 헤르만 헤세, 데미안</p>
           </div>
         </div>
+
+        <div className="mt-10 flex flex-wrap items-center gap-3">
+          <div className="flex -space-x-2">
+            {['bg-rose-200', 'bg-amber-200', 'bg-slate-300', 'bg-emerald-200'].map((color) => (
+              <span key={color} className={`h-7 w-7 rounded-full border-2 border-white ${color}`} />
+            ))}
+          </div>
+          <span className="text-sm font-semibold text-text-muted">1,247명이 공감했습니다</span>
+        </div>
       </div>
+
+      <button className="button button--secondary button--sm absolute right-6 top-6 hidden md:inline-flex">
+        저장하기
+      </button>
     </section>
   );
 }
 
-function BookCoverFallback({ title }) {
+function BookCover({ cover, title }) {
   return (
-    <div className="book-cover bg-gradient-to-br from-sky-100 via-blue-100 to-slate-200">
+    <div className={`book-cover bg-gradient-to-br ${cover}`}>
       <div className="flex h-full items-end p-2">
         <span className="line-clamp-3 text-[10px] font-bold leading-tight text-text/80">{title}</span>
       </div>
@@ -288,51 +150,38 @@ function BookCoverFallback({ title }) {
 function BookCard({ book }) {
   return (
     <Link to={`/books/${book.id}`} className="block">
-      <article className="card book-card">
-        {book.coverImageUrl ? (
-          <img className="book-cover" src={book.coverImageUrl} alt={`${book.title} 표지`} />
-        ) : (
-          <BookCoverFallback title={book.title} />
-        )}
+    <article className="card book-card">
+      <img className="book-cover" src={book.coverImageUrl} alt={`${book.title} 표지`} />
 
-        <div className="min-w-0 flex h-full flex-col">
-          <h3 className="line-clamp-2 min-h-[44px] text-[15px] font-bold leading-[1.45] text-text">
-            {book.title}
-          </h3>
-          <p className="mt-1 truncate text-sm text-text-muted">{book.author}</p>
-          <div className="mt-auto flex items-center justify-between gap-3 pt-4">
-            <span className="tag tag--blue shrink-0 whitespace-nowrap">{book.genre}</span>
-            <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-sm text-text-muted">
-              <span>노트</span>
-              <span>{book.saves}</span>
-            </span>
-          </div>
+      <div className="min-w-0 flex h-full flex-col">
+        <h3 className="line-clamp-2 min-h-[44px] text-[15px] font-bold leading-[1.45] text-text">
+          {book.title}
+        </h3>
+
+        <p className="mt-1 truncate text-sm text-text-muted">
+          {book.author}
+        </p>
+
+        <div className="mt-auto flex items-center justify-between gap-3 pt-4">
+          <span className="tag tag--blue shrink-0 whitespace-nowrap">
+            {book.genre}
+          </span>
+
+          <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-sm text-text-muted">
+            <span>♡</span>
+            <span>{book.saves}</span>
+          </span>
         </div>
-      </article>
+      </div>
+    </article>
     </Link>
   );
 }
 
-function BookCardSkeleton() {
-  return (
-    <article className="card book-card animate-pulse">
-      <div className="book-cover bg-surfaceMuted" />
-      <div className="min-w-0">
-        <div className="h-4 w-2/3 rounded bg-surfaceMuted" />
-        <div className="mt-2 h-3 w-1/2 rounded bg-surfaceMuted" />
-        <div className="mt-5 flex items-center justify-between">
-          <div className="h-6 w-14 rounded-full bg-surfaceMuted" />
-          <div className="h-3 w-10 rounded bg-surfaceMuted" />
-        </div>
-      </div>
-    </article>
-  );
-}
 
 function AnnotationCard({ item }) {
   return (
-    <Link to={`/annotations/${item.id}`} className="block h-full">
-      <article className="card annotation-card h-full transition hover:-translate-y-1 hover:shadow-card">
+    <article className="card annotation-card transition hover:-translate-y-1 hover:shadow-card">
       <header className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <span className={`avatar ${item.avatar}`} />
@@ -344,6 +193,9 @@ function AnnotationCard({ item }) {
             <p className="mt-1 truncate text-xs font-semibold text-text-muted">「{item.book}」</p>
           </div>
         </div>
+        <button className="button button--ghost button--sm" aria-label="더보기">
+          ···
+        </button>
       </header>
 
       <div>
@@ -351,6 +203,7 @@ function AnnotationCard({ item }) {
           <span className="mr-2 text-3xl font-bold text-primary-soft">“</span>
           {item.quote}
         </p>
+        <span className="tag tag--blue">#{item.tag}</span>
       </div>
 
       <footer className="card-actions">
@@ -358,205 +211,88 @@ function AnnotationCard({ item }) {
           <span>♡ {item.likes}</span>
           <span>댓글 {item.comments}</span>
         </div>
+        <button className="text-lg text-text-muted" aria-label="저장">
+          ▱
+        </button>
       </footer>
-      </article>
-    </Link>
-  );
-}
-
-function Footer() {
-  return (
-    <footer className="mt-16 border-t border-line bg-white/70">
-      <div className="container flex flex-col gap-4 py-6 text-sm text-text-muted md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center gap-3">
-          <LogoMark />
-          <strong className="text-lg text-primary">문장서재</strong>
-          <span className="hidden sm:inline">문장을 수집하고, 생각을 나누는 공간</span>
-        </div>
-      </div>
-    </footer>
+    </article>
   );
 }
 
 export default function HomePage() {
-  const navigate = useNavigate();
-  const [books, setBooks] = useState([]);
-  const [todayFeed, setTodayFeed] = useState([]);
-  const [keyword, setKeyword] = useState('');
-  const [searchCategory, setSearchCategory] = useState('all');
-  const [genreCode, setGenreCode] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-  const [isFeedLoading, setIsFeedLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [feedErrorMessage, setFeedErrorMessage] = useState('');
-
-  const selectedGenreLabel = useMemo(
-    () => genreFilters.find((filter) => filter.value === genreCode)?.label ?? '전체',
-    [genreCode],
-  );
-
-  useEffect(() => {
-    let ignore = false;
-
-    async function loadBooks() {
-      setIsLoading(true);
-      setErrorMessage('');
-
-      try {
-        const response = await getBooks({
-          genreCode: genreCode || undefined,
-          page: 1,
-          size: 4,
-        });
-        const page = getPageData(response);
-        if (!ignore) setBooks(page.data.map(normalizeBook));
-      } catch (error) {
-        if (!ignore) {
-          setBooks([]);
-          setErrorMessage(error.message || '책 목록을 불러오지 못했습니다.');
-        }
-      } finally {
-        if (!ignore) setIsLoading(false);
-      }
-    }
-
-    loadBooks();
-
-    return () => {
-      ignore = true;
-    };
-  }, [genreCode]);
-
-  useEffect(() => {
-    let ignore = false;
-
-    async function loadTodayFeed() {
-      setIsFeedLoading(true);
-      setFeedErrorMessage('');
-
-      try {
-        const response = await getAnnotationFeed({
-          recentHours: 24,
-          sort: 'likes,desc',
-          page: 1,
-          size: 3,
-        });
-        const page = getPageData(response);
-        if (!ignore) setTodayFeed(page.data.map(normalizeFeedItem));
-      } catch (error) {
-        if (!ignore) {
-          setTodayFeed([]);
-          setFeedErrorMessage(error.message || '오늘의 문장피드를 불러오지 못했습니다.');
-        }
-      } finally {
-        if (!ignore) setIsFeedLoading(false);
-      }
-    }
-
-    loadTodayFeed();
-
-    return () => {
-      ignore = true;
-    };
-  }, []);
-
-  const handleSearch = (event) => {
-    event.preventDefault();
-    const params = new URLSearchParams({ category: searchCategory });
-    const trimmedKeyword = keyword.trim();
-
-    if (trimmedKeyword) {
-      params.set('q', trimmedKeyword);
-    }
-
-    navigate(`/search?${params.toString()}`);
-  };
-
   return (
-    <div className="min-h-screen bg-page">
-      <SiteHeader active="home" />
+    <div className="min-h-screen bg-page flex flex-col">
+      <Header />
 
       <main className="page flex-1">
         <div className="container grid gap-8">
           <HomeHero />
 
           <section className="grid gap-4">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-              <div>
-                <h2 className="section-title">홈·책 목록</h2>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {genreFilters.map((filter) => (
-                <button
-                  key={filter.label}
-                  className={`button button--sm ${genreCode === filter.value ? 'button--primary' : 'button--secondary'}`}
-                  type="button"
-                  onClick={() => setGenreCode(filter.value)}
-                >
-                  {filter.label}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex items-center justify-between gap-4 text-sm font-semibold text-text-muted">
-              <span>{selectedGenreLabel} 책</span>
-            </div>
-
-            {errorMessage && (
-              <div className="py-8 text-center">
-                <p className="text-sm font-semibold text-text-muted">{errorMessage}</p>
-              </div>
-            )}
-
-            {!errorMessage && (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {isLoading
-                  ? Array.from({ length: 4 }).map((_, index) => <BookCardSkeleton key={index} />)
-                  : books.slice(0, 4).map((book) => <BookCard key={book.id} book={book} />)}
-              </div>
-            )}
-
-            {!isLoading && !errorMessage && books.length === 0 && (
-              <div className="py-12 text-center">
-                <p className="text-sm font-semibold text-text-muted">검색 결과가 없습니다</p>
-              </div>
-            )}
-          </section>
-
-          <section className="grid gap-4 border-t border-line pt-7">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <h2 className="section-title mr-2">오늘의 문장피드</h2>
-              <Link className="text-sm font-bold text-primary hover:underline" to="/search?category=annotation">
+            <div className="flex items-center justify-between gap-4">
+              <h2 className="section-title">이런 책은 어때요?</h2>
+              <Link to="/search" className="button button--ghost button--sm">
                 더보기
               </Link>
             </div>
 
-            {feedErrorMessage && (
-              <div className="py-8 text-center">
-                <p className="text-sm font-semibold text-text-muted">{feedErrorMessage}</p>
-              </div>
-            )}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {recommendedBooks.slice(0, 4).map((book) => (
+                    <BookCard key={book.id} book={book} />
+                ))}
+            </div>
+          </section>
 
-            {!feedErrorMessage && (
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-                {isFeedLoading
-                  ? Array.from({ length: 3 }).map((_, index) => <article key={index} className="card annotation-card animate-pulse" />)
-                  : todayFeed.map((item) => <AnnotationCard key={item.id} item={item} />)}
+          <section className="grid gap-4 border-t border-line pt-7">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex flex-wrap items-center gap-3">
+                <h2 className="section-title mr-2">오늘의 문장 피드</h2>
+                {filters.map((filter, index) => (
+                  <button
+                    key={filter}
+                    className={`button button--sm ${index === 0 ? 'button--primary' : 'button--secondary'}`}
+                  >
+                    {filter}
+                  </button>
+                ))}
               </div>
-            )}
 
-            {!isFeedLoading && !feedErrorMessage && todayFeed.length === 0 && (
-              <div className="py-10 text-center">
-                <p className="text-sm font-semibold text-text-muted">최근 24시간 안에 올라온 구절노트가 없습니다.</p>
+              <div className="flex flex-wrap items-center gap-3">
+                
+                <Link to="/annotations/new" className="button button--primary">
+                  문장 공유하기
+                </Link>
               </div>
-            )}
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+              {feedItems.map((item) => (
+                <AnnotationCard key={item.id} item={item} />
+              ))}
+            </div>
+
+            <nav className="pagination pt-2" aria-label="문장 피드 페이지">
+              <button className="pagination__item" aria-label="이전 페이지">
+                ‹
+              </button>
+              {[1, 2, 3, 4, 5].map((page) => (
+                <button
+                  key={page}
+                  className={`pagination__item ${page === 1 ? 'pagination__item--active' : ''}`}
+                >
+                  {page}
+                </button>
+              ))}
+              <button className="pagination__item" aria-label="다음 페이지">
+                ›
+              </button>
+            </nav>
           </section>
         </div>
       </main>
 
       <Footer />
     </div>
+
   );
 }

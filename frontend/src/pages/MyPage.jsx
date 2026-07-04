@@ -23,7 +23,6 @@ import { unfavoriteBook } from '../api/books';
 import { updateAnnotation, deleteAnnotation } from '../api/annotations';
 import { createGroup } from '../api/groups';
 import { getErrorMessage } from '../utils/error';
-import SiteHeader from '../components/SiteHeader';
 
 // 사이드바 아이콘 (lucide-react 미설치 상태라 최소 인라인 SVG로 대체)
 const iconProps = {
