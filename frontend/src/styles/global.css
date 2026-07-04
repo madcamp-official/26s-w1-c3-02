@@ -206,15 +206,14 @@
   .tag--danger {
     @apply bg-danger-soft text-danger;
   }
-
+    
   .book-card {
-    @apply grid grid-cols-[72px_1fr] gap-4 p-4;
+    @apply grid w-full max-w-[320px] justify-self-center grid-cols-[120px_1fr] gap-4 p-4;
   }
 
   .book-cover {
-    @apply aspect-[3/4] w-[72px] rounded-xs bg-primary-soft object-cover shadow-soft;
+    @apply aspect-[3/4] w-[115px] rounded-xs bg-primary-soft object-cover shadow-soft;
   }
-
   .annotation-card {
     @apply flex min-h-[220px] flex-col justify-between p-5;
   }
@@ -253,15 +252,16 @@
 
   .grid {
     display: grid;
-    @apply gap-4;
+    gap: 1rem;
+
   }
 
   .grid--books {
-    @apply grid-cols-[repeat(auto-fit,minmax(210px,1fr))];
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   }
 
   .grid--annotations {
-    @apply grid-cols-[repeat(auto-fit,minmax(280px,1fr))];
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   }
 }
 

@@ -5,6 +5,9 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import MyPage from './pages/MyPage';
 
+import BookDetailPage from './pages/BookDetailPage.jsx';
+import HomePage from './pages/HomePage.jsx';
+
 const EmptyPage = ({ title }) => <main>{title}</main>;
 
 // 로그인하지 않은 상태여야 진입 가능한 라우트 (로그인, 회원가입)
@@ -23,7 +26,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
-      <Route path="/books/:bookId" element={<EmptyPage title="Book Detail" />} />
+      <Route path="/books/:bookId" element={<BookDetailPage />} />
       <Route path="/annotations/:annotationId" element={<EmptyPage title="Annotation Detail" />} />
       <Route path="/search" element={<EmptyPage title="Search" />} />
       
