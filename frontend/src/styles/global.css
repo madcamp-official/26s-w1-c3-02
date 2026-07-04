@@ -252,7 +252,8 @@
   }
 
   .grid {
-    @apply grid gap-4;
+    display: grid;
+    @apply gap-4;
   }
 
   .grid--books {
