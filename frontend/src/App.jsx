@@ -9,6 +9,7 @@ import SearchPage from './pages/SearchPage.jsx';
 import AnnotationFormPage from './pages/AnnotationFormPage.jsx';
 import AnnotationDetailPage from './pages/AnnotationDetailPage.jsx';
 
+
 const EmptyPage = ({ title }) => <main>{title}</main>;
 
 // 로그인하지 않은 상태여야 진입 가능한 라우트 (로그인, 회원가입)
@@ -78,7 +79,7 @@ export default function App() {
         path="/groups/:groupId"
         element={
           <ProtectedRoute>
-            <EmptyPage title="Group Detail" />
+            <GroupDetailPage />
           </ProtectedRoute>
         }
       />

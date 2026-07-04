@@ -164,7 +164,7 @@ function BookHero({ book, isLoading }) {
       </div>
 
       <div className="min-w-0 text-center md:text-left">
-        <span className="tag tag--blue mx-auto md:mx-0">{book.genre}</span>
+        <span className="tag tag--blue mx-auto md:mx-0">{book.genreCode}</span>
         <h1 className="mt-5 break-words text-4xl font-extrabold leading-tight text-text md:text-5xl">
           {book.title}
         </h1>
@@ -212,7 +212,7 @@ function AnnotationCard({ annotation }) {
 
   return (
     <Link
-      to={`/annotations/${annotation.id}`}
+      to={`/annotations/${annotation.annotationId}`}
       className="card card--padded block transition hover:-translate-y-1 hover:shadow-card"
     >
       <div className="flex items-start justify-between gap-4">
@@ -221,7 +221,7 @@ function AnnotationCard({ annotation }) {
           <span className="tag tag--blue">{annotation.visibility}</span>
           {annotation.isSpoiler && <span className="tag tag--danger">스포일러</span>}
         </div>
-        <span className="shrink-0 text-sm font-medium text-text-subtle">{annotation.time}</span>
+        <span className="shrink-0 text-sm font-medium text-text-subtle">{formatRelativeTime(annotation.createdAt)}</span>
       </div>
 
       {shouldHideContent ? (
@@ -452,6 +452,10 @@ export default function BookDetailPage() {
                 ))}
               </select>
             </div>
+          ) : (
+            <>
+              <BookHero book={book} />
+              <SearchAndAction />
 
             {errorMessage && (
               <div className="py-12 text-center">

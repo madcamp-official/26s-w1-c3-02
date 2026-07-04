@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { logout as logoutApi } from '../api/auth';
+import Header from '../components/layout/Header';
+import Footer from '../components/layout/Footer';
 import {
   updateMe,
   getMyAnnotations,
@@ -17,6 +19,9 @@ import {
   deleteFriendRelationship,
   sendFriendRequest,
 } from '../api/friends';
+import { unfavoriteBook } from '../api/books';
+import { updateAnnotation, deleteAnnotation } from '../api/annotations';
+import { createGroup } from '../api/groups';
 import { getErrorMessage } from '../utils/error';
 import SiteHeader from '../components/SiteHeader';
 
@@ -79,15 +84,162 @@ const SettingsIcon = (props) => (
   </svg>
 );
 
+// 즐겨찾기(북마크) 뱃지 — 기본은 채워진 형태, outline이 필요하면 fill="none" stroke="currentColor"로 덮어쓴다
+const BookmarkIcon = (props) => (
+  <svg viewBox="0 0 20 20" fill="currentColor" {...props}>
+    <path d="M5.5 3a1 1 0 0 0-1 1v13l5.5-3.3L15.5 17V4a1 1 0 0 0-1-1h-9Z" />
+  </svg>
+);
+
+const CalendarIcon = (props) => (
+  <svg {...iconProps} {...props}>
+    <rect x="3" y="4.5" width="14" height="12" rx="1.5" />
+    <path d="M3 8h14M7 3v3M13 3v3" />
+  </svg>
+);
+
+const MailIcon = (props) => (
+  <svg {...iconProps} {...props}>
+    <rect x="3" y="5" width="14" height="10" rx="1.5" />
+    <path d="M3.5 6 10 11l6.5-5" />
+  </svg>
+);
+
+const CameraIcon = (props) => (
+  <svg {...iconProps} {...props}>
+    <path d="M4 7.5A1.5 1.5 0 0 1 5.5 6h1.6l.9-1.4A1 1 0 0 1 8.85 4h2.3a1 1 0 0 1 .85.6L12.9 6h1.6A1.5 1.5 0 0 1 16 7.5v6A1.5 1.5 0 0 1 14.5 15h-9A1.5 1.5 0 0 1 4 13.5v-6Z" />
+    <circle cx="10" cy="10" r="2.4" />
+  </svg>
+);
+
+const PlusIcon = (props) => (
+  <svg {...iconProps} strokeWidth={2.2} {...props}>
+    <path d="M10 4v12M4 10h12" />
+  </svg>
+);
+
+const EditIcon = (props) => (
+  <svg {...iconProps} {...props}>
+    <path d="M12.5 3.5 16 7l-9 9-4 1 1-4 8.5-9.5Z" />
+  </svg>
+);
+
+const TrashIcon = (props) => (
+  <svg {...iconProps} {...props}>
+    <path d="M4 5.5h12M8 5.5v-1a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1M6 5.5 6.6 16a1 1 0 0 0 1 1h4.8a1 1 0 0 0 1-1L14 5.5" />
+  </svg>
+);
+
 const NAV_ITEMS = [
   { key: 'dashboard', label: '대시보드', Icon: HomeIcon },
   { key: 'annotations', label: '내 주석', Icon: MessageIcon },
-  { key: 'favoriteAnnotations', label: '즐겨찾기', Icon: HeartIcon },
+  { key: 'favoriteAnnotations', label: '즐겨찾기한 주석', Icon: HeartIcon },
   { key: 'favoriteBooks', label: '내 서재', Icon: BookIcon },
-  { key: 'groups', label: '그룹 주석방', Icon: UsersIcon },
+  { key: 'groups', label: '그룹 라운지', Icon: UsersIcon },
   { key: 'friends', label: '친구', Icon: UserIcon },
   { key: 'settings', label: '설정', Icon: SettingsIcon },
 ];
+
+// 주석 유형별 라벨/태그 색상
+const ANNOTATION_TYPE_META = {
+  QUESTION: { label: '질문', tagClass: 'tag--cream' },
+  DISCUSSION: { label: '토론', tagClass: 'tag--green' },
+  REVIEW: { label: '감상', tagClass: 'tag--rose' },
+};
+const getTypeMeta = (type) => ANNOTATION_TYPE_META[type] || { label: '일반', tagClass: '' };
+
+// 대시보드 "내 주석 요약" 도넛 차트 색상 — dataviz 스킬 검증된 categorical 팔레트(blue/aqua/yellow/green),
+// 고정 순서(질문/토론/감상/일반)로만 사용한다. scripts/validate_palette.js로 CVD 분리·명도·채도 확인 완료.
+const DONUT_TYPE_ORDER = [
+  { key: 'QUESTION', label: '질문', color: '#2a78d6' },
+  { key: 'DISCUSSION', label: '토론', color: '#1baf7a' },
+  { key: 'REVIEW', label: '감상', color: '#eda100' },
+  { key: 'NORMAL', label: '일반', color: '#008300' },
+];
+
+// 선택 가능한 프로필 아이콘 프리셋 — 사용자가 이미지를 업로드하는 대신 이 중 하나를 고른다.
+// 다른 화면(헤더, 그룹 멤버 목록 등)에 실제로 노출하는 작업은 아직 하지 않는다(팀원 작업과의 충돌 방지를 위해
+// 선택/저장 기능만 먼저 구현 — design.md 참고).
+const AVATAR_ICON_OPTIONS = [
+  { key: 'reader', emoji: '📖', bg: 'bg-accent-blue' },
+  { key: 'cat', emoji: '🐱', bg: 'bg-accent-rose' },
+  { key: 'fox', emoji: '🦊', bg: 'bg-accent-cream' },
+  { key: 'bear', emoji: '🐻', bg: 'bg-accent-green' },
+  { key: 'rabbit', emoji: '🐰', bg: 'bg-primary-soft' },
+  { key: 'owl', emoji: '🦉', bg: 'bg-accent-cream' },
+  { key: 'star', emoji: '⭐', bg: 'bg-accent-blue' },
+  { key: 'plant', emoji: '🌿', bg: 'bg-accent-green' },
+  { key: 'coffee', emoji: '☕', bg: 'bg-accent-rose' },
+  { key: 'moon', emoji: '🌙', bg: 'bg-primary-soft' },
+];
+
+// 큰 숫자를 "1,284" / "1.2K" 형태로 축약
+const formatCount = (n) => {
+  const value = n || 0;
+  if (value < 1000) return value.toLocaleString('en-US');
+  const k = value / 1000;
+  return `${Number.isInteger(k) ? k.toFixed(0) : k.toFixed(1)}K`;
+};
+
+// "2시간 전" / "어제" / "3일 전" 형태의 상대 시간 표시 (그 이상은 날짜로 폴백)
+const formatRelativeTime = (isoString, formatDate) => {
+  if (!isoString) return '';
+  const diffMinutes = Math.floor((Date.now() - new Date(isoString).getTime()) / 60000);
+  if (diffMinutes < 1) return '방금 전';
+  if (diffMinutes < 60) return `${diffMinutes}분 전`;
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours}시간 전`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays === 1) return '어제';
+  if (diffDays < 7) return `${diffDays}일 전`;
+  return formatDate(isoString);
+};
+
+// 주석 유형 분포 도넛 — 세그먼트 사이 2px 간격, 둥근 끝, 값은 범례에 항상 직접 표기(호버 없이도 읽힘)
+function DonutChart({ segments, total }) {
+  const radius = 54;
+  const strokeWidth = 16;
+  const circumference = 2 * Math.PI * radius;
+  const gapPx = 2;
+  const usable = circumference - segments.length * gapPx;
+  let cumulative = 0;
+
+  return (
+    <svg viewBox="0 0 140 140" className="mx-auto h-[150px] w-[150px]">
+      <circle cx="70" cy="70" r={radius} fill="none" stroke="#f3f5f8" strokeWidth={strokeWidth} />
+      <g transform="translate(70,70) rotate(-90)">
+        {segments.map((seg) => {
+          const fraction = total > 0 ? seg.value / total : 0;
+          const dash = fraction * usable;
+          const offset = -cumulative;
+          cumulative += dash + gapPx;
+          if (dash <= 0) return null;
+          const pct = total > 0 ? Math.round((seg.value / total) * 100) : 0;
+          return (
+            <circle
+              key={seg.key}
+              r={radius}
+              fill="none"
+              stroke={seg.color}
+              strokeWidth={strokeWidth}
+              strokeLinecap="round"
+              strokeDasharray={`${dash} ${circumference - dash}`}
+              strokeDashoffset={offset}
+            >
+              <title>{`${seg.label}: ${seg.value}개 (${pct}%)`}</title>
+            </circle>
+          );
+        })}
+      </g>
+      <text x="70" y="66" textAnchor="middle" className="fill-text-subtle" style={{ fontSize: 11, fontWeight: 600 }}>
+        총
+      </text>
+      <text x="70" y="87" textAnchor="middle" className="fill-text" style={{ fontSize: 20, fontWeight: 800 }}>
+        {total}개
+      </text>
+    </svg>
+  );
+}
 
 // 공통 EmptyState 컴포넌트
 function EmptyState({ message }) {
@@ -98,33 +250,92 @@ function EmptyState({ message }) {
   );
 }
 
-function StatCard({ label, value }) {
+// 주석 한 줄 카드 — 왼쪽에 책 표지/제목/저자, 오른쪽에 주석 본문 (내 주석 / 즐겨찾기한 주석 공용)
+// onEdit/onDelete가 주어지면(= 내가 쓴 주석) 카드 우상단에 수정/삭제 아이콘 버튼을 노출한다.
+function AnnotationRow({ item, meta, onEdit, onDelete }) {
+  const { label, tagClass } = getTypeMeta(item.type);
+
   return (
-    <div className="card card--padded bg-white">
-      <p className="text-xs font-bold text-text-muted">{label}</p>
-      <p className="mt-2 text-2xl font-extrabold text-primary">{value}</p>
-    </div>
+    <article className="card card--padded flex gap-5 bg-white transition hover:-translate-y-1 hover:shadow-card">
+      <Link to={`/books/${item.book?.bookId}`} className="w-[88px] shrink-0 text-center">
+        {item.book?.coverImageUrl ? (
+          <img className="book-cover w-[88px] mx-auto" src={item.book.coverImageUrl} alt={item.book?.title} />
+        ) : (
+          <div className="book-cover w-[88px] mx-auto flex items-center justify-center p-1 text-center text-[10px] font-bold text-text-subtle">
+            No Cover
+          </div>
+        )}
+        <p className="mt-2 truncate text-xs font-bold text-text">{item.book?.title}</p>
+        <p className="truncate text-[11px] text-text-muted">{item.book?.author}</p>
+      </Link>
+
+      <div className="min-w-0 flex-1 flex flex-col">
+        {(meta || onEdit || onDelete) && (
+        <header className="flex items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-1.5">{meta}</div>
+          {(onEdit || onDelete) && (
+            <div className="flex items-center gap-1 shrink-0">
+              {onEdit && (
+                <button
+                  type="button"
+                  onClick={() => onEdit(item)}
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-transparent text-text transition hover:border-primary"
+                  aria-label="주석 수정"
+                  title="수정"
+                >
+                  <EditIcon className="h-5 w-5" strokeWidth={2.2} />
+                </button>
+              )}
+              {onDelete && (
+                <button
+                  type="button"
+                  onClick={() => onDelete(item)}
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-transparent text-danger transition hover:border-danger"
+                  aria-label="주석 삭제"
+                  title="삭제"
+                >
+                  <TrashIcon className="h-5 w-5" strokeWidth={2.2} />
+                </button>
+              )}
+            </div>
+          )}
+        </header>
+        )}
+        <Link to={`/annotations/${item.annotationId}`} className="block transition hover:opacity-80">
+          <p className={`annotation-quote line-clamp-2 text-[17px] font-bold text-text mb-3 ${(meta || onEdit || onDelete) ? 'mt-3' : 'mt-0'}`}>
+            "{item.passage}"
+          </p>
+          <p className="text-sm text-text-muted line-clamp-2 mb-4 leading-relaxed">
+            {item.review}
+          </p>
+        </Link>
+        <footer className="card-actions mt-auto border-t border-line pt-3">
+          <div className="flex gap-2">
+            <span className={`tag ${tagClass}`}>{label}</span>
+            {item.isSpoiler && <span className="tag tag--danger">스포일러</span>}
+          </div>
+          <div className="flex gap-3 text-text-subtle font-medium">
+            <span>♡ {item.likeCount || 0}</span>
+            <span>💬 {item.commentCount || 0}</span>
+          </div>
+        </footer>
+      </div>
+    </article>
   );
 }
 
-// 주석 카드 스켈레톤
-function AnnotationCardSkeleton() {
+// 주석 한 줄 카드 스켈레톤
+function AnnotationRowSkeleton() {
   return (
-    <article className="card annotation-card animate-pulse bg-white">
-      <div className="flex items-center gap-3">
-        <div className="avatar bg-surfaceMuted" />
-        <div className="grid flex-1 gap-2">
-          <div className="h-3 w-24 rounded bg-surfaceMuted" />
-          <div className="h-3 w-16 rounded bg-surfaceMuted" />
-        </div>
+    <article className="card card--padded flex gap-5 bg-white animate-pulse">
+      <div className="w-[88px] shrink-0">
+        <div className="book-cover w-[88px] mx-auto bg-surfaceMuted" />
       </div>
-      <div className="grid gap-3 my-4">
+      <div className="grid flex-1 gap-3">
+        <div className="h-3 w-24 rounded bg-surfaceMuted" />
         <div className="h-5 w-full rounded bg-surfaceMuted" />
         <div className="h-5 w-5/6 rounded bg-surfaceMuted" />
-      </div>
-      <div className="flex justify-between items-center mt-auto">
-        <div className="h-6 w-14 rounded-full bg-surfaceMuted" />
-        <div className="h-4 w-24 rounded bg-surfaceMuted" />
+        <div className="mt-auto h-6 w-14 rounded-full bg-surfaceMuted" />
       </div>
     </article>
   );
@@ -156,12 +367,19 @@ export default function MyPage() {
     favoriteAnnotations: 0,
     groups: 0,
     friends: 0,
+    totalLikes: 0,
+    typeBreakdown: { QUESTION: 0, DISCUSSION: 0, REVIEW: 0, NORMAL: 0 },
+    recentAnnotations: [],
+    recentGroups: [],
+    recentQuotes: [],
   });
   const [isLoadingTab, setIsLoadingTab] = useState(false);
   const [tabError, setTabError] = useState('');
 
-  // 설정 탭 — 닉네임 변경 관련 상태
+  // 설정 탭 — 프로필(닉네임/아바타 아이콘) 변경 관련 상태
   const [newNickname, setNewNickname] = useState(user?.nickname || '');
+  // 선택 가능한 프로필 아이콘 프리셋 중 고른 것 — 아직 다른 화면에는 표시하지 않고 저장만 한다.
+  const [newAvatarIcon, setNewAvatarIcon] = useState(user?.avatarIcon || '');
   const [isUpdatingNickname, setIsUpdatingNickname] = useState(false);
   const [editError, setEditError] = useState('');
 
@@ -175,6 +393,21 @@ export default function MyPage() {
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState('success'); // success | error
   const [showSearchModal, setShowSearchModal] = useState(false);
+
+  // 그룹 라운지 생성 모달 상태
+  const [showCreateGroupModal, setShowCreateGroupModal] = useState(false);
+  const [newGroupName, setNewGroupName] = useState('');
+  const [isCreatingGroup, setIsCreatingGroup] = useState(false);
+  const [createGroupError, setCreateGroupError] = useState('');
+
+  // 내 주석 수정 모달 상태
+  const [editingAnnotation, setEditingAnnotation] = useState(null);
+  const [editPassage, setEditPassage] = useState('');
+  const [editReview, setEditReview] = useState('');
+  const [editType, setEditType] = useState('NORMAL');
+  const [editIsSpoiler, setEditIsSpoiler] = useState(false);
+  const [isSavingAnnotation, setIsSavingAnnotation] = useState(false);
+  const [editAnnotationError, setEditAnnotationError] = useState('');
 
   // 토스트 헬퍼
   const showToast = (message, type = 'success') => {
@@ -192,8 +425,14 @@ export default function MyPage() {
     return `${date.getFullYear()}. ${String(date.getMonth() + 1).padStart(2, '0')}. ${String(date.getDate()).padStart(2, '0')}`;
   };
 
+  // 탭을 빠르게 전환할 때 이전 탭의 응답이 늦게 도착해 최신 탭 데이터를 덮어쓰는 것을 막기 위한 요청 ID
+  const latestRequestIdRef = useRef(0);
+
   // 탭 데이터 로딩
   const fetchTabData = async (tabName) => {
+    const requestId = ++latestRequestIdRef.current;
+    const isStale = () => requestId !== latestRequestIdRef.current;
+
     setIsLoadingTab(true);
     setTabError('');
     try {
@@ -205,24 +444,54 @@ export default function MyPage() {
           getMyGroups(),
           getMyFriends(),
         ]);
+        if (isStale()) return;
+
+        const myAnnotations = annRes.data || [];
+        const groupList = Array.isArray(groupsRes) ? groupsRes : groupsRes.data || [];
+
+        const typeBreakdown = { QUESTION: 0, DISCUSSION: 0, REVIEW: 0, NORMAL: 0 };
+        let totalLikes = 0;
+        myAnnotations.forEach((a) => {
+          const key = Object.prototype.hasOwnProperty.call(typeBreakdown, a.type) ? a.type : 'NORMAL';
+          typeBreakdown[key] += 1;
+          totalLikes += a.likeCount || 0;
+        });
+
+        const recentAnnotations = [...myAnnotations]
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .slice(0, 3);
+
+        const recentGroups = [...groupList]
+          .sort((a, b) => new Date(b.lastActivityAt || b.createdAt) - new Date(a.lastActivityAt || a.createdAt))
+          .slice(0, 3);
+
         setDashboardStats({
-          annotations: annRes.pagination?.totalElements ?? (annRes.data || []).length,
+          annotations: annRes.pagination?.totalElements ?? myAnnotations.length,
           favoriteBooks: favBooksRes.pagination?.totalElements ?? (favBooksRes.data || []).length,
           favoriteAnnotations: favAnnRes.pagination?.totalElements ?? (favAnnRes.data || []).length,
-          groups: (Array.isArray(groupsRes) ? groupsRes : groupsRes.data || []).length,
+          groups: groupList.length,
           friends: (friendsRes.data || []).length,
+          totalLikes,
+          typeBreakdown,
+          recentAnnotations,
+          recentGroups,
+          recentQuotes: (favAnnRes.data || []).slice(0, 2),
         });
       } else if (tabName === 'annotations') {
         const res = await getMyAnnotations();
+        if (isStale()) return;
         setTabData(res.data || []);
       } else if (tabName === 'favoriteBooks') {
         const res = await getFavoriteBooks();
+        if (isStale()) return;
         setTabData(res.data || []);
       } else if (tabName === 'favoriteAnnotations') {
         const res = await getFavoriteAnnotations();
+        if (isStale()) return;
         setTabData(res.data || []);
       } else if (tabName === 'groups') {
         const res = await getMyGroups();
+        if (isStale()) return;
         // groups는 api-spec상 배열 형태 통째 응답이거나 {data}일 수 있으므로 유연하게 처리
         setTabData(Array.isArray(res) ? res : res.data || []);
       } else if (tabName === 'friends') {
@@ -231,21 +500,27 @@ export default function MyPage() {
           getFriendRequests('received'),
           getFriendRequests('sent'),
         ]);
+        if (isStale()) return;
         setTabData(friendsRes.data || []);
         setReceivedRequests(receivedRes.data || []);
         setSentRequests(sentRes.data || []);
       }
     } catch (err) {
+      if (isStale()) return;
       console.error(err);
       setTabError('불러오지 못했습니다');
     } finally {
-      setIsLoadingTab(false);
+      if (!isStale()) {
+        setIsLoadingTab(false);
+      }
     }
   };
 
   useEffect(() => {
     if (activeTab === 'settings') {
+      latestRequestIdRef.current += 1; // 진행 중이던 목록 탭 요청 결과를 무효화
       setNewNickname(user?.nickname || '');
+      setNewAvatarIcon(user?.avatarIcon || '');
       setEditError('');
       return;
     }
@@ -265,23 +540,23 @@ export default function MyPage() {
     }
   };
 
-  // 닉네임 변경 폼 제출 (설정 탭)
-  const handleEditNickname = async (e) => {
+  // 프로필(닉네임/소개/아바타) 변경 폼 제출 (설정 탭)
+  const handleSaveProfile = async (e) => {
     e.preventDefault();
     setEditError('');
     if (!newNickname.trim()) {
       setEditError('닉네임을 입력해 주세요.');
       return;
     }
-    if (newNickname === user?.nickname) {
-      return;
-    }
 
     setIsUpdatingNickname(true);
     try {
-      const updatedUser = await updateMe({ nickname: newNickname });
+      const updatedUser = await updateMe({
+        nickname: newNickname,
+        avatarIcon: newAvatarIcon,
+      });
       setUser(updatedUser);
-      showToast('닉네임이 성공적으로 변경되었습니다.');
+      showToast('프로필이 성공적으로 변경되었습니다.');
     } catch (err) {
       console.error(err);
       setEditError(getErrorMessage(err));
@@ -360,21 +635,127 @@ export default function MyPage() {
     }
   };
 
+  // 내 서재 — 북마크(즐겨찾기) 해제
+  const handleUnfavoriteBook = async (bookId, title) => {
+    try {
+      await unfavoriteBook(bookId);
+      setTabData((prev) => prev.filter((book) => book.bookId !== bookId));
+      showToast(`${title} 즐겨찾기를 해제했습니다.`);
+    } catch (err) {
+      console.error(err);
+      showToast(getErrorMessage(err), 'error');
+    }
+  };
+
+  // 내 주석 수정 모달 열기
+  const handleEditAnnotation = (item) => {
+    setEditingAnnotation(item);
+    setEditPassage(item.passage || '');
+    setEditReview(item.review || '');
+    setEditType(item.type || 'NORMAL');
+    setEditIsSpoiler(!!item.isSpoiler);
+    setEditAnnotationError('');
+  };
+
+  // 내 주석 수정 저장
+  const handleSaveAnnotation = async (e) => {
+    e.preventDefault();
+    setEditAnnotationError('');
+    if (!editPassage.trim()) {
+      setEditAnnotationError('인용 문장을 입력해 주세요.');
+      return;
+    }
+
+    setIsSavingAnnotation(true);
+    try {
+      const payload = {
+        passage: editPassage.trim(),
+        review: editReview.trim(),
+        type: editType,
+        isSpoiler: editIsSpoiler,
+      };
+      await updateAnnotation(editingAnnotation.annotationId, payload);
+      setTabData((prev) =>
+        prev.map((a) => (a.annotationId === editingAnnotation.annotationId ? { ...a, ...payload } : a))
+      );
+      setEditingAnnotation(null);
+      showToast('주석을 수정했습니다.');
+    } catch (err) {
+      console.error(err);
+      setEditAnnotationError(getErrorMessage(err));
+    } finally {
+      setIsSavingAnnotation(false);
+    }
+  };
+
+  // 내 주석 삭제
+  const handleDeleteAnnotation = async (item) => {
+    if (!window.confirm('이 주석을 삭제하시겠습니까? 삭제한 주석은 복구할 수 없습니다.')) {
+      return;
+    }
+    try {
+      await deleteAnnotation(item.annotationId);
+      setTabData((prev) => prev.filter((a) => a.annotationId !== item.annotationId));
+      showToast('주석을 삭제했습니다.');
+    } catch (err) {
+      console.error(err);
+      showToast(getErrorMessage(err), 'error');
+    }
+  };
+
+  // 그룹 라운지 생성
+  const handleCreateGroup = async (e) => {
+    e.preventDefault();
+    setCreateGroupError('');
+    if (!newGroupName.trim()) {
+      setCreateGroupError('그룹 이름을 입력해 주세요.');
+      return;
+    }
+
+    setIsCreatingGroup(true);
+    try {
+      await createGroup({ groupName: newGroupName.trim() });
+      setShowCreateGroupModal(false);
+      setNewGroupName('');
+      showToast('그룹 라운지가 생성되었습니다.');
+      fetchTabData('groups');
+    } catch (err) {
+      console.error(err);
+      setCreateGroupError(getErrorMessage(err));
+    } finally {
+      setIsCreatingGroup(false);
+    }
+  };
+
+  // 사이드바 탭 전환: activeTab과 함께 tabData/isLoadingTab을 같은 이벤트에서 초기화해
+  // "새 탭인데 이전 탭의 데이터가 그대로 렌더링되는" 프레임이 생기지 않도록 한다.
+  const handleTabClick = (key) => {
+    if (key === activeTab) return;
+    setActiveTab(key);
+    if (key !== 'settings') {
+      latestRequestIdRef.current += 1; // 진행 중이던 이전 탭 요청은 무효화
+      setTabData([]);
+      setTabError('');
+      setIsLoadingTab(true);
+    }
+  };
+
   return (
-    <>
-      <SiteHeader active="mypage" />
-      <main className="page min-h-[calc(100vh-72px)]">
+    <div className="min-h-screen bg-page flex flex-col">
+      <Header />
+
+      <main className="page flex-1">
       <div className="container flex flex-col md:flex-row items-start gap-6">
         {/* 좌측 사이드바 */}
         <aside className="w-full md:w-[220px] shrink-0">
           <div className="card card--padded bg-white md:sticky md:top-[88px]">
-            <h2 className="text-lg font-bold text-text mb-3">마이페이지</h2>
+            <h2 className="section-title mb-3">마이페이지</h2>
             <div className="h-px bg-line -mx-6 mb-3" />
             <nav className="grid gap-1">
               {NAV_ITEMS.map(({ key, label, Icon }) => (
                 <button
                   key={key}
-                  onClick={() => setActiveTab(key)}
+                  onClick={() => handleTabClick(key)}
                   className={`flex items-center gap-3 rounded-sm px-3 py-2.5 text-sm font-semibold text-left transition-colors ${
                     activeTab === key
                       ? 'bg-primary-soft text-primary'
@@ -394,46 +775,276 @@ export default function MyPage() {
           {/* 1. 대시보드 */}
           {activeTab === 'dashboard' && (
             isLoadingTab ? (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div key={i} className="card card--padded h-24 animate-pulse bg-surfaceMuted" />
-                ))}
+              <div className="grid gap-6">
+                <div className="card card--padded h-[140px] animate-pulse bg-surfaceMuted" />
+                <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+                  <div className="card card--padded h-[280px] animate-pulse bg-surfaceMuted" />
+                  <div className="card card--padded h-[280px] animate-pulse bg-surfaceMuted" />
+                </div>
               </div>
             ) : tabError ? (
               <div className="py-12 text-center">
                 <p className="text-sm font-semibold text-danger">{tabError}</p>
               </div>
             ) : (
-              <>
-                <section className="card card--padded flex flex-wrap items-center gap-4 bg-white">
-                  <div className="h-16 w-16 rounded-full bg-primary-soft flex items-center justify-center text-primary font-bold text-2xl shadow-soft">
-                    {user?.nickname ? user.nickname.charAt(0).toUpperCase() : 'U'}
+              <div className="grid gap-6">
+                {/* 프로필 요약 + 통계 */}
+                <section className="card card--padded flex flex-wrap items-center justify-between gap-6 bg-white">
+                  <div className="flex items-center gap-4">
+                    <div className="relative shrink-0">
+                      {user?.avatarUrl ? (
+                        <img
+                          src={user.avatarUrl}
+                          alt={user.nickname}
+                          className="h-16 w-16 rounded-full object-cover shadow-soft"
+                        />
+                      ) : (
+                        <div className="h-16 w-16 rounded-full bg-primary-soft flex items-center justify-center text-primary font-bold text-2xl shadow-soft">
+                          {user?.nickname ? user.nickname.charAt(0).toUpperCase() : 'U'}
+                        </div>
+                      )}
+                      <button
+                        onClick={() => handleTabClick('settings')}
+                        className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border border-line bg-white text-text-muted shadow-soft hover:text-primary"
+                        aria-label="프로필 사진 변경"
+                        title="프로필 사진 변경"
+                      >
+                        <CameraIcon className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h1 className="text-[22px] font-bold text-text leading-none">{user?.nickname}</h1>
+                        <button
+                          onClick={() => handleTabClick('settings')}
+                          className="button button--secondary button--sm !min-h-7 !px-2.5 text-xs"
+                        >
+                          편집
+                        </button>
+                      </div>
+                      <p className="mt-2 text-sm text-text-muted">{user?.bio || '아직 소개글이 없습니다.'}</p>
+                      <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-text-subtle">
+                        {user?.createdAt && (
+                          <span className="flex items-center gap-1.5">
+                            <CalendarIcon className="h-3.5 w-3.5" /> {formatDate(user.createdAt)} 가입
+                          </span>
+                        )}
+                        {user?.email && (
+                          <span className="flex items-center gap-1.5">
+                            <MailIcon className="h-3.5 w-3.5" /> {user.email}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <h1 className="text-[22px] font-bold text-text leading-none">{user?.nickname}</h1>
-                    <p className="mt-1.5 text-sm text-text-muted">{user?.email}</p>
-                    {user?.createdAt && (
-                      <p className="mt-1 text-xs text-text-subtle">{formatDate(user.createdAt)} 가입</p>
-                    )}
+
+                  <div className="flex flex-wrap items-center gap-6">
+                    {[
+                      { label: '작성한 주석', value: dashboardStats.annotations, Icon: MessageIcon, tab: 'annotations' },
+                      { label: '좋아요 받은 주석', value: dashboardStats.totalLikes, Icon: HeartIcon, tab: 'annotations' },
+                      { label: '즐겨찾기한 문장', value: dashboardStats.favoriteAnnotations, Icon: BookmarkIcon, tab: 'favoriteAnnotations' },
+                      { label: '친구', value: dashboardStats.friends, Icon: UsersIcon, tab: 'friends' },
+                    ].map(({ label, value, Icon, tab }) => (
+                      <button
+                        key={label}
+                        onClick={() => handleTabClick(tab)}
+                        className="flex flex-col items-center gap-2 text-center"
+                      >
+                        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-primary-soft text-primary">
+                          <Icon className="h-5 w-5" />
+                        </span>
+                        <span className="text-xs font-semibold text-text-muted">{label}</span>
+                        <span className="text-lg font-extrabold text-text">{formatCount(value)}</span>
+                      </button>
+                    ))}
                   </div>
                 </section>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  <StatCard label="내 주석" value={dashboardStats.annotations} />
-                  <StatCard label="즐겨찾기" value={dashboardStats.favoriteAnnotations} />
-                  <StatCard label="내 서재" value={dashboardStats.favoriteBooks} />
-                  <StatCard label="그룹 주석방" value={dashboardStats.groups} />
-                  <StatCard label="친구" value={dashboardStats.friends} />
+
+                {/* 최근 활동 + 내 주석 요약 */}
+                <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+                  <section className="card card--padded bg-white">
+                    <h2 className="section-title !text-lg mb-4">최근 활동</h2>
+                    {dashboardStats.recentAnnotations.length === 0 ? (
+                      <EmptyState message="작성한 주석이 없습니다" />
+                    ) : (
+                      <ul className="grid gap-4">
+                        {dashboardStats.recentAnnotations.map((item) => {
+                          const { label, tagClass } = getTypeMeta(item.type);
+                          return (
+                            <li
+                              key={item.annotationId}
+                              className="flex items-start gap-3 border-b border-line pb-4 last:border-0 last:pb-0"
+                            >
+                              <div className="h-12 w-12 shrink-0 overflow-hidden rounded-md bg-primary-soft">
+                                {item.book?.coverImageUrl ? (
+                                  <img
+                                    className="h-full w-full object-cover"
+                                    src={item.book.coverImageUrl}
+                                    alt={item.book?.title}
+                                  />
+                                ) : (
+                                  <div className="flex h-full w-full items-center justify-center text-primary/50">
+                                    <BookIcon className="h-6 w-6" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2">
+                                  <span className={`tag ${tagClass}`}>{label}</span>
+                                  <strong className="truncate text-sm font-bold text-text">{item.book?.title}</strong>
+                                </div>
+                                <p className="mt-1.5 truncate text-sm text-text-muted">"{item.passage}"</p>
+                              </div>
+                              <div className="shrink-0 text-right text-xs text-text-subtle">
+                                <p>{formatRelativeTime(item.createdAt, formatDate)}</p>
+                                <p className="mt-1 font-semibold text-text-muted">♡ {item.likeCount || 0}</p>
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                    <button
+                      onClick={() => handleTabClick('annotations')}
+                      className="button button--ghost button--sm mt-4 w-full justify-center"
+                    >
+                      내 주석 전체 보기 ›
+                    </button>
+                  </section>
+
+                  <section className="card card--padded bg-white">
+                    <div className="mb-2 flex items-center justify-between">
+                      <h2 className="section-title !text-lg">내 주석 요약</h2>
+                      <button
+                        onClick={() => handleTabClick('annotations')}
+                        className="text-xs font-bold text-text-muted hover:text-primary"
+                      >
+                        더보기 ›
+                      </button>
+                    </div>
+                    <DonutChart
+                      total={dashboardStats.annotations}
+                      segments={DONUT_TYPE_ORDER.map((t) => ({ ...t, value: dashboardStats.typeBreakdown[t.key] || 0 }))}
+                    />
+                    <ul className="mt-4 grid gap-2 text-sm">
+                      {DONUT_TYPE_ORDER.map((t) => {
+                        const value = dashboardStats.typeBreakdown[t.key] || 0;
+                        const pct = dashboardStats.annotations > 0
+                          ? Math.round((value / dashboardStats.annotations) * 100)
+                          : 0;
+                        return (
+                          <li key={t.key} className="flex items-center justify-between gap-3">
+                            <span className="flex items-center gap-2 text-text-muted">
+                              <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: t.color }} />
+                              {t.label}
+                            </span>
+                            <span className="font-bold text-text">{value} ({pct}%)</span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </section>
                 </div>
-              </>
+
+                {/* 참여 중인 그룹 라운지 + 즐겨찾기한 문장 */}
+                <div className="grid gap-6 lg:grid-cols-2">
+                  <section className="card card--padded bg-white">
+                    <div className="mb-4 flex items-center justify-between">
+                      <h2 className="section-title !text-lg">참여 중인 그룹 라운지</h2>
+                      <button
+                        onClick={() => handleTabClick('groups')}
+                        className="text-xs font-bold text-text-muted hover:text-primary"
+                      >
+                        더보기 ›
+                      </button>
+                    </div>
+                    {dashboardStats.recentGroups.length === 0 ? (
+                      <EmptyState message="참여 중인 그룹이 없습니다" />
+                    ) : (
+                      <ul className="grid gap-3">
+                        {dashboardStats.recentGroups.map((group) => (
+                          <li key={group.groupId}>
+                            <Link
+                              to={`/groups/${group.groupId}`}
+                              className="-m-2 flex items-center gap-3 rounded-sm p-2 transition hover:bg-pageSoft"
+                            >
+                              <div className="h-11 w-11 shrink-0 overflow-hidden rounded-md bg-primary-soft">
+                                {group.coverImageUrl ? (
+                                  <img
+                                    className="h-full w-full object-cover"
+                                    src={group.coverImageUrl}
+                                    alt={group.groupName}
+                                  />
+                                ) : (
+                                  <div className="flex h-full w-full items-center justify-center text-primary/50">
+                                    <UsersIcon className="h-5 w-5" />
+                                  </div>
+                                )}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="truncate text-sm font-bold text-text">{group.groupName}</p>
+                                <p className="truncate text-xs text-text-muted">
+                                  멤버 {group.memberCount ?? 0}명 · 최근 활동{' '}
+                                  {formatRelativeTime(group.lastActivityAt || group.createdAt, formatDate)}
+                                </p>
+                              </div>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </section>
+
+                  <section className="card card--padded bg-white">
+                    <div className="mb-4 flex items-center justify-between">
+                      <h2 className="section-title !text-lg">즐겨찾기한 문장</h2>
+                      <button
+                        onClick={() => handleTabClick('favoriteAnnotations')}
+                        className="text-xs font-bold text-text-muted hover:text-primary"
+                      >
+                        더보기 ›
+                      </button>
+                    </div>
+                    {dashboardStats.recentQuotes.length === 0 ? (
+                      <EmptyState message="즐겨찾기한 주석이 없습니다" />
+                    ) : (
+                      <ul className="grid gap-4">
+                        {dashboardStats.recentQuotes.map((item) => (
+                          <li
+                            key={item.annotationId}
+                            className="flex items-start justify-between gap-3 border-b border-line pb-4 last:border-0 last:pb-0"
+                          >
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold text-text">
+                                <span className="mr-1 text-lg font-bold text-primary-soft">"</span>
+                                {item.passage}
+                              </p>
+                              <p className="mt-1.5 truncate text-xs text-text-muted">
+                                {item.book?.title} · {item.book?.author}
+                              </p>
+                            </div>
+                            <BookmarkIcon
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="1.6"
+                              className="h-4 w-4 shrink-0 text-text-subtle"
+                            />
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </section>
+                </div>
+              </div>
             )
           )}
 
           {/* 2. 내 주석 탭 */}
           {activeTab === 'annotations' && (
             isLoadingTab ? (
-              <div className="grid grid--annotations">
-                <AnnotationCardSkeleton />
-                <AnnotationCardSkeleton />
+              <div className="grid gap-4">
+                <AnnotationRowSkeleton />
+                <AnnotationRowSkeleton />
               </div>
             ) : tabError ? (
               <div className="py-12 text-center">
@@ -442,103 +1053,48 @@ export default function MyPage() {
             ) : tabData.length === 0 ? (
               <EmptyState message="작성한 주석이 없습니다" />
             ) : (
-              <div className="grid grid--annotations">
+              <div className="grid gap-4">
                 {tabData.map((item) => (
-                  <article key={item.annotationId} className="card annotation-card bg-white hover:border-line-strong transition-colors">
-                    <header className="flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-text-subtle">{formatDate(item.createdAt)}</span>
-                      </div>
-                      {item.book && (
-                        <span className="text-xs font-bold text-primary truncate max-w-[150px]">
-                          {item.book.title}
-                        </span>
-                      )}
-                    </header>
-                    <p className="annotation-quote line-clamp-3 text-[17px] font-bold text-text my-3">
-                      "{item.passage}"
-                    </p>
-                    <p className="text-sm text-text-muted line-clamp-2 mb-4 leading-relaxed">
-                      {item.review}
-                    </p>
-                    <footer className="card-actions mt-auto border-t border-line pt-3">
-                      <div className="flex gap-2">
-                        <span className={`tag ${
-                          item.type === 'QUESTION' ? 'tag--cream' :
-                          item.type === 'DISCUSSION' ? 'tag--green' :
-                          item.type === 'REVIEW' ? 'tag--rose' : ''
-                        }`}>
-                          {item.type === 'QUESTION' ? '질문' :
-                           item.type === 'DISCUSSION' ? '토론' :
-                           item.type === 'REVIEW' ? '감상' : '일반'}
-                        </span>
-                        {item.isSpoiler && <span className="tag tag--danger">스포일러</span>}
-                      </div>
-                      <div className="flex gap-3 text-text-subtle font-medium">
-                        <span>♡ {item.likeCount || 0}</span>
-                        <span>💬 {item.commentCount || 0}</span>
-                      </div>
-                    </footer>
-                  </article>
+                  <AnnotationRow
+                    key={item.annotationId}
+                    item={item}
+                    meta={<span className="text-xs text-text-subtle">{formatDate(item.createdAt)}</span>}
+                    onEdit={handleEditAnnotation}
+                    onDelete={handleDeleteAnnotation}
+                  />
                 ))}
               </div>
             )
           )}
 
-          {/* 3. 즐겨찾기(주석) 탭 */}
+          {/* 3. 즐겨찾기한 주석 탭 */}
           {activeTab === 'favoriteAnnotations' && (
             isLoadingTab ? (
-              <div className="grid grid--annotations">
-                <AnnotationCardSkeleton />
-                <AnnotationCardSkeleton />
+              <div className="grid gap-4">
+                <AnnotationRowSkeleton />
+                <AnnotationRowSkeleton />
               </div>
             ) : tabError ? (
               <div className="py-12 text-center">
                 <p className="text-sm font-semibold text-danger">{tabError}</p>
               </div>
             ) : tabData.length === 0 ? (
-              <EmptyState message="즐겨찾기한 항목이 없습니다" />
+              <EmptyState message="즐겨찾기한 주석이 없습니다" />
             ) : (
-              <div className="grid grid--annotations">
+              <div className="grid gap-4">
                 {tabData.map((item) => (
-                  <article key={item.annotationId} className="card annotation-card bg-white hover:border-line-strong transition-colors">
-                    <header className="flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-2">
-                        <div className="h-6 w-6 rounded-full bg-primary-soft flex items-center justify-center text-[10px] font-bold text-primary">
+                  <AnnotationRow
+                    key={item.annotationId}
+                    item={item}
+                    meta={
+                      <>
+                        <div className="h-6 w-6 rounded-full bg-primary-soft flex items-center justify-center text-[10px] font-bold text-primary shrink-0">
                           {item.author?.nickname?.charAt(0).toUpperCase()}
                         </div>
-                        <strong className="text-xs text-text">{item.author?.nickname}</strong>
-                      </div>
-                      {item.book && (
-                        <span className="text-xs font-bold text-primary truncate max-w-[120px]">
-                          {item.book.title}
-                        </span>
-                      )}
-                    </header>
-                    <p className="annotation-quote line-clamp-3 text-[17px] font-bold text-text my-3">
-                      "{item.passage}"
-                    </p>
-                    <p className="text-sm text-text-muted line-clamp-2 mb-4 leading-relaxed">
-                      {item.review}
-                    </p>
-                    <footer className="card-actions mt-auto border-t border-line pt-3">
-                      <div className="flex gap-2">
-                        <span className={`tag ${
-                          item.type === 'QUESTION' ? 'tag--cream' :
-                          item.type === 'DISCUSSION' ? 'tag--green' :
-                          item.type === 'REVIEW' ? 'tag--rose' : ''
-                        }`}>
-                          {item.type === 'QUESTION' ? '질문' :
-                           item.type === 'DISCUSSION' ? '토론' :
-                           item.type === 'REVIEW' ? '감상' : '일반'}
-                        </span>
-                      </div>
-                      <div className="flex gap-3 text-text-subtle font-medium">
-                        <span>♡ {item.likeCount || 0}</span>
-                        <span>💬 {item.commentCount || 0}</span>
-                      </div>
-                    </footer>
-                  </article>
+                        <strong className="min-w-0 truncate text-xs text-text">{item.author?.nickname}</strong>
+                      </>
+                    }
+                  />
                 ))}
               </div>
             )
@@ -561,35 +1117,62 @@ export default function MyPage() {
             ) : (
               <div className="grid grid--books">
                 {tabData.map((book) => (
-                  <Link to={`/books/${book.bookId}`} key={book.bookId} className="card book-card bg-white hover:border-line-strong transition-colors block">
-                    <div className="flex gap-4">
-                      {book.coverImageUrl ? (
-                        <img className="book-cover" src={book.coverImageUrl} alt={book.title} />
-                      ) : (
-                        <div className="book-cover flex items-center justify-center text-text-subtle font-bold text-xs p-2 text-center">
-                          No Cover
-                        </div>
-                      )}
-                      <div className="flex flex-col justify-center min-w-0">
+                  <Link to={`/books/${book.bookId}`} key={book.bookId} className="block">
+                    <article className="card book-card bg-white transition hover:-translate-y-1 hover:shadow-card">
+                      <div className="relative">
+                        {book.coverImageUrl ? (
+                          <img className="book-cover" src={book.coverImageUrl} alt={book.title} />
+                        ) : (
+                          <div className="book-cover flex items-center justify-center text-center text-xs font-bold text-text-subtle p-2">
+                            No Cover
+                          </div>
+                        )}
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleUnfavoriteBook(book.bookId, book.title);
+                          }}
+                          className="absolute -left-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-danger text-white shadow-soft transition hover:scale-105"
+                          aria-label="즐겨찾기 해제"
+                          title="즐겨찾기 해제"
+                        >
+                          <BookmarkIcon className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <div className="min-w-0 flex h-full flex-col justify-center">
                         <h3 className="truncate text-base font-bold text-text leading-tight">{book.title}</h3>
                         <p className="mt-1 text-xs text-text-muted truncate">{book.author}</p>
                         <div className="mt-3">
                           <span className="tag tag--blue">{book.genreCode}</span>
                         </div>
                       </div>
-                    </div>
+                    </article>
                   </Link>
                 ))}
               </div>
             )
           )}
 
-          {/* 5. 그룹 주석방 탭 */}
+          {/* 5. 그룹 라운지 탭 */}
           {activeTab === 'groups' && (
-            isLoadingTab ? (
+            <div className="grid gap-4">
+              <div className="card card--padded bg-white flex items-center justify-between gap-4">
+                <p className="text-sm font-bold text-text">함께 읽을 사람들을 모아 새 그룹 라운지를 만들어 보세요.</p>
+                <button
+                  type="button"
+                  onClick={() => setShowCreateGroupModal(true)}
+                  className="button button--primary button--lg shrink-0"
+                >
+                  <PlusIcon className="h-5 w-5" />
+                  라운지 만들기
+                </button>
+              </div>
+
+              {isLoadingTab ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="card card--padded h-20 animate-pulse bg-surfaceMuted" />
-                <div className="card card--padded h-20 animate-pulse bg-surfaceMuted" />
+                <div className="card card--padded h-[168px] animate-pulse bg-surfaceMuted" />
+                <div className="card card--padded h-[168px] animate-pulse bg-surfaceMuted" />
               </div>
             ) : tabError ? (
               <div className="py-12 text-center">
@@ -600,22 +1183,33 @@ export default function MyPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {tabData.map((group) => (
-                  <Link to={`/groups/${group.groupId}`} key={group.groupId} className="card card--padded bg-white hover:border-line-strong transition-colors block">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <h3 className="text-base font-bold text-text">{group.groupName}</h3>
-                        <p className="text-xs text-text-muted mt-1.5">
-                          방장: {group.owner?.nickname || '알 수 없음'}
-                        </p>
-                      </div>
-                      {group.createdAt && (
-                        <span className="text-xs text-text-subtle">{formatDate(group.createdAt)} 생성</span>
-                      )}
+                  <Link
+                    to={`/groups/${group.groupId}`}
+                    key={group.groupId}
+                    className="card card--padded min-h-[168px] flex flex-col justify-between bg-white block transition hover:-translate-y-1 hover:shadow-card"
+                  >
+                    <div>
+                      <h3 className="text-lg font-bold text-text">{group.groupName}</h3>
+                      <p className="text-xs text-text-muted mt-1.5">
+                        방장: {group.owner?.nickname || '알 수 없음'}
+                      </p>
                     </div>
+                    <div className="mt-6 flex items-center gap-5 border-t border-line pt-4 text-sm text-text-muted">
+                      <span className="flex items-center gap-1.5">
+                        <UsersIcon className="h-4 w-4" /> 멤버 {group.memberCount ?? 0}명
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <BookIcon className="h-4 w-4" /> 책 {group.bookCount ?? 0}권
+                      </span>
+                    </div>
+                    {group.createdAt && (
+                      <p className="mt-3 text-xs text-text-subtle">{formatDate(group.createdAt)} 생성</p>
+                    )}
                   </Link>
                 ))}
               </div>
-            )
+            )}
+            </div>
           )}
 
           {/* 6. 친구 탭 */}
@@ -666,7 +1260,7 @@ export default function MyPage() {
                       }}
                       className="button button--primary button--sm !min-h-8"
                     >
-                      친구 요청 보내기
+                      친구 찾기
                     </button>
                   </div>
                   {sentRequests.length === 0 ? (
@@ -722,8 +1316,8 @@ export default function MyPage() {
           {activeTab === 'settings' && (
             <div className="grid gap-6 max-w-[480px]">
               <section className="card card--padded bg-white">
-                <h3 className="text-sm font-bold text-text mb-4">닉네임 변경</h3>
-                <form onSubmit={handleEditNickname} className="grid gap-3">
+                <h3 className="text-sm font-bold text-text mb-4">프로필 편집</h3>
+                <form onSubmit={handleSaveProfile} className="grid gap-3">
                   <label className="form-field">
                     <span className="form-label">닉네임</span>
                     <input
@@ -734,6 +1328,33 @@ export default function MyPage() {
                       disabled={isUpdatingNickname}
                     />
                   </label>
+                  <div className="form-field">
+                    <span className="form-label">프로필 아이콘</span>
+                    <div className="grid grid-cols-5 gap-2">
+                      {AVATAR_ICON_OPTIONS.map((icon) => {
+                        const isSelected = newAvatarIcon === icon.key;
+                        return (
+                          <button
+                            key={icon.key}
+                            type="button"
+                            onClick={() => setNewAvatarIcon(isSelected ? '' : icon.key)}
+                            disabled={isUpdatingNickname}
+                            className={`flex h-12 w-12 items-center justify-center rounded-full text-xl transition ${icon.bg} ${
+                              isSelected ? 'ring-2 ring-primary ring-offset-2' : 'hover:opacity-80'
+                            }`}
+                            aria-label={`아이콘 ${icon.key} 선택`}
+                            aria-pressed={isSelected}
+                            title={icon.key}
+                          >
+                            {icon.emoji}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <span className="form-help">
+                      선택한 아이콘은 지금은 저장만 되고, 다른 화면에는 아직 표시되지 않습니다(추후 적용 예정).
+                    </span>
+                  </div>
                   {editError && <p className="form-error">{editError}</p>}
                   <button type="submit" className="button button--primary" disabled={isUpdatingNickname}>
                     {isUpdatingNickname ? '저장 중...' : '저장'}
@@ -759,7 +1380,7 @@ export default function MyPage() {
       {showSearchModal && (
         <div className="modal-overlay">
           <section className="modal card card--padded">
-            <h2 className="section-title mb-4">친구 요청 보내기</h2>
+            <h2 className="section-title mb-4">친구 찾기</h2>
             <form onSubmit={handleSearchUser} className="flex gap-2">
               <input
                 className="input !h-9 flex-1"
@@ -821,6 +1442,115 @@ export default function MyPage() {
         </div>
       )}
 
+      {/* 라운지 만들기 모달 */}
+      {showCreateGroupModal && (
+        <div className="modal-overlay">
+          <section className="modal card card--padded">
+            <h2 className="section-title mb-4">라운지 만들기</h2>
+            <form onSubmit={handleCreateGroup} className="grid gap-3">
+              <div>
+                <label className="mb-1.5 block text-xs font-bold text-text-muted">그룹 이름</label>
+                <input
+                  className="input"
+                  type="text"
+                  placeholder="예: 데미안 같이 읽기"
+                  value={newGroupName}
+                  onChange={(e) => setNewGroupName(e.target.value)}
+                  autoFocus
+                />
+              </div>
+              <p className="text-xs text-text-subtle">
+                멤버 초대와 책 추가는 라운지를 만든 뒤 라운지 페이지에서 진행할 수 있습니다.
+              </p>
+
+              {createGroupError && <p className="text-xs text-danger">{createGroupError}</p>}
+
+              <div className="flex justify-end gap-2 mt-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreateGroupModal(false);
+                    setNewGroupName('');
+                    setCreateGroupError('');
+                  }}
+                  className="button button--secondary"
+                >
+                  취소
+                </button>
+                <button type="submit" className="button button--primary" disabled={isCreatingGroup}>
+                  {isCreatingGroup ? '만드는 중...' : '만들기'}
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
+      )}
+
+      {/* 내 주석 수정 모달 */}
+      {editingAnnotation && (
+        <div className="modal-overlay">
+          <section className="modal card card--padded">
+            <h2 className="section-title mb-4">주석 수정</h2>
+            <form onSubmit={handleSaveAnnotation} className="grid gap-3">
+              <div>
+                <label className="mb-1.5 block text-xs font-bold text-text-muted">인용 문장</label>
+                <textarea
+                  className="textarea"
+                  rows={2}
+                  value={editPassage}
+                  onChange={(e) => setEditPassage(e.target.value)}
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-bold text-text-muted">감상/설명</label>
+                <textarea
+                  className="textarea"
+                  rows={3}
+                  value={editReview}
+                  onChange={(e) => setEditReview(e.target.value)}
+                />
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="flex-1">
+                  <label className="mb-1.5 block text-xs font-bold text-text-muted">유형</label>
+                  <select className="select" value={editType} onChange={(e) => setEditType(e.target.value)}>
+                    {DONUT_TYPE_ORDER.map((t) => (
+                      <option key={t.key} value={t.key}>
+                        {t.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <label className="flex items-center gap-2 text-sm font-semibold text-text-muted mt-5">
+                  <input
+                    type="checkbox"
+                    checked={editIsSpoiler}
+                    onChange={(e) => setEditIsSpoiler(e.target.checked)}
+                  />
+                  스포일러
+                </label>
+              </div>
+
+              {editAnnotationError && <p className="text-xs text-danger">{editAnnotationError}</p>}
+
+              <div className="flex justify-end gap-2 mt-3">
+                <button
+                  type="button"
+                  onClick={() => setEditingAnnotation(null)}
+                  className="button button--secondary"
+                >
+                  취소
+                </button>
+                <button type="submit" className="button button--primary" disabled={isSavingAnnotation}>
+                  {isSavingAnnotation ? '저장 중...' : '저장'}
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
+      )}
+
       {/* 성공/실패 토스트 */}
       {toastMessage && (
         <div className={`fixed bottom-6 right-6 z-50 rounded-sm px-4 py-3 text-sm font-semibold shadow-card transition-all duration-300 ${
@@ -832,6 +1562,8 @@ export default function MyPage() {
         </div>
       )}
       </main>
-    </>
+
+      <Footer />
+    </div>
   );
 }

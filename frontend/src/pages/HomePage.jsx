@@ -476,7 +476,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-page">
       <SiteHeader active="home" />
 
-      <main className="page">
+      <main className="page flex-1">
         <div className="container grid gap-8">
           <HomeHero />
 
