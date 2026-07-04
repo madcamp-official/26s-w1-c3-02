@@ -9,6 +9,10 @@ export const getBookAnnotations = (bookId, params) => {
   return client.get(`/books/${bookId}/annotations`, { params });
 };
 
+export const getAnnotationFeed = (params) => {
+  return client.get('/annotations/feed', { params });
+};
+
 export const getAnnotation = (annotationId) => {
   return client.get(`/annotations/${annotationId}`);
 };

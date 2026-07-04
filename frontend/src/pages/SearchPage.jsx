@@ -1,0 +1,499 @@
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { getBooks } from '../api/books';
+import { getAnnotationFeed, searchAnnotations } from '../api/annotations';
+import { getPageData } from '../api/client';
+import SiteHeader from '../components/SiteHeader';
+
+const searchCategories = [
+  { label: '통합검색', value: 'all' },
+  { label: '책', value: 'book' },
+  { label: '주석', value: 'annotation' },
+  { label: '저자', value: 'author' },
+];
+
+const genreLabels = {
+  NOVEL: '소설',
+  ESSAY: '시/에세이',
+  HUMANITIES: '인문',
+  SCIENCE: '과학',
+  SELF_HELP: '자기계발',
+};
+
+const visibilityLabels = {
+  public: '공개',
+  friends: '친구 공개',
+  private: '비공개',
+  group: '그룹',
+};
+
+function LogoMark() {
+  return (
+    <span className="relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-primary-soft">
+      <span className="absolute left-2 top-1.5 h-5 w-2 -skew-y-12 rounded-[2px] bg-primary" />
+      <span className="absolute right-2 top-1.5 h-5 w-2 skew-y-12 rounded-[2px] bg-primary/85" />
+    </span>
+  );
+}
+
+function normalizeBook(book) {
+  return {
+    id: book.bookId ?? book.id,
+    title: book.title ?? '제목 없음',
+    author: book.author ?? '작가 미상',
+    genre: book.genreName ?? genreLabels[book.genreCode] ?? book.genre ?? '일반',
+    coverImageUrl: book.coverImageUrl,
+    annotationCount: book.annotationCount ?? 0,
+  };
+}
+
+function normalizeAnnotation(annotation) {
+  return {
+    id: annotation.annotationId ?? annotation.id,
+    bookId: annotation.book?.bookId ?? annotation.bookId,
+    bookTitle: annotation.book?.title ?? annotation.bookTitle ?? '책 정보 없음',
+    page: annotation.page ?? annotation.pageNumber ?? '-',
+    passage: annotation.passage ?? annotation.quote ?? '',
+    review: annotation.review ?? annotation.content ?? '',
+    author: annotation.author?.nickname ?? annotation.authorName ?? '익명',
+    visibility: visibilityLabels[annotation.visibility] ?? annotation.visibility ?? '공개',
+    likeCount: annotation.likeCount ?? 0,
+    commentCount: annotation.commentCount ?? 0,
+    isSpoiler: Boolean(annotation.isSpoiler),
+    createdAt: annotation.createdAt,
+    time: formatRelativeTime(annotation.createdAt),
+  };
+}
+
+function formatRelativeTime(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+
+  const diffMinutes = Math.max(Math.floor((Date.now() - date.getTime()) / 60000), 0);
+  if (diffMinutes < 60) return `${Math.max(diffMinutes, 1)}분 전`;
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours}시간 전`;
+
+  return `${Math.floor(diffHours / 24)}일 전`;
+}
+
+function SearchHeader({ category, keyword, onCategoryChange, onKeywordChange, onSubmit }) {
+  return (
+    <header className="site-header">
+      <div className="container grid min-h-[72px] grid-cols-[auto_1fr_auto] items-center gap-4 lg:gap-8">
+        <Link to="/" className="brand justify-self-start">
+          <LogoMark />
+          <span>문장서재</span>
+        </Link>
+
+        <form
+          className="flex min-h-11 w-full max-w-[620px] items-center overflow-hidden rounded-full border border-line bg-white shadow-soft focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10"
+          onSubmit={onSubmit}
+        >
+          <select
+            className="h-11 w-[116px] shrink-0 border-0 bg-transparent px-4 text-sm font-bold text-text outline-none"
+            value={category}
+            onChange={(event) => onCategoryChange(event.target.value)}
+            aria-label="검색 카테고리"
+          >
+            {searchCategories.map((item) => (
+              <option key={item.value} value={item.value}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+          <span className="h-5 w-px shrink-0 bg-line" aria-hidden="true" />
+          <input
+            className="h-11 min-w-0 flex-1 bg-transparent px-4 text-sm text-text outline-none placeholder:text-text-subtle"
+            value={keyword}
+            onChange={(event) => onKeywordChange(event.target.value)}
+            placeholder="검색어를 입력하세요"
+          />
+          <button className="flex h-11 w-12 shrink-0 items-center justify-center text-xl font-bold text-primary" type="submit" aria-label="검색">
+            ⌕
+          </button>
+        </form>
+
+        <nav className="hidden justify-self-end md:flex md:items-center md:gap-5" aria-label="주요 메뉴">
+          <Link className="nav__link" to="/">홈</Link>
+          <Link className="nav__link nav__link--active" to="/search">둘러보기</Link>
+          <Link className="nav__link" to="/mypage">내 서재</Link>
+        </nav>
+      </div>
+    </header>
+  );
+}
+
+function BookResultCard({ book }) {
+  return (
+    <Link to={`/books/${book.id}`} className="card book-card">
+      {book.coverImageUrl ? (
+        <img className="book-cover" src={book.coverImageUrl} alt={`${book.title} 표지`} />
+      ) : (
+        <div className="book-cover bg-primary-soft" />
+      )}
+      <div className="min-w-0">
+        <h3 className="line-clamp-2 text-[16px] font-bold leading-[1.45] text-text">{book.title}</h3>
+        <p className="mt-1 truncate text-sm text-text-muted">{book.author}</p>
+        <div className="mt-4 flex items-center justify-between gap-3">
+          <span className="tag tag--blue">{book.genre}</span>
+          <span className="text-sm font-semibold text-text-muted">노트 {book.annotationCount}</span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function AnnotationResultCard({ annotation }) {
+  const [isRevealed, setIsRevealed] = useState(!annotation.isSpoiler);
+  const shouldHideContent = annotation.isSpoiler && !isRevealed;
+
+  return (
+    <Link to={`/annotations/${annotation.id}`} className="card card--padded block transition hover:-translate-y-1 hover:shadow-card">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="tag">p.{annotation.page}</span>
+        <span className="tag tag--blue">{annotation.visibility}</span>
+        {annotation.isSpoiler && <span className="tag tag--danger">스포일러</span>}
+        <span className="text-sm font-semibold text-text-muted">「{annotation.bookTitle}」</span>
+      </div>
+
+      {shouldHideContent ? (
+        <div className="mt-4 rounded-sm border border-line bg-surfaceMuted p-5 text-center">
+          <p className="text-sm font-bold text-text-muted">스포일러가 포함된 구절 노트입니다.</p>
+          <button
+            className="button button--secondary button--sm mt-4"
+            type="button"
+            onClick={(event) => {
+              event.preventDefault();
+              setIsRevealed(true);
+            }}
+          >
+            보기
+          </button>
+        </div>
+      ) : (
+        <>
+          <blockquote className="mt-4 border-l-4 border-primary-soft pl-4 text-xl font-semibold leading-[1.65] text-text">
+            “{annotation.passage}”
+          </blockquote>
+          <p className="mt-3 leading-[1.7] text-text-muted">{annotation.review}</p>
+          <footer className="mt-5 flex items-center justify-between text-sm text-text-muted">
+            <span>{annotation.author}</span>
+            <span>♡ {annotation.likeCount} · 댓글 {annotation.commentCount}</span>
+          </footer>
+        </>
+      )}
+    </Link>
+  );
+}
+
+function EmptyState({ children }) {
+  return (
+    <div className="py-12 text-center">
+      <p className="text-sm font-semibold text-text-muted">{children}</p>
+    </div>
+  );
+}
+
+function PopularBookCard({ book }) {
+  return (
+    <Link to={`/books/${book.id}`} className="group block">
+      <article className="grid h-full gap-3">
+        {book.coverImageUrl ? (
+          <img
+            className="aspect-[3/4] w-full rounded-sm object-cover shadow-soft transition group-hover:-translate-y-1 group-hover:shadow-card"
+            src={book.coverImageUrl}
+            alt={`${book.title} 표지`}
+          />
+        ) : (
+          <div className="aspect-[3/4] w-full rounded-sm bg-primary-soft" />
+        )}
+        <div className="min-w-0">
+          <h3 className="line-clamp-2 text-sm font-extrabold leading-[1.45] text-text">{book.title}</h3>
+          <p className="mt-1 truncate text-xs font-semibold text-text-muted">{book.author}</p>
+        </div>
+      </article>
+    </Link>
+  );
+}
+
+function BrowseAnnotationCard({ annotation }) {
+  return (
+    <Link to={`/annotations/${annotation.id}`} className="card card--padded block transition hover:-translate-y-1 hover:shadow-card">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="tag">p.{annotation.page}</span>
+        <span className="tag tag--blue">{annotation.visibility}</span>
+        <span className="text-sm font-semibold text-text-muted">『{annotation.bookTitle}』</span>
+        <span className="ml-auto text-sm text-text-subtle">{annotation.time}</span>
+      </div>
+      <blockquote className="mt-4 border-l-4 border-primary-soft pl-4 text-xl font-semibold leading-[1.65] text-text">
+        “{annotation.passage}”
+      </blockquote>
+      <p className="mt-3 line-clamp-2 leading-[1.7] text-text-muted">{annotation.review}</p>
+      <footer className="mt-5 flex items-center justify-between text-sm text-text-muted">
+        <span>{annotation.author}</span>
+        <span>♡ {annotation.likeCount} · 댓글 {annotation.commentCount}</span>
+      </footer>
+    </Link>
+  );
+}
+
+export default function SearchPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const categoryParam = searchParams.get('category') || 'all';
+  const keywordParam = searchParams.get('q') || searchParams.get('keyword') || searchParams.get('search') || '';
+  const [category, setCategory] = useState(categoryParam);
+  const [keyword, setKeyword] = useState(keywordParam);
+  const [books, setBooks] = useState([]);
+  const [annotations, setAnnotations] = useState([]);
+  const [popularBooks, setPopularBooks] = useState([]);
+  const [browseAnnotations, setBrowseAnnotations] = useState([]);
+  const [bookWindow, setBookWindow] = useState(0);
+  const [annotationFilter, setAnnotationFilter] = useState('all');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isBrowseLoading, setIsBrowseLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [browseErrorMessage, setBrowseErrorMessage] = useState('');
+
+  const activeCategory = useMemo(
+    () => (searchCategories.some((item) => item.value === categoryParam) ? categoryParam : 'all'),
+    [categoryParam],
+  );
+  const isBrowseMode = !keywordParam.trim();
+  const visiblePopularBooks = popularBooks.slice(bookWindow * 5, bookWindow * 5 + 5);
+
+  useEffect(() => {
+    setCategory(activeCategory);
+    setKeyword(keywordParam);
+  }, [activeCategory, keywordParam]);
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadResults() {
+      if (isBrowseMode) {
+        setIsLoading(false);
+        setBooks([]);
+        setAnnotations([]);
+        return;
+      }
+
+      setIsLoading(true);
+      setErrorMessage('');
+
+      try {
+        const shouldLoadBooks = activeCategory === 'all' || activeCategory === 'book' || activeCategory === 'author';
+        const shouldLoadAnnotations = activeCategory === 'all' || activeCategory === 'annotation';
+        const [bookResponse, annotationResponse] = await Promise.all([
+          shouldLoadBooks ? getBooks({ keyword: keywordParam || undefined, page: 1, size: activeCategory === 'all' ? 8 : 20 }) : null,
+          shouldLoadAnnotations ? searchAnnotations({ keyword: keywordParam || undefined, page: 1, size: activeCategory === 'all' ? 8 : 20 }) : null,
+        ]);
+
+        if (!ignore) {
+          setBooks(bookResponse ? getPageData(bookResponse).data.map(normalizeBook) : []);
+          setAnnotations(annotationResponse ? getPageData(annotationResponse).data.map(normalizeAnnotation) : []);
+        }
+      } catch (error) {
+        if (!ignore) {
+          setBooks([]);
+          setAnnotations([]);
+          setErrorMessage(error.message || '검색 결과를 불러오지 못했습니다.');
+        }
+      } finally {
+        if (!ignore) setIsLoading(false);
+      }
+    }
+
+    loadResults();
+
+    return () => {
+      ignore = true;
+    };
+  }, [activeCategory, keywordParam, isBrowseMode]);
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadBrowse() {
+      if (!isBrowseMode) return;
+
+      setIsBrowseLoading(true);
+      setBrowseErrorMessage('');
+
+      try {
+        const [bookResponse, annotationResponse] = await Promise.all([
+          getBooks({ sort: 'popular', page: 1, size: 20 }),
+          getAnnotationFeed({
+            recentHours: 72,
+            scope: annotationFilter === 'friends' ? 'friends' : undefined,
+            sort: annotationFilter === 'friends' ? 'recent,desc' : 'likes,desc',
+            page: 1,
+            size: 20,
+          }),
+        ]);
+
+        if (!ignore) {
+          setPopularBooks(getPageData(bookResponse).data.map(normalizeBook));
+          setBrowseAnnotations(getPageData(annotationResponse).data.map(normalizeAnnotation));
+        }
+      } catch (error) {
+        if (!ignore) {
+          setPopularBooks([]);
+          setBrowseAnnotations([]);
+          setBrowseErrorMessage(error.message || '둘러보기 데이터를 불러오지 못했습니다.');
+        }
+      } finally {
+        if (!ignore) setIsBrowseLoading(false);
+      }
+    }
+
+    loadBrowse();
+
+    return () => {
+      ignore = true;
+    };
+  }, [annotationFilter, isBrowseMode]);
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const params = new URLSearchParams({ category });
+    const trimmedKeyword = keyword.trim();
+    if (trimmedKeyword) params.set('q', trimmedKeyword);
+    setSearchParams(params);
+  };
+
+  const categoryLabel = searchCategories.find((item) => item.value === activeCategory)?.label ?? '통합검색';
+
+  return (
+    <div className="min-h-screen bg-page">
+      <SiteHeader />
+
+      <main className="page">
+        <div className="container grid gap-8">
+          <section>
+            <h1 className="page-title mt-2">
+              {isBrowseMode ? '둘러보기' : `“${keywordParam}” 검색 결과`}
+            </h1>
+          </section>
+
+          {isBrowseMode && (
+            <>
+              {browseErrorMessage && <EmptyState>{browseErrorMessage}</EmptyState>}
+
+              {!browseErrorMessage && (
+                <>
+                  <section className="grid gap-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <h2 className="section-title">인기 책</h2>
+                      <button
+                        className="button button--secondary button--sm"
+                        type="button"
+                        onClick={() => {
+                          const totalWindows = Math.max(Math.ceil(popularBooks.length / 5), 1);
+                          setBookWindow((value) => (value + 1) % totalWindows);
+                        }}
+                        aria-label="다음 인기 책"
+                      >
+                        →
+                      </button>
+                    </div>
+
+                    {isBrowseLoading ? (
+                      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+                        {Array.from({ length: 5 }).map((_, index) => (
+                          <article key={index} className="aspect-[3/4] animate-pulse rounded-sm bg-surfaceMuted" />
+                        ))}
+                      </div>
+                    ) : visiblePopularBooks.length === 0 ? (
+                      <EmptyState>인기 책이 없습니다.</EmptyState>
+                    ) : (
+                      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+                        {visiblePopularBooks.map((book) => (
+                          <PopularBookCard key={book.id} book={book} />
+                        ))}
+                      </div>
+                    )}
+                  </section>
+
+                  <section className="grid gap-4 border-t border-line pt-7">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                      <h2 className="section-title">인기 구절노트</h2>
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          className={`button button--sm ${annotationFilter === 'all' ? 'button--primary' : 'button--secondary'}`}
+                          type="button"
+                          onClick={() => setAnnotationFilter('all')}
+                        >
+                          전체
+                        </button>
+                        <button
+                          className={`button button--sm ${annotationFilter === 'friends' ? 'button--primary' : 'button--secondary'}`}
+                          type="button"
+                          onClick={() => setAnnotationFilter('friends')}
+                        >
+                          친구
+                        </button>
+                      </div>
+                    </div>
+
+                    {isBrowseLoading ? (
+                      <div className="grid gap-4">
+                        {Array.from({ length: 3 }).map((_, index) => (
+                          <article key={index} className="card card--padded h-40 animate-pulse" />
+                        ))}
+                      </div>
+                    ) : browseAnnotations.length === 0 ? (
+                      <EmptyState>조건에 맞는 구절노트가 없습니다.</EmptyState>
+                    ) : (
+                      <div className="grid gap-4">
+                        {browseAnnotations.map((annotation) => (
+                          <BrowseAnnotationCard key={annotation.id} annotation={annotation} />
+                        ))}
+                      </div>
+                    )}
+                  </section>
+                </>
+              )}
+            </>
+          )}
+
+          {!isBrowseMode && errorMessage && <EmptyState>{errorMessage}</EmptyState>}
+
+          {!isBrowseMode && !errorMessage && isLoading && <EmptyState>검색 결과를 불러오는 중입니다</EmptyState>}
+
+          {!isBrowseMode && !errorMessage && !isLoading && (activeCategory === 'all' || activeCategory === 'book' || activeCategory === 'author') && (
+            <section className="grid gap-4">
+              <h2 className="section-title">책 결과</h2>
+              {books.length === 0 ? (
+                <EmptyState>일치하는 책을 찾지 못했습니다</EmptyState>
+              ) : (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {books.map((book) => (
+                    <BookResultCard key={book.id} book={book} />
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
+
+          {!isBrowseMode && !errorMessage && !isLoading && (activeCategory === 'all' || activeCategory === 'annotation') && (
+            <section className="grid gap-4">
+              <h2 className="section-title">주석 결과</h2>
+              {annotations.length === 0 ? (
+                <EmptyState>일치하는 주석을 찾지 못했습니다</EmptyState>
+              ) : (
+                <div className="grid gap-4">
+                  {annotations.map((annotation) => (
+                    <AnnotationResultCard key={annotation.id} annotation={annotation} />
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
+        </div>
+      </main>
+    </div>
+  );
+}
