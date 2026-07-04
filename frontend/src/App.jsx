@@ -5,10 +5,7 @@ import RegisterPage from './pages/RegisterPage';
 import MyPage from './pages/MyPage';
 import BookDetailPage from './pages/BookDetailPage.jsx';
 import HomePage from './pages/HomePage.jsx';
-import SearchPage from './pages/SearchPage.jsx';
-import AnnotationFormPage from './pages/AnnotationFormPage.jsx';
-import AnnotationDetailPage from './pages/AnnotationDetailPage.jsx';
-
+import GroupDetailPage from './pages/GroupDetailPage.jsx';
 
 const EmptyPage = ({ title }) => <main>{title}</main>;
 
@@ -29,10 +26,8 @@ export default function App() {
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/books/:bookId" element={<BookDetailPage />} />
-      <Route path="/annotations/new" element={<AnnotationFormPage />} />
-      <Route path="/annotations/:annotationId/edit" element={<AnnotationFormPage />} />
-      <Route path="/annotations/:annotationId" element={<AnnotationDetailPage />} />
-      <Route path="/search" element={<SearchPage />} />
+      <Route path="/annotations/:annotationId" element={<EmptyPage title="Annotation Detail" />} />
+      <Route path="/search" element={<EmptyPage title="Search" />} />
       
       <Route
         path="/login"
