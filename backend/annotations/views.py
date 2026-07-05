@@ -1,5 +1,8 @@
+from datetime import timedelta
+
 from django.db.models import Count, Exists, IntegerField, OuterRef, Q, Subquery, Value
 from django.db.models.functions import Coalesce
+from django.utils import timezone
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -115,6 +118,70 @@ class BookAnnotationListView(generics.ListAPIView):
     def get_queryset(self):
         queryset = annotations_with_stats(self.request).filter(book_id=self.kwargs['book_id'])
         annotation_type = self.request.query_params.get('type')
+
+        if annotation_type:
+            queryset = queryset.filter(type=annotation_type)
+
+        return sort_annotations(queryset, self.request.query_params.get('sort'))
+
+
+class AnnotationFeedView(generics.ListAPIView):
+    serializer_class = AnnotationSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        queryset = annotations_with_stats(self.request)
+        recent_hours = self.request.query_params.get('recentHours')
+        scope = self.request.query_params.get('scope')
+
+        if recent_hours:
+            try:
+                cutoff = timezone.now() - timedelta(hours=int(recent_hours))
+                queryset = queryset.filter(created_at__gte=cutoff)
+            except ValueError:
+                from rest_framework.exceptions import ValidationError
+                raise ValidationError('recentHours must be a number.')
+
+        if scope == 'friends':
+            if not self.request.user.is_authenticated:
+                queryset = queryset.none()
+            else:
+                friend_ids = Friend.friend_ids_of(self.request.user)
+                queryset = queryset.filter(
+                    Q(user_id__in=friend_ids, visibility__in=[
+                        Annotation.Visibility.PUBLIC,
+                        Annotation.Visibility.FRIENDS,
+                    ])
+                    | Q(user=self.request.user)
+                )
+
+        return sort_annotations(queryset, self.request.query_params.get('sort'))
+
+
+class AnnotationSearchView(generics.ListAPIView):
+    serializer_class = AnnotationSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        queryset = annotations_with_stats(self.request)
+        book_id = self.request.query_params.get('bookId')
+        keyword = self.request.query_params.get('keyword')
+        page_number = self.request.query_params.get('pageNumber')
+        annotation_type = self.request.query_params.get('type')
+
+        if book_id:
+            queryset = queryset.filter(book_id=book_id)
+
+        if keyword:
+            queryset = queryset.filter(
+                Q(passage__icontains=keyword)
+                | Q(review__icontains=keyword)
+                | Q(book__title__icontains=keyword)
+                | Q(book__author__icontains=keyword)
+            )
+
+        if page_number:
+            queryset = queryset.filter(page=page_number)
 
         if annotation_type:
             queryset = queryset.filter(type=annotation_type)

@@ -19,6 +19,8 @@ from .views import (
     AnnotationCreateView,
     AnnotationDetailView,
     AnnotationFavoriteView,
+    AnnotationFeedView,
+    AnnotationSearchView,
     BookAnnotationListView,
     CommentDetailView,
     CommentListCreateView,
@@ -28,6 +30,8 @@ from .views import (
 )
 
 urlpatterns = [
+    path('annotations/feed', AnnotationFeedView.as_view(), name='annotation-feed'),
+    path('annotations/search', AnnotationSearchView.as_view(), name='annotation-search'),
     path('annotations', AnnotationCreateView.as_view(), name='annotation-create'),
     path('annotations/<int:annotation_id>', AnnotationDetailView.as_view(), name='annotation-detail'),
     path('books/<int:book_id>/annotations', BookAnnotationListView.as_view(), name='book-annotation-list'),

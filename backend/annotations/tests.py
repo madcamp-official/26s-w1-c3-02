@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -44,6 +45,25 @@ class AnnotationApiTests(APITestCase):
             passage='private passage',
             visibility=Annotation.Visibility.PRIVATE,
         )
+        self.group_annotation = Annotation.objects.create(
+            user=self.friend,
+            book=self.book,
+            group=self.group,
+            passage='group passage',
+            review='group review',
+            page=30,
+            visibility=Annotation.Visibility.GROUP,
+        )
+        self.old_annotation = Annotation.objects.create(
+            user=self.other,
+            book=self.book,
+            passage='old public passage',
+            review='old public review',
+            page=40,
+            visibility=Annotation.Visibility.PUBLIC,
+        )
+        Annotation.objects.filter(pk=self.old_annotation.pk).update(created_at=timezone.now() - timezone.timedelta(hours=80))
+        self.old_annotation.refresh_from_db()
         Like.objects.create(user=self.user, target_type=Like.TargetType.ANNOTATION, target_id=self.public_annotation.id)
         Like.objects.create(user=self.friend, target_type=Like.TargetType.ANNOTATION, target_id=self.public_annotation.id)
         Like.objects.create(user=self.user, target_type=Like.TargetType.ANNOTATION, target_id=self.friend_annotation.id)
@@ -79,15 +99,17 @@ class AnnotationApiTests(APITestCase):
     def test_book_annotations_apply_visibility_and_sorting(self):
         response = self.client.get(f'/api/books/{self.book.id}/annotations', {'sort': 'likes,desc'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual([item['annotationId'] for item in response.data['data']], [self.public_annotation.id])
+        self.assertEqual(
+            [item['annotationId'] for item in response.data['data']],
+            [self.public_annotation.id, self.old_annotation.id],
+        )
 
         self.client.force_authenticate(self.user)
         response = self.client.get(f'/api/books/{self.book.id}/annotations', {'sort': 'likes,desc'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            [item['annotationId'] for item in response.data['data']],
-            [self.public_annotation.id, self.friend_annotation.id],
-        )
+        ids = [item['annotationId'] for item in response.data['data']]
+        self.assertEqual(ids[:2], [self.public_annotation.id, self.friend_annotation.id])
+        self.assertIn(self.group_annotation.id, ids)
         self.assertEqual(response.data['data'][0]['likeCount'], 2)
         self.assertTrue(response.data['data'][0]['isLiked'])
 
@@ -174,5 +196,39 @@ class AnnotationApiTests(APITestCase):
 
         response = self.client.delete(f'/api/annotations/{self.public_annotation.id}/favorite')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_feed_uses_visibility_recent_hours_and_friend_scope(self):
+        response = self.client.get('/api/annotations/feed', {'recentHours': 72, 'sort': 'likes,desc'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        ids = [item['annotationId'] for item in response.data['data']]
+        self.assertIn(self.public_annotation.id, ids)
+        self.assertNotIn(self.friend_annotation.id, ids)
+        self.assertNotIn(self.private_annotation.id, ids)
+        self.assertNotIn(self.group_annotation.id, ids)
+        self.assertNotIn(self.old_annotation.id, ids)
+
+        self.client.force_authenticate(self.user)
+        response = self.client.get('/api/annotations/feed', {'scope': 'friends', 'sort': 'recent,desc'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        ids = [item['annotationId'] for item in response.data['data']]
+        self.assertIn(self.friend_annotation.id, ids)
+        self.assertNotIn(self.group_annotation.id, ids)
+        self.assertNotIn(self.private_annotation.id, ids)
+
+    def test_search_filters_keyword_book_page_type_and_visibility(self):
+        response = self.client.get('/api/annotations/search', {'keyword': 'friend'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['pagination']['totalElements'], 0)
+
+        self.client.force_authenticate(self.user)
+        response = self.client.get('/api/annotations/search', {
+            'bookId': self.book.id,
+            'keyword': 'friend',
+            'pageNumber': 10,
+            'type': 'QUESTION',
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['pagination']['totalElements'], 1)
+        self.assertEqual(response.data['data'][0]['annotationId'], self.friend_annotation.id)
 
 # Create your tests here.
