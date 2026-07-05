@@ -9,6 +9,7 @@ import SearchPage from './pages/SearchPage.jsx';
 import AnnotationFormPage from './pages/AnnotationFormPage.jsx';
 import AnnotationDetailPage from './pages/AnnotationDetailPage.jsx';
 import GroupDetailPage from './pages/GroupDetailPage.jsx';
+import GroupsPage from './pages/GroupsPage.jsx';
 
 const EmptyPage = ({ title }) => <main>{title}</main>;
 
@@ -71,7 +72,7 @@ export default function App() {
         path="/groups"
         element={
           <ProtectedRoute>
-            <EmptyPage title="Groups" />
+            <GroupsPage />
           </ProtectedRoute>
         }
       />

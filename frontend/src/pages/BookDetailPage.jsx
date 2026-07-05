@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { favoriteBook, getBook, unfavoriteBook } from '../api/books';
 import { favoriteAnnotation, getBookAnnotations, searchAnnotations, unfavoriteAnnotation } from '../api/annotations';
+import { getGroupAnnotations } from '../api/groups';
 import { getPageData } from '../api/client';
 import { like, unlike } from '../api/likes';
 import SiteHeader from '../components/SiteHeader';
@@ -356,6 +357,8 @@ function SearchAndAction({ bookId, value, onChange, onSearch, onReset }) {
 
 export default function BookDetailPage() {
   const { bookId } = useParams();
+  const [searchParams] = useSearchParams();
+  const groupId = searchParams.get('groupId');
   const [book, setBook] = useState(null);
   const [annotations, setAnnotations] = useState([]);
   const [sort, setSort] = useState('recent,desc');
@@ -416,16 +419,37 @@ export default function BookDetailPage() {
         };
         const trimmedSearch = searchKeyword.trim();
         const pageNumber = Number(trimmedSearch);
-        const response = trimmedSearch
-          ? await searchAnnotations({
-              ...params,
-              bookId,
-              keyword: Number.isNaN(pageNumber) ? trimmedSearch : undefined,
-              pageNumber: Number.isNaN(pageNumber) ? undefined : pageNumber,
-            })
-          : await getBookAnnotations(bookId, params);
+        const isPageSearch = trimmedSearch !== '' && !Number.isNaN(pageNumber);
+
+        let response;
+        if (groupId) {
+          // 그룹 라운지에서 들어온 경우 전체 공개 주석이 아니라 해당 그룹에 남겨진 주석만 조회한다.
+          response = await getGroupAnnotations(groupId, { ...params, bookId });
+        } else if (trimmedSearch) {
+          response = await searchAnnotations({
+            ...params,
+            bookId,
+            keyword: isPageSearch ? undefined : trimmedSearch,
+            pageNumber: isPageSearch ? pageNumber : undefined,
+          });
+        } else {
+          response = await getBookAnnotations(bookId, params);
+        }
+
         const page = getPageData(response);
-        if (!ignore) setAnnotations(page.data.map(normalizeAnnotation));
+        let items = page.data.map(normalizeAnnotation);
+
+        // 그룹 전용 주석 API는 검색 파라미터를 지원하지 않으므로, 그룹 컨텍스트의 검색은 받아온 결과에서 클라이언트 필터링한다.
+        if (groupId && trimmedSearch) {
+          const keyword = trimmedSearch.toLowerCase();
+          items = items.filter((item) =>
+            isPageSearch
+              ? item.page === pageNumber
+              : item.quote.toLowerCase().includes(keyword) || item.review.toLowerCase().includes(keyword)
+          );
+        }
+
+        if (!ignore) setAnnotations(items);
       } catch (error) {
         if (!ignore) {
           setAnnotations([]);
@@ -441,7 +465,7 @@ export default function BookDetailPage() {
     return () => {
       ignore = true;
     };
-  }, [bookId, sort, searchKeyword]);
+  }, [bookId, sort, searchKeyword, groupId]);
 
   const handleSearch = (event) => {
     event.preventDefault();
@@ -480,7 +504,11 @@ export default function BookDetailPage() {
 
       <div className="border-b border-line bg-white/40">
         <div className="container flex min-h-[58px] items-center gap-2 text-sm font-semibold text-text-muted">
-          <Link to="/">홈</Link>
+          {groupId ? (
+            <Link to={`/groups/${groupId}`}>그룹 라운지</Link>
+          ) : (
+            <Link to="/">홈</Link>
+          )}
           <span>/</span>
           <span className="text-text">{visibleBook.title}</span>
           <span className="sr-only">현재 책 ID {bookId}</span>
@@ -535,7 +563,9 @@ export default function BookDetailPage() {
 
             {!isAnnotationsLoading && !errorMessage && annotations.length === 0 && (
               <div className="py-12 text-center">
-                <p className="text-sm font-semibold text-text-muted">아직 등록된 주석이 없습니다</p>
+                <p className="text-sm font-semibold text-text-muted">
+                  {groupId ? '아직 그룹원이 남긴 주석이 없습니다' : '아직 등록된 주석이 없습니다'}
+                </p>
               </div>
             )}
           </section>
