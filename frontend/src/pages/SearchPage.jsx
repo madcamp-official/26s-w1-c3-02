@@ -434,8 +434,9 @@ export default function SearchPage() {
       try {
         const shouldLoadBooks = activeCategory === 'all' || activeCategory === 'book' || activeCategory === 'author';
         const shouldLoadAnnotations = activeCategory === 'all' || activeCategory === 'annotation';
+        const bookSearchField = activeCategory === 'author' ? 'author' : activeCategory === 'book' ? 'title' : undefined;
         const [bookResponse, annotationResponse] = await Promise.all([
-          shouldLoadBooks ? getBooks({ keyword: keywordParam || undefined, page: 1, size: activeCategory === 'all' ? 8 : 20 }) : null,
+          shouldLoadBooks ? getBooks({ keyword: keywordParam || undefined, field: bookSearchField, page: 1, size: activeCategory === 'all' ? 8 : 20 }) : null,
           shouldLoadAnnotations ? searchAnnotations({ keyword: keywordParam || undefined, page: 1, size: activeCategory === 'all' ? 8 : 20 }) : null,
         ]);
 
@@ -570,20 +571,20 @@ export default function SearchPage() {
                       <h2 className="section-title">인기 구절노트</h2>
                       {isAuthenticated && (
                         <div className="flex flex-wrap gap-2">
-                          <button
-                            className={`button button--sm ${annotationFilter === 'all' ? 'button--primary' : 'button--secondary'}`}
-                            type="button"
-                            onClick={() => setAnnotationFilter('all')}
-                          >
-                            전체
-                          </button>
-                          <button
-                            className={`button button--sm ${annotationFilter === 'friends' ? 'button--primary' : 'button--secondary'}`}
-                            type="button"
-                            onClick={() => setAnnotationFilter('friends')}
-                          >
-                            친구
-                          </button>
+                            <button
+                              className={`button button--sm ${annotationFilter === 'all' ? 'button--primary' : 'button--secondary'}`}
+                              type="button"
+                              onClick={() => setAnnotationFilter('all')}
+                            >
+                              전체
+                            </button>
+                            <button
+                              className={`button button--sm ${annotationFilter === 'friends' ? 'button--primary' : 'button--secondary'}`}
+                              type="button"
+                              onClick={() => setAnnotationFilter('friends')}
+                            >
+                              친구
+                            </button>
                         </div>
                       )}
                     </div>

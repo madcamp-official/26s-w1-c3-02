@@ -133,6 +133,7 @@ class AnnotationFeedView(generics.ListAPIView):
         queryset = annotations_with_stats(self.request)
         recent_hours = self.request.query_params.get('recentHours')
         scope = self.request.query_params.get('scope')
+        annotation_type = self.request.query_params.get('type')
 
         if recent_hours:
             try:
@@ -154,6 +155,9 @@ class AnnotationFeedView(generics.ListAPIView):
                     ])
                     | Q(user=self.request.user)
                 )
+
+        if annotation_type:
+            queryset = queryset.filter(type=annotation_type)
 
         return sort_annotations(queryset, self.request.query_params.get('sort'))
 
@@ -235,10 +239,6 @@ class CommentListCreateView(generics.ListCreateAPIView):
     def get_queryset(self):
         self.get_annotation()
         queryset = comments_with_stats(self.request).filter(annotation_id=self.kwargs['annotation_id'])
-        comment_type = self.request.query_params.get('type')
-
-        if comment_type:
-            queryset = queryset.filter(type=comment_type)
 
         return sort_comments(queryset, self.request.query_params.get('sort'))
 

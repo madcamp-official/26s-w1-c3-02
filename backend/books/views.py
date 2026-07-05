@@ -30,10 +30,16 @@ class BookListCreateView(generics.ListCreateAPIView):
     def get_queryset(self):
         queryset = books_with_stats(self.request)
         keyword = self.request.query_params.get('keyword')
+        search_field = self.request.query_params.get('field')
         genre_code = self.request.query_params.get('genreCode')
 
         if keyword:
-            queryset = queryset.filter(Q(title__icontains=keyword) | Q(author__icontains=keyword))
+            if search_field == 'author':
+                queryset = queryset.filter(author__icontains=keyword)
+            elif search_field == 'title':
+                queryset = queryset.filter(title__icontains=keyword)
+            else:
+                queryset = queryset.filter(Q(title__icontains=keyword) | Q(author__icontains=keyword))
 
         if genre_code:
             queryset = queryset.filter(genre_code=genre_code)

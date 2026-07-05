@@ -12,8 +12,7 @@ class AnnotationAdmin(admin.ModelAdmin):
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ['id', 'annotation', 'user', 'type', 'created_at']
-    list_filter = ['type']
+    list_display = ['id', 'annotation', 'user', 'created_at']
 
 
 @admin.register(Like)

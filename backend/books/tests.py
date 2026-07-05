@@ -31,6 +31,17 @@ class BookApiTests(APITestCase):
         self.assertEqual(response.data['data'][0]['annotationCount'], 0)
         self.assertFalse(response.data['data'][0]['isFavorited'])
 
+    def test_list_books_can_search_author_only(self):
+        Book.objects.create(title='The Author Trap', author='다른 작가')
+        response = self.client.get('/api/books', {'keyword': 'The', 'field': 'author'})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['pagination']['totalElements'], 0)
+
+        response = self.client.get('/api/books', {'keyword': '헤르만', 'field': 'author'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['data'][0]['bookId'], self.book.id)
+
     def test_create_book_requires_auth_and_rejects_duplicate_isbn(self):
         payload = {'title': '새 책', 'author': '작가', 'isbn': '9788937460449'}
 

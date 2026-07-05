@@ -22,6 +22,13 @@ const visibilityOptions = [
   },
 ];
 
+const annotationTypes = [
+  { label: '일반', value: 'NORMAL' },
+  { label: '감상', value: 'REVIEW' },
+  { label: '질문', value: 'QUESTION' },
+  { label: '토론', value: 'DISCUSSION' },
+];
+
 function LogoMark() {
   return (
     <span className="relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-primary-soft">
@@ -70,6 +77,7 @@ export default function AnnotationFormPage() {
   const [page, setPage] = useState('');
   const [passage, setPassage] = useState('');
   const [review, setReview] = useState('');
+  const [annotationType, setAnnotationType] = useState('NORMAL');
   const [visibility, setVisibility] = useState('public');
   const [isSpoiler, setIsSpoiler] = useState(false);
   const [isLoadingBook, setIsLoadingBook] = useState(true);
@@ -94,6 +102,7 @@ export default function AnnotationFormPage() {
         setPage(response.page ? String(response.page) : '');
         setPassage(response.passage ?? '');
         setReview(response.review ?? '');
+        setAnnotationType(response.type ?? 'NORMAL');
         setVisibility(response.visibility ?? 'public');
         setIsSpoiler(Boolean(response.isSpoiler));
       } catch (error) {
@@ -164,7 +173,7 @@ export default function AnnotationFormPage() {
     try {
       const payload = {
         bookId: Number(bookId),
-        type: 'NORMAL',
+        type: annotationType,
         passage: passage.trim(),
         review: review.trim(),
         page: Number(page),
@@ -270,6 +279,22 @@ export default function AnnotationFormPage() {
                 placeholder="이 문장에서 어떤 생각이 들었나요?"
               />
             </label>
+
+            <fieldset className="grid gap-3">
+              <legend className="form-label">노트 유형</legend>
+              <div className="flex flex-wrap gap-2">
+                {annotationTypes.map((type) => (
+                  <button
+                    key={type.value}
+                    className={`button button--sm ${annotationType === type.value ? 'button--primary' : 'button--secondary'}`}
+                    type="button"
+                    onClick={() => setAnnotationType(type.value)}
+                  >
+                    {type.label}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
 
             <fieldset className="grid gap-3">
               <legend className="form-label">공개 설정</legend>
