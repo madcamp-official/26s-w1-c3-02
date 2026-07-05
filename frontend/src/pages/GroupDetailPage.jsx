@@ -348,7 +348,7 @@ export default function GroupDetailPage() {
                 ) : (
                   <div className="grid grid--books">
                     {group.books.map((book) => (
-                      <article key={book.bookId} className="card book-card relative bg-white transition hover:-translate-y-1 hover:shadow-card">
+                      <article key={book.bookId} className="card book-card !justify-self-start relative bg-white transition hover:-translate-y-1 hover:shadow-card">
                         <Link to={`/books/${book.bookId}?groupId=${groupId}`} className="contents">
                           {book.coverImageUrl ? (
                             <img className="book-cover" src={book.coverImageUrl} alt={book.title} />
