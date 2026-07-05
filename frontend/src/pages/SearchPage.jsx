@@ -4,6 +4,7 @@ import { favoriteBook, getBooks, unfavoriteBook } from '../api/books';
 import { favoriteAnnotation, getAnnotationFeed, searchAnnotations, unfavoriteAnnotation } from '../api/annotations';
 import { getPageData } from '../api/client';
 import SiteHeader from '../components/SiteHeader';
+import { useAuth } from '../context/AuthContext';
 
 const searchCategories = [
   { label: '통합검색', value: 'all' },
@@ -381,6 +382,7 @@ function BrowseAnnotationCard({ annotation }) {
 }
 
 export default function SearchPage() {
+  const { isAuthenticated } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryParam = searchParams.get('category') || 'all';
   const keywordParam = searchParams.get('q') || searchParams.get('keyword') || searchParams.get('search') || '';
@@ -408,6 +410,12 @@ export default function SearchPage() {
     setCategory(activeCategory);
     setKeyword(keywordParam);
   }, [activeCategory, keywordParam]);
+
+  useEffect(() => {
+    if (!isAuthenticated && annotationFilter === 'friends') {
+      setAnnotationFilter('all');
+    }
+  }, [annotationFilter, isAuthenticated]);
 
   useEffect(() => {
     let ignore = false;
@@ -467,8 +475,8 @@ export default function SearchPage() {
           getBooks({ sort: 'popular', page: 1, size: 20 }),
           getAnnotationFeed({
             recentHours: 72,
-            scope: annotationFilter === 'friends' ? 'friends' : undefined,
-            sort: annotationFilter === 'friends' ? 'recent,desc' : 'likes,desc',
+            scope: isAuthenticated && annotationFilter === 'friends' ? 'friends' : undefined,
+            sort: isAuthenticated && annotationFilter === 'friends' ? 'recent,desc' : 'likes,desc',
             page: 1,
             size: 20,
           }),
@@ -494,7 +502,7 @@ export default function SearchPage() {
     return () => {
       ignore = true;
     };
-  }, [annotationFilter, isBrowseMode]);
+  }, [annotationFilter, isAuthenticated, isBrowseMode]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -560,22 +568,24 @@ export default function SearchPage() {
                   <section className="grid gap-4 border-t border-line pt-7">
                     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                       <h2 className="section-title">인기 구절노트</h2>
-                      <div className="flex flex-wrap gap-2">
-                        <button
-                          className={`button button--sm ${annotationFilter === 'all' ? 'button--primary' : 'button--secondary'}`}
-                          type="button"
-                          onClick={() => setAnnotationFilter('all')}
-                        >
-                          전체
-                        </button>
-                        <button
-                          className={`button button--sm ${annotationFilter === 'friends' ? 'button--primary' : 'button--secondary'}`}
-                          type="button"
-                          onClick={() => setAnnotationFilter('friends')}
-                        >
-                          친구
-                        </button>
-                      </div>
+                      {isAuthenticated && (
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            className={`button button--sm ${annotationFilter === 'all' ? 'button--primary' : 'button--secondary'}`}
+                            type="button"
+                            onClick={() => setAnnotationFilter('all')}
+                          >
+                            전체
+                          </button>
+                          <button
+                            className={`button button--sm ${annotationFilter === 'friends' ? 'button--primary' : 'button--secondary'}`}
+                            type="button"
+                            onClick={() => setAnnotationFilter('friends')}
+                          >
+                            친구
+                          </button>
+                        </div>
+                      )}
                     </div>
 
                     {isBrowseLoading ? (
