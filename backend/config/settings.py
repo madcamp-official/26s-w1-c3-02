@@ -18,6 +18,25 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+def load_local_env(path):
+    if not path.exists():
+        return
+
+    for raw_line in path.read_text(encoding='utf-8').splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith('#') or '=' not in line:
+            continue
+        key, value = line.split('=', 1)
+        os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+
+
+load_local_env(BASE_DIR / '.env')
+
+ALADIN_TTB_KEY = os.environ.get('ALADIN_TTB_KEY', '')
+ALADIN_API_BASE_URL = os.environ.get('ALADIN_API_BASE_URL', 'http://www.aladin.co.kr/ttb/api')
+ALADIN_CACHE_TTL = int(os.environ.get('ALADIN_CACHE_TTL', '86400'))
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
@@ -136,6 +155,13 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'munjangseojae-local-cache',
+    },
+}
 
 # 시드 데이터: python manage.py loaddata seed
 FIXTURE_DIRS = [BASE_DIR / 'fixtures']

@@ -15,10 +15,14 @@ from .views import (
     BookListCreateView,
     BookRecommendationView,
     FavoriteBookListView,
+    AladinBookImportView,
+    AladinBookSearchView,
 )
 
 urlpatterns = [
     path('books', BookListCreateView.as_view(), name='book-list-create'),
+    path('books/external-search', AladinBookSearchView.as_view(), name='aladin-book-search'),
+    path('books/import-from-aladin', AladinBookImportView.as_view(), name='aladin-book-import'),
     path('books/recommendations', BookRecommendationView.as_view(), name='book-recommendations'),
     path('books/<int:book_id>', BookDetailView.as_view(), name='book-detail'),
     path('books/<int:book_id>/favorite', BookFavoriteView.as_view(), name='book-favorite'),

@@ -1,4 +1,6 @@
 from django.contrib.auth import get_user_model
+from unittest.mock import patch
+
 from rest_framework import status
 from rest_framework.test import APITestCase
 
@@ -68,5 +70,46 @@ class BookApiTests(APITestCase):
         response = self.client.delete(f'/api/books/{self.book.id}/favorite')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(BookFavorite.objects.filter(user=self.user, book=self.book).exists())
+
+    @patch('books.views.search_aladin_books')
+    def test_aladin_search_requires_auth_and_returns_candidates(self, mock_search):
+        mock_search.return_value = [{
+            'title': '알라딘 책',
+            'author': '작가',
+            'publishDate': '2026-01-01',
+            'isbn': '9790000000001',
+            'genreCode': 'NOVEL',
+            'coverImageUrl': 'https://example.com/cover.jpg',
+        }]
+
+        response = self.client.get('/api/books/external-search', {'keyword': '알라딘'})
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        self.client.force_authenticate(self.user)
+        response = self.client.get('/api/books/external-search', {'keyword': '알라딘', 'field': 'title'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['data'][0]['isbn'], '9790000000001')
+        mock_search.assert_called_once()
+
+    @patch('books.views.lookup_aladin_book')
+    def test_aladin_import_creates_or_reuses_book_by_isbn(self, mock_lookup):
+        mock_lookup.return_value = {
+            'title': '새 알라딘 책',
+            'author': '알라딘 작가',
+            'publishDate': '2026-01-01',
+            'isbn': '9790000000002',
+            'genreCode': 'SCIENCE',
+            'coverImageUrl': 'https://example.com/cover.jpg',
+        }
+        self.client.force_authenticate(self.user)
+
+        response = self.client.post('/api/books/import-from-aladin', {'isbn': '9790000000002'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['title'], '새 알라딘 책')
+        self.assertTrue(Book.objects.filter(isbn='9790000000002').exists())
+
+        response = self.client.post('/api/books/import-from-aladin', {'isbn': '9790000000002'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(mock_lookup.call_count, 1)
 
 # Create your tests here.

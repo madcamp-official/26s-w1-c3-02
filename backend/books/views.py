@@ -1,10 +1,12 @@
 from django.db.models import Count, Exists, OuterRef, Q
 from rest_framework import generics, permissions, status
+from rest_framework import exceptions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from common.exceptions import DuplicateError
 
+from .aladin import lookup_aladin_book, search_aladin_books
 from .models import Book, BookFavorite
 from .serializers import BookSerializer
 
@@ -101,5 +103,51 @@ class FavoriteBookListView(generics.ListAPIView):
             '-favorites__created_at',
             'id',
         )
+
+
+class AladinBookSearchView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        keyword = request.query_params.get('keyword') or request.query_params.get('q')
+        if not keyword:
+            raise exceptions.ValidationError('keyword is required.')
+
+        results = search_aladin_books(
+            keyword=keyword,
+            field=request.query_params.get('field'),
+            size=request.query_params.get('size', 10),
+            page=request.query_params.get('page', 1),
+        )
+        return Response({'data': results})
+
+
+class AladinBookImportView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        isbn = request.data.get('isbn')
+        if not isbn:
+            raise exceptions.ValidationError('isbn is required.')
+
+        existing_book = Book.objects.filter(isbn=isbn).first()
+        if existing_book:
+            serializer = BookSerializer(existing_book, context={'request': request})
+            return Response(serializer.data)
+
+        book_data = lookup_aladin_book(isbn)
+        if not book_data:
+            raise exceptions.NotFound('Book not found from Aladin.')
+
+        book = Book.objects.create(
+            title=book_data['title'],
+            author=book_data['author'],
+            publish_date=book_data['publishDate'],
+            isbn=book_data['isbn'] or isbn,
+            genre_code=book_data['genreCode'],
+            cover_image_url=book_data['coverImageUrl'],
+        )
+        serializer = BookSerializer(book, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 # Create your views here.
