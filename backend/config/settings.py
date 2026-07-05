@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 import os
+from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -46,8 +47,13 @@ INSTALLED_APPS = [
     'rest_framework',      # DRF 등록
     'corsheaders',         # CORS 부품 등록
 
-    'bookclub',
+    'accounts',            # B: User, Friend
+    'groups',              # B: Group, GroupMember, GroupBook
+    'books',               # A: Book, BookFavorite
+    'annotations',         # A: Annotation, Comment, Like, AnnotationFavorite
 ]
+
+AUTH_USER_MODEL = 'accounts.User'
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',  # ★반드시 이 위치(최상단 근처)에 추가!
@@ -127,4 +133,32 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 CORS_ALLOW_ALL_ORIGINS = True
+
+# 시드 데이터: python manage.py loaddata seed
+FIXTURE_DIRS = [BASE_DIR / 'fixtures']
+
+# DRF 공통 규약 (docs/api-spec.md 기준)
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+    # 공개 endpoint는 GET, 🔒 endpoint는 각 뷰에서 IsAuthenticated 지정
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'common.pagination.StandardPagination',
+    'PAGE_SIZE': 20,
+    'EXCEPTION_HANDLER': 'common.exceptions.custom_exception_handler',
+    'UNAUTHENTICATED_USER': 'django.contrib.auth.models.AnonymousUser',
+}
+
+# JWT: 무상태 (refresh token 미사용, 로그아웃은 204만 반환 — api-spec 기준)
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=7),  # madCamp 데모 편의상 길게
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+}

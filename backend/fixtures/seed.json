@@ -1,0 +1,1242 @@
+[
+  {
+    "model": "accounts.user",
+    "pk": 1,
+    "fields": {
+      "password": "pbkdf2_sha256$1200000$hm8GLPflDTxt91b6M57LOU$yCMpLUSp3I80MZGD1nF0urSCFepYCWmNVnsvNgUnmLM=",
+      "last_login": null,
+      "is_superuser": false,
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-07-03T12:00:00Z",
+      "email": "a@b.com",
+      "nickname": "테스트유저",
+      "bio": "책 속의 문장이 나를 바꾸고, 나의 문장이 누군가에게 닿기를.",
+      "avatar_url": "",
+      "avatar_icon": ""
+    }
+  },
+  {
+    "model": "accounts.user",
+    "pk": 2,
+    "fields": {
+      "password": "pbkdf2_sha256$1200000$hm8GLPflDTxt91b6M57LOU$yCMpLUSp3I80MZGD1nF0urSCFepYCWmNVnsvNgUnmLM=",
+      "last_login": null,
+      "is_superuser": false,
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-07-03T12:30:00Z",
+      "email": "seo@example.com",
+      "nickname": "seo_reader",
+      "bio": "",
+      "avatar_url": "",
+      "avatar_icon": ""
+    }
+  },
+  {
+    "model": "accounts.user",
+    "pk": 3,
+    "fields": {
+      "password": "pbkdf2_sha256$1200000$hm8GLPflDTxt91b6M57LOU$yCMpLUSp3I80MZGD1nF0urSCFepYCWmNVnsvNgUnmLM=",
+      "last_login": null,
+      "is_superuser": false,
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-07-03T13:00:00Z",
+      "email": "mate@example.com",
+      "nickname": "book_mate",
+      "bio": "",
+      "avatar_url": "",
+      "avatar_icon": ""
+    }
+  },
+  {
+    "model": "accounts.user",
+    "pk": 4,
+    "fields": {
+      "password": "pbkdf2_sha256$1200000$hm8GLPflDTxt91b6M57LOU$yCMpLUSp3I80MZGD1nF0urSCFepYCWmNVnsvNgUnmLM=",
+      "last_login": null,
+      "is_superuser": false,
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-07-03T13:30:00Z",
+      "email": "note@example.com",
+      "nickname": "note_keeper",
+      "bio": "",
+      "avatar_url": "",
+      "avatar_icon": ""
+    }
+  },
+  {
+    "model": "accounts.user",
+    "pk": 5,
+    "fields": {
+      "password": "pbkdf2_sha256$1200000$hm8GLPflDTxt91b6M57LOU$yCMpLUSp3I80MZGD1nF0urSCFepYCWmNVnsvNgUnmLM=",
+      "last_login": null,
+      "is_superuser": false,
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-07-03T14:00:00Z",
+      "email": "quiet@example.com",
+      "nickname": "quiet_reader",
+      "bio": "",
+      "avatar_url": "",
+      "avatar_icon": ""
+    }
+  },
+  {
+    "model": "accounts.user",
+    "pk": 6,
+    "fields": {
+      "password": "pbkdf2_sha256$1200000$hm8GLPflDTxt91b6M57LOU$yCMpLUSp3I80MZGD1nF0urSCFepYCWmNVnsvNgUnmLM=",
+      "last_login": null,
+      "is_superuser": false,
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-07-03T15:00:00Z",
+      "email": "easy@example.com",
+      "nickname": "easy0131",
+      "bio": "",
+      "avatar_url": "",
+      "avatar_icon": ""
+    }
+  },
+  {
+    "model": "accounts.user",
+    "pk": 7,
+    "fields": {
+      "password": "pbkdf2_sha256$1200000$hm8GLPflDTxt91b6M57LOU$yCMpLUSp3I80MZGD1nF0urSCFepYCWmNVnsvNgUnmLM=",
+      "last_login": null,
+      "is_superuser": false,
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-07-03T15:30:00Z",
+      "email": "passerby@example.com",
+      "nickname": "지나가던독서가",
+      "bio": "",
+      "avatar_url": "",
+      "avatar_icon": ""
+    }
+  },
+  {
+    "model": "accounts.user",
+    "pk": 8,
+    "fields": {
+      "password": "pbkdf2_sha256$1200000$hm8GLPflDTxt91b6M57LOU$yCMpLUSp3I80MZGD1nF0urSCFepYCWmNVnsvNgUnmLM=",
+      "last_login": null,
+      "is_superuser": false,
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-07-03T16:00:00Z",
+      "email": "justice@example.com",
+      "nickname": "정의구현빌런",
+      "bio": "",
+      "avatar_url": "",
+      "avatar_icon": ""
+    }
+  },
+  {
+    "model": "accounts.user",
+    "pk": 9,
+    "fields": {
+      "password": "pbkdf2_sha256$1200000$hm8GLPflDTxt91b6M57LOU$yCMpLUSp3I80MZGD1nF0urSCFepYCWmNVnsvNgUnmLM=",
+      "last_login": null,
+      "is_superuser": false,
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-07-03T16:30:00Z",
+      "email": "hesse@example.com",
+      "nickname": "헤세매니아",
+      "bio": "",
+      "avatar_url": "",
+      "avatar_icon": ""
+    }
+  },
+  {
+    "model": "accounts.user",
+    "pk": 10,
+    "fields": {
+      "password": "pbkdf2_sha256$1200000$hm8GLPflDTxt91b6M57LOU$yCMpLUSp3I80MZGD1nF0urSCFepYCWmNVnsvNgUnmLM=",
+      "last_login": null,
+      "is_superuser": false,
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-07-03T17:00:00Z",
+      "email": "bookworm@example.com",
+      "nickname": "책벌레A",
+      "bio": "",
+      "avatar_url": "",
+      "avatar_icon": ""
+    }
+  },
+  {
+    "model": "accounts.user",
+    "pk": 11,
+    "fields": {
+      "password": "pbkdf2_sha256$1200000$hm8GLPflDTxt91b6M57LOU$yCMpLUSp3I80MZGD1nF0urSCFepYCWmNVnsvNgUnmLM=",
+      "last_login": null,
+      "is_superuser": false,
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-07-03T17:30:00Z",
+      "email": "novel@example.com",
+      "nickname": "소설조아",
+      "bio": "",
+      "avatar_url": "",
+      "avatar_icon": ""
+    }
+  },
+  {
+    "model": "accounts.user",
+    "pk": 12,
+    "fields": {
+      "password": "pbkdf2_sha256$1200000$hm8GLPflDTxt91b6M57LOU$yCMpLUSp3I80MZGD1nF0urSCFepYCWmNVnsvNgUnmLM=",
+      "last_login": null,
+      "is_superuser": false,
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-07-03T18:00:00Z",
+      "email": "devreader@example.com",
+      "nickname": "개발하는독자",
+      "bio": "",
+      "avatar_url": "",
+      "avatar_icon": ""
+    }
+  },
+  {
+    "model": "books.book",
+    "pk": 1,
+    "fields": {
+      "title": "The Little Prince",
+      "author": "Antoine de Saint-Exupery",
+      "publish_date": "1943-04-06",
+      "isbn": "9780156012195",
+      "genre_code": "NOVEL",
+      "cover_image_url": "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=420&q=80",
+      "created_at": "2026-07-03T00:00:00Z"
+    }
+  },
+  {
+    "model": "books.book",
+    "pk": 2,
+    "fields": {
+      "title": "Demian",
+      "author": "Hermann Hesse",
+      "publish_date": "1919-01-01",
+      "isbn": "9780143106784",
+      "genre_code": "NOVEL",
+      "cover_image_url": "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&w=420&q=80",
+      "created_at": "2026-07-03T00:00:00Z"
+    }
+  },
+  {
+    "model": "books.book",
+    "pk": 3,
+    "fields": {
+      "title": "The Stranger",
+      "author": "Albert Camus",
+      "publish_date": "1942-01-01",
+      "isbn": "9780679720201",
+      "genre_code": "NOVEL",
+      "cover_image_url": "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=420&q=80",
+      "created_at": "2026-07-03T00:00:00Z"
+    }
+  },
+  {
+    "model": "books.book",
+    "pk": 4,
+    "fields": {
+      "title": "Sapiens",
+      "author": "Yuval Noah Harari",
+      "publish_date": "2011-01-01",
+      "isbn": "9780062316097",
+      "genre_code": "HUMANITIES",
+      "cover_image_url": "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&w=420&q=80",
+      "created_at": "2026-07-03T00:00:00Z"
+    }
+  },
+  {
+    "model": "books.book",
+    "pk": 5,
+    "fields": {
+      "title": "Cosmos",
+      "author": "Carl Sagan",
+      "publish_date": "1980-01-01",
+      "isbn": "9780345539434",
+      "genre_code": "SCIENCE",
+      "cover_image_url": "https://images.unsplash.com/photo-1519682337058-a94d519337bc?auto=format&fit=crop&w=420&q=80",
+      "created_at": "2026-07-03T00:00:00Z"
+    }
+  },
+  {
+    "model": "books.book",
+    "pk": 6,
+    "fields": {
+      "title": "데미안",
+      "author": "헤르만 헤세",
+      "publish_date": "1919-01-01",
+      "isbn": "9788937460449",
+      "genre_code": "NOVEL",
+      "cover_image_url": "",
+      "created_at": "2026-07-03T00:00:00Z"
+    }
+  },
+  {
+    "model": "books.book",
+    "pk": 7,
+    "fields": {
+      "title": "호밀밭의 파수꾼",
+      "author": "J.D. 샐린저",
+      "publish_date": "1951-07-16",
+      "isbn": "9788937460470",
+      "genre_code": "NOVEL",
+      "cover_image_url": "",
+      "created_at": "2026-07-03T00:00:00Z"
+    }
+  },
+  {
+    "model": "books.book",
+    "pk": 8,
+    "fields": {
+      "title": "정의란 무엇인가",
+      "author": "마이클 샌델",
+      "publish_date": "2010-05-26",
+      "isbn": "9788934939603",
+      "genre_code": "HUMANITY",
+      "cover_image_url": "",
+      "created_at": "2026-07-03T00:00:00Z"
+    }
+  },
+  {
+    "model": "books.book",
+    "pk": 9,
+    "fields": {
+      "title": "군주론",
+      "author": "니콜로 마키아벨리",
+      "publish_date": "1532-01-01",
+      "isbn": "9788937460777",
+      "genre_code": "HUMANITY",
+      "cover_image_url": "",
+      "created_at": "2026-07-03T00:00:00Z"
+    }
+  },
+  {
+    "model": "books.book",
+    "pk": 10,
+    "fields": {
+      "title": "1984",
+      "author": "조지 오웰",
+      "publish_date": "1949-06-08",
+      "isbn": "9788937460778",
+      "genre_code": "NOVEL",
+      "cover_image_url": "",
+      "created_at": "2026-07-03T00:00:00Z"
+    }
+  },
+  {
+    "model": "accounts.friend",
+    "pk": 1,
+    "fields": {
+      "requester": 2,
+      "addressee": 1,
+      "status": "PENDING",
+      "created_at": "2026-07-03T14:00:00Z"
+    }
+  },
+  {
+    "model": "accounts.friend",
+    "pk": 2,
+    "fields": {
+      "requester": 1,
+      "addressee": 4,
+      "status": "PENDING",
+      "created_at": "2026-07-03T14:30:00Z"
+    }
+  },
+  {
+    "model": "accounts.friend",
+    "pk": 3,
+    "fields": {
+      "requester": 1,
+      "addressee": 3,
+      "status": "ACCEPTED",
+      "created_at": "2026-07-03T13:10:00Z"
+    }
+  },
+  {
+    "model": "accounts.friend",
+    "pk": 4,
+    "fields": {
+      "requester": 5,
+      "addressee": 1,
+      "status": "ACCEPTED",
+      "created_at": "2026-07-03T13:20:00Z"
+    }
+  },
+  {
+    "model": "accounts.friend",
+    "pk": 5,
+    "fields": {
+      "requester": 10,
+      "addressee": 1,
+      "status": "PENDING",
+      "created_at": "2026-07-03T15:00:00Z"
+    }
+  },
+  {
+    "model": "accounts.friend",
+    "pk": 6,
+    "fields": {
+      "requester": 11,
+      "addressee": 1,
+      "status": "PENDING",
+      "created_at": "2026-07-03T16:30:00Z"
+    }
+  },
+  {
+    "model": "accounts.friend",
+    "pk": 7,
+    "fields": {
+      "requester": 1,
+      "addressee": 12,
+      "status": "PENDING",
+      "created_at": "2026-07-03T17:00:00Z"
+    }
+  },
+  {
+    "model": "accounts.friend",
+    "pk": 8,
+    "fields": {
+      "requester": 1,
+      "addressee": 6,
+      "status": "ACCEPTED",
+      "created_at": "2026-07-03T18:00:00Z"
+    }
+  },
+  {
+    "model": "accounts.friend",
+    "pk": 9,
+    "fields": {
+      "requester": 1,
+      "addressee": 7,
+      "status": "ACCEPTED",
+      "created_at": "2026-07-03T18:30:00Z"
+    }
+  },
+  {
+    "model": "groups.group",
+    "pk": 1,
+    "fields": {
+      "group_name": "Demian Reading Room",
+      "owner": 1,
+      "created_at": "2026-07-03T15:10:00Z"
+    }
+  },
+  {
+    "model": "groups.groupmember",
+    "pk": 1,
+    "fields": {
+      "group": 1,
+      "user": 1,
+      "joined_at": "2026-07-03T15:10:00Z"
+    }
+  },
+  {
+    "model": "groups.groupmember",
+    "pk": 2,
+    "fields": {
+      "group": 1,
+      "user": 2,
+      "joined_at": "2026-07-03T15:10:00Z"
+    }
+  },
+  {
+    "model": "groups.groupmember",
+    "pk": 3,
+    "fields": {
+      "group": 1,
+      "user": 3,
+      "joined_at": "2026-07-03T15:10:00Z"
+    }
+  },
+  {
+    "model": "groups.groupbook",
+    "pk": 1,
+    "fields": {
+      "group": 1,
+      "book": 2
+    }
+  },
+  {
+    "model": "groups.group",
+    "pk": 2,
+    "fields": {
+      "group_name": "Science Notes",
+      "owner": 3,
+      "created_at": "2026-07-03T15:40:00Z"
+    }
+  },
+  {
+    "model": "groups.groupmember",
+    "pk": 4,
+    "fields": {
+      "group": 2,
+      "user": 1,
+      "joined_at": "2026-07-03T15:40:00Z"
+    }
+  },
+  {
+    "model": "groups.groupmember",
+    "pk": 5,
+    "fields": {
+      "group": 2,
+      "user": 3,
+      "joined_at": "2026-07-03T15:40:00Z"
+    }
+  },
+  {
+    "model": "groups.groupmember",
+    "pk": 6,
+    "fields": {
+      "group": 2,
+      "user": 5,
+      "joined_at": "2026-07-03T15:40:00Z"
+    }
+  },
+  {
+    "model": "groups.groupbook",
+    "pk": 2,
+    "fields": {
+      "group": 2,
+      "book": 4
+    }
+  },
+  {
+    "model": "groups.groupbook",
+    "pk": 3,
+    "fields": {
+      "group": 2,
+      "book": 5
+    }
+  },
+  {
+    "model": "groups.group",
+    "pk": 9,
+    "fields": {
+      "group_name": "데미안 같이 읽기 소모임",
+      "owner": 9,
+      "created_at": "2026-07-01T14:00:00Z"
+    }
+  },
+  {
+    "model": "groups.groupmember",
+    "pk": 7,
+    "fields": {
+      "group": 9,
+      "user": 9,
+      "joined_at": "2026-07-01T14:00:00Z"
+    }
+  },
+  {
+    "model": "groups.groupmember",
+    "pk": 8,
+    "fields": {
+      "group": 9,
+      "user": 1,
+      "joined_at": "2026-07-01T14:00:00Z"
+    }
+  },
+  {
+    "model": "groups.groupmember",
+    "pk": 9,
+    "fields": {
+      "group": 9,
+      "user": 5,
+      "joined_at": "2026-07-01T14:00:00Z"
+    }
+  },
+  {
+    "model": "groups.groupmember",
+    "pk": 10,
+    "fields": {
+      "group": 9,
+      "user": 7,
+      "joined_at": "2026-07-01T14:00:00Z"
+    }
+  },
+  {
+    "model": "groups.groupbook",
+    "pk": 4,
+    "fields": {
+      "group": 9,
+      "book": 6
+    }
+  },
+  {
+    "model": "groups.groupbook",
+    "pk": 5,
+    "fields": {
+      "group": 9,
+      "book": 7
+    }
+  },
+  {
+    "model": "groups.group",
+    "pk": 10,
+    "fields": {
+      "group_name": "madCamp 웹 개발 스터디",
+      "owner": 1,
+      "created_at": "2026-07-03T11:00:00Z"
+    }
+  },
+  {
+    "model": "groups.groupmember",
+    "pk": 11,
+    "fields": {
+      "group": 10,
+      "user": 1,
+      "joined_at": "2026-07-03T11:00:00Z"
+    }
+  },
+  {
+    "model": "groups.groupmember",
+    "pk": 12,
+    "fields": {
+      "group": 10,
+      "user": 6,
+      "joined_at": "2026-07-03T11:00:00Z"
+    }
+  },
+  {
+    "model": "groups.groupbook",
+    "pk": 6,
+    "fields": {
+      "group": 10,
+      "book": 8
+    }
+  },
+  {
+    "model": "annotations.annotation",
+    "pk": 1,
+    "fields": {
+      "user": 1,
+      "book": 1,
+      "group": null,
+      "type": "QUESTION",
+      "passage": "What makes a person responsible for what they tame?",
+      "review": "This line feels simple, but it asks for a complete ethic of care.",
+      "page": 33,
+      "visibility": "public",
+      "is_spoiler": false,
+      "created_at": "2026-07-03T12:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.annotation",
+    "pk": 2,
+    "fields": {
+      "user": 2,
+      "book": 2,
+      "group": null,
+      "type": "REVIEW",
+      "passage": "The bird fights its way out of the egg.",
+      "review": "A sharp image for growing up: the world has to crack before it becomes larger.",
+      "page": 48,
+      "visibility": "public",
+      "is_spoiler": false,
+      "created_at": "2026-07-03T13:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.annotation",
+    "pk": 3,
+    "fields": {
+      "user": 1,
+      "book": 3,
+      "group": null,
+      "type": "DISCUSSION",
+      "passage": "Mother died today. Or maybe yesterday; I cannot be sure.",
+      "review": "The emotional distance is uncomfortable, which is exactly why it works.",
+      "page": 9,
+      "visibility": "friends",
+      "is_spoiler": false,
+      "created_at": "2026-07-03T14:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.annotation",
+    "pk": 4,
+    "fields": {
+      "user": 3,
+      "book": 4,
+      "group": null,
+      "type": "NORMAL",
+      "passage": "History began when humans invented gods, and will end when humans become gods.",
+      "review": "Useful sentence for talking about technology and hubris.",
+      "page": 412,
+      "visibility": "public",
+      "is_spoiler": true,
+      "created_at": "2026-07-03T15:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.annotation",
+    "pk": 5,
+    "fields": {
+      "user": 1,
+      "book": 5,
+      "group": null,
+      "type": "REVIEW",
+      "passage": "Somewhere, something incredible is waiting to be known.",
+      "review": "A good reminder that curiosity is not decoration. It is propulsion.",
+      "page": 72,
+      "visibility": "private",
+      "is_spoiler": false,
+      "created_at": "2026-07-03T16:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.annotation",
+    "pk": 6,
+    "fields": {
+      "user": 1,
+      "book": 2,
+      "group": 1,
+      "type": "NORMAL",
+      "passage": "I wanted only to try to live in accord with the promptings which came from my true self.",
+      "review": "A personal compass sentence.",
+      "page": 12,
+      "visibility": "group",
+      "is_spoiler": false,
+      "created_at": "2026-07-03T17:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.annotation",
+    "pk": 7,
+    "fields": {
+      "user": 3,
+      "book": 1,
+      "group": null,
+      "type": "DISCUSSION",
+      "passage": "It is only with the heart that one can see rightly.",
+      "review": "The most quoted line still deserves a real conversation.",
+      "page": 64,
+      "visibility": "public",
+      "is_spoiler": false,
+      "created_at": "2026-07-03T18:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.annotation",
+    "pk": 8,
+    "fields": {
+      "user": 1,
+      "book": 6,
+      "group": 9,
+      "type": "REVIEW",
+      "passage": "새는 알에서 나오려고 투쟁한다. 알은 세계이다. 태어나려는 자는 하나의 세계를 깨뜨려야 한다.",
+      "review": "안주해 있던 현실의 알을 깨부수고 자기 자신이라는 세계로 나아가는 고통스러운 성장의 과정을 묘사한 인생 명구절입니다.",
+      "page": 48,
+      "visibility": "public",
+      "is_spoiler": false,
+      "created_at": "2026-07-03T19:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.annotation",
+    "pk": 9,
+    "fields": {
+      "user": 1,
+      "book": 7,
+      "group": 9,
+      "type": "DISCUSSION",
+      "passage": "내가 하고 싶은 건 오직 호밀밭의 파수꾼이 되는 거야.",
+      "review": "순수함을 간직한 채 위선적인 어른들의 세계에서 탈출하고 싶어하는 홀든의 진심어린 독백이 인상적입니다.",
+      "page": 211,
+      "visibility": "public",
+      "is_spoiler": true,
+      "created_at": "2026-07-03T20:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.annotation",
+    "pk": 10,
+    "fields": {
+      "user": 1,
+      "book": 8,
+      "group": 10,
+      "type": "QUESTION",
+      "passage": "정의로운 사회는 단순히 효용을 극대화하거나 선택의 자유를 존중하는 것만으로는 완성되지 않는다.",
+      "review": "공리주의와 자유지상주의 각각의 한계가 뭘까요? 다른 분들 생각이 궁금합니다.",
+      "page": 35,
+      "visibility": "public",
+      "is_spoiler": false,
+      "created_at": "2026-07-03T21:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.annotation",
+    "pk": 11,
+    "fields": {
+      "user": 9,
+      "book": 6,
+      "group": 9,
+      "type": "DISCUSSION",
+      "passage": "나는 내 안에서 솟아나오려는 것, 바로 그것을 살아보려 했다.",
+      "review": "이 그룹에서 가장 많이 인용된 문장입니다.",
+      "page": 12,
+      "visibility": "group",
+      "is_spoiler": false,
+      "created_at": "2026-07-03T22:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.comment",
+    "pk": 1,
+    "fields": {
+      "annotation": 1,
+      "user": 2,
+      "type": "REVIEW",
+      "content": "I read this as care becoming a promise.",
+      "created_at": "2026-07-03T15:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.comment",
+    "pk": 2,
+    "fields": {
+      "annotation": 1,
+      "user": 3,
+      "type": "QUESTION",
+      "content": "The page number helped me find it immediately. Does this connect to the ending too?",
+      "created_at": "2026-07-03T15:30:00Z"
+    }
+  },
+  {
+    "model": "annotations.comment",
+    "pk": 3,
+    "fields": {
+      "annotation": 2,
+      "user": 1,
+      "type": "DISCUSSION",
+      "content": "This passage always feels like a door opening.",
+      "created_at": "2026-07-03T16:00:00Z"
+    }
+  },
+  {
+    "model": "books.bookfavorite",
+    "pk": 1,
+    "fields": {
+      "user": 1,
+      "book": 1,
+      "created_at": "2026-07-03T18:00:00Z"
+    }
+  },
+  {
+    "model": "books.bookfavorite",
+    "pk": 2,
+    "fields": {
+      "user": 1,
+      "book": 3,
+      "created_at": "2026-07-03T18:00:00Z"
+    }
+  },
+  {
+    "model": "books.bookfavorite",
+    "pk": 3,
+    "fields": {
+      "user": 1,
+      "book": 5,
+      "created_at": "2026-07-03T18:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.annotationfavorite",
+    "pk": 1,
+    "fields": {
+      "user": 1,
+      "annotation": 2,
+      "created_at": "2026-07-03T18:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.annotationfavorite",
+    "pk": 2,
+    "fields": {
+      "user": 1,
+      "annotation": 4,
+      "created_at": "2026-07-03T18:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 1,
+    "fields": {
+      "user": 1,
+      "target_type": "annotation",
+      "target_id": 1,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 2,
+    "fields": {
+      "user": 4,
+      "target_type": "annotation",
+      "target_id": 1,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 3,
+    "fields": {
+      "user": 6,
+      "target_type": "annotation",
+      "target_id": 1,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 4,
+    "fields": {
+      "user": 7,
+      "target_type": "annotation",
+      "target_id": 1,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 5,
+    "fields": {
+      "user": 1,
+      "target_type": "annotation",
+      "target_id": 2,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 6,
+    "fields": {
+      "user": 3,
+      "target_type": "annotation",
+      "target_id": 2,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 7,
+    "fields": {
+      "user": 5,
+      "target_type": "annotation",
+      "target_id": 2,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 8,
+    "fields": {
+      "user": 6,
+      "target_type": "annotation",
+      "target_id": 2,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 9,
+    "fields": {
+      "user": 9,
+      "target_type": "annotation",
+      "target_id": 2,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 10,
+    "fields": {
+      "user": 3,
+      "target_type": "annotation",
+      "target_id": 3,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 11,
+    "fields": {
+      "user": 5,
+      "target_type": "annotation",
+      "target_id": 3,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 12,
+    "fields": {
+      "user": 2,
+      "target_type": "annotation",
+      "target_id": 4,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 13,
+    "fields": {
+      "user": 5,
+      "target_type": "annotation",
+      "target_id": 4,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 14,
+    "fields": {
+      "user": 6,
+      "target_type": "annotation",
+      "target_id": 4,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 15,
+    "fields": {
+      "user": 3,
+      "target_type": "annotation",
+      "target_id": 5,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 16,
+    "fields": {
+      "user": 2,
+      "target_type": "annotation",
+      "target_id": 6,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 17,
+    "fields": {
+      "user": 2,
+      "target_type": "annotation",
+      "target_id": 7,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 18,
+    "fields": {
+      "user": 3,
+      "target_type": "annotation",
+      "target_id": 7,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 19,
+    "fields": {
+      "user": 4,
+      "target_type": "annotation",
+      "target_id": 7,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 20,
+    "fields": {
+      "user": 5,
+      "target_type": "annotation",
+      "target_id": 7,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 21,
+    "fields": {
+      "user": 6,
+      "target_type": "annotation",
+      "target_id": 7,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 22,
+    "fields": {
+      "user": 8,
+      "target_type": "annotation",
+      "target_id": 7,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 23,
+    "fields": {
+      "user": 2,
+      "target_type": "annotation",
+      "target_id": 8,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 24,
+    "fields": {
+      "user": 3,
+      "target_type": "annotation",
+      "target_id": 8,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 25,
+    "fields": {
+      "user": 5,
+      "target_type": "annotation",
+      "target_id": 8,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 26,
+    "fields": {
+      "user": 7,
+      "target_type": "annotation",
+      "target_id": 8,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 27,
+    "fields": {
+      "user": 5,
+      "target_type": "annotation",
+      "target_id": 9,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 28,
+    "fields": {
+      "user": 7,
+      "target_type": "annotation",
+      "target_id": 9,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 29,
+    "fields": {
+      "user": 6,
+      "target_type": "annotation",
+      "target_id": 10,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 30,
+    "fields": {
+      "user": 1,
+      "target_type": "annotation",
+      "target_id": 11,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 31,
+    "fields": {
+      "user": 5,
+      "target_type": "annotation",
+      "target_id": 11,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 32,
+    "fields": {
+      "user": 1,
+      "target_type": "comment",
+      "target_id": 1,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 33,
+    "fields": {
+      "user": 3,
+      "target_type": "comment",
+      "target_id": 1,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 34,
+    "fields": {
+      "user": 4,
+      "target_type": "comment",
+      "target_id": 1,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 35,
+    "fields": {
+      "user": 5,
+      "target_type": "comment",
+      "target_id": 2,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 36,
+    "fields": {
+      "user": 2,
+      "target_type": "comment",
+      "target_id": 3,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 37,
+    "fields": {
+      "user": 4,
+      "target_type": "comment",
+      "target_id": 3,
+      "created_at": "2026-07-04T00:00:00Z"
+    }
+  }
+]

@@ -1,0 +1,19 @@
+"""A 담당 — 주석·댓글·좋아요·즐겨찾기·피드·검색 (plan.md 3절)
+
+구현 예정 endpoint:
+  GET    annotations/feed
+  GET    annotations/search
+  POST   annotations
+  GET/PATCH/DELETE annotations/<annotation_id>
+  GET    books/<book_id>/annotations
+  POST/DELETE annotations/<annotation_id>/favorite
+  GET    users/me/annotations
+  GET    users/me/favorite-annotations
+  GET/POST annotations/<annotation_id>/comments
+  PATCH/DELETE comments/<comment_id>
+  POST   likes    DELETE likes?targetType=&targetId=
+"""
+from django.urls import path
+
+urlpatterns = [
+]

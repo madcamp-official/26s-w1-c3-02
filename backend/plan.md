@@ -42,18 +42,18 @@ backend/
 
 ### 함께 결정·작성
 
-- [ ] **모델 전체 정의 + 마이그레이션 1회 생성** — ERD(`screenshot/db_shcema.png`)와 api-spec.md 기준으로 8개 모델을 한 번에 확정. 이후 모델 변경은 소유자가 하되 사전 공유
-- [ ] 커스텀 User 모델 (`accounts.User`, AbstractUser 상속: `nickname` unique, `bio`, `avatar_url`, `avatar_icon`; 로그인 필드는 `email`)
-- [ ] 시드 데이터 fixture — mock server의 한국어 데모 데이터를 옮겨서 개발 중 프론트 연동 확인에 사용
+- [x] **모델 전체 정의 + 마이그레이션 1회 생성** — ERD(`screenshot/db_shcema.png`)와 api-spec.md 기준으로 11개 모델 확정 (앱당 `0001_initial` 4개). 이후 모델 변경은 소유자가 하되 사전 공유
+- [x] 커스텀 User 모델 (`accounts.User`, AbstractUser 상속: `nickname` unique, `bio`, `avatar_url`, `avatar_icon`; 로그인 필드는 `email`, username 제거) — `createdAt`은 `date_joined`으로 매핑
+- [x] 시드 데이터 fixture — `fixtures/seed.json` (109 objects, `python manage.py loaddata seed`). mock의 likeCount는 재현 불가라 상대 크기만 유지. 재생성 스크립트: `fixtures/gen_seed.py`. 전 계정 비밀번호 `pw1234!!`
 
 ### B가 구축 (common/ + config/)
 
-- [ ] **페이지네이션 클래스**: `?page=1&size=20` → `{ "data": [...], "pagination": { page, size, totalElements, totalPages } }`
-- [ ] **예외 핸들러**: 모든 에러를 `{ "error": { "code", "message" } }`로 변환 (`VALIDATION_ERROR` / `UNAUTHORIZED` / `FORBIDDEN` / `NOT_FOUND` / `DUPLICATE` / `INTERNAL_ERROR`)
-- [ ] **JWT 설정**: simplejwt, `Authorization: Bearer` — 무상태 (토큰 저장 테이블 없음, 로그아웃은 204만 반환)
-- [ ] **camelCase 정책**: 응답 필드가 api-spec과 완전히 같아야 하므로 serializer에서 명시적으로 camelCase 필드명 선언 (`bookId = serializers.IntegerField(source='id')` 방식). 자동 변환 라이브러리보다 스펙 일치 확인이 쉬움
-- [ ] `IsOwnerOrReadOnly` 등 공통 권한 클래스
-- [ ] `config/urls.py`에 앱별 `include()` 골격 — 이후 각자 자기 앱의 `urls.py`만 수정
+- [x] **페이지네이션 클래스**: `common/pagination.py` `StandardPagination` — DRF 기본으로 등록됨
+- [x] **예외 핸들러**: `common/exceptions.py` `custom_exception_handler` + 409용 `DuplicateError` 예외 클래스 (중복 시 `raise DuplicateError()` 하면 됨)
+- [x] **JWT 설정**: simplejwt, access 7일(데모 편의), refresh 미사용. 기본 권한은 `IsAuthenticatedOrReadOnly` — 🔒 GET endpoint(`/users/me/*` 등)는 뷰에서 `IsAuthenticated` 명시
+- [x] **camelCase 정책**: serializer에서 명시적으로 camelCase 필드명 선언 (`bookId = serializers.IntegerField(source='id')` 방식). 자동 변환 라이브러리보다 스펙 일치 확인이 쉬움
+- [x] `common/permissions.py`: `IsOwnerOrReadOnly`(obj.user 또는 obj.owner 기준), `IsGroupMember`
+- [x] `config/urls.py`에 앱별 `include()` 골격 — 각 앱 `urls.py`에 담당 endpoint 목록 주석 포함, 이후 각자 자기 앱의 `urls.py`만 수정
 
 ### 모델 소유권
 
