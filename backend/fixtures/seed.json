@@ -792,6 +792,22 @@
     }
   },
   {
+    "model": "annotations.annotation",
+    "pk": 12,
+    "fields": {
+      "user": 3,
+      "book": 4,
+      "group": 2,
+      "type": "REVIEW",
+      "passage": "We did not domesticate wheat. It domesticated us.",
+      "review": "Reading this with the group made me rethink who is really in control of agriculture.",
+      "page": 88,
+      "visibility": "group",
+      "is_spoiler": false,
+      "created_at": "2026-07-03T23:00:00Z"
+    }
+  },
+  {
     "model": "annotations.comment",
     "pk": 1,
     "fields": {
