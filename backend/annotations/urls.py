@@ -15,5 +15,10 @@
 """
 from django.urls import path
 
+from .views import AnnotationCreateView, AnnotationDetailView, BookAnnotationListView
+
 urlpatterns = [
+    path('annotations', AnnotationCreateView.as_view(), name='annotation-create'),
+    path('annotations/<int:annotation_id>', AnnotationDetailView.as_view(), name='annotation-detail'),
+    path('books/<int:book_id>/annotations', BookAnnotationListView.as_view(), name='book-annotation-list'),
 ]
