@@ -13,6 +13,14 @@ export const createBook = (payload) => {
   return client.post('/books', payload);
 };
 
+export const searchExternalBooks = (params) => {
+  return client.get('/books/external-search', { params });
+};
+
+export const importBookFromAladin = (isbn) => {
+  return client.post('/books/import-from-aladin', { isbn });
+};
+
 export const favoriteBook = (bookId) => {
   return client.post(`/books/${bookId}/favorite`);
 };

@@ -10,7 +10,7 @@ import {
   removeGroupMember,
   updateGroup,
 } from '../api/groups';
-import { getBooks } from '../api/books';
+import { getBooks, importBookFromAladin, searchExternalBooks } from '../api/books';
 import { searchUsers } from '../api/users';
 import { getErrorMessage } from '../utils/error';
 import SiteHeader from '../components/SiteHeader';
@@ -203,8 +203,17 @@ export default function GroupDetailPage() {
     setIsSearchingBooks(true);
     setAddBookError('');
     try {
-      const res = await getBooks({ keyword: bookKeyword.trim() });
-      setBookResults(res.data || []);
+      const keyword = bookKeyword.trim();
+      const [localRes, externalRes] = await Promise.all([
+        getBooks({ keyword }),
+        searchExternalBooks({ keyword, size: 10 }).catch(() => ({ data: [] })),
+      ]);
+      const localBooks = localRes.data || [];
+      const localIsbns = new Set(localBooks.map((book) => book.isbn).filter(Boolean));
+      const externalBooks = (externalRes.data || [])
+        .filter((book) => book.isbn && !localIsbns.has(book.isbn))
+        .map((book) => ({ ...book, isExternal: true }));
+      setBookResults([...localBooks, ...externalBooks]);
     } catch (err) {
       console.error(err);
       setAddBookError(getErrorMessage(err));
@@ -215,9 +224,10 @@ export default function GroupDetailPage() {
 
   const handleAddBook = async (book) => {
     try {
-      await addGroupBook(groupId, book.bookId);
-      showToast(`${book.title}을(를) 그룹 도서에 추가했습니다.`);
-      setBookResults((prev) => prev.filter((item) => item.bookId !== book.bookId));
+      const targetBook = book.isExternal ? await importBookFromAladin(book.isbn) : book;
+      await addGroupBook(groupId, targetBook.bookId);
+      showToast(`${targetBook.title}을(를) 그룹 도서에 추가했습니다.`);
+      setBookResults((prev) => prev.filter((item) => (item.bookId || item.isbn) !== (book.bookId || book.isbn)));
       loadGroup();
     } catch (err) {
       console.error(err);
@@ -471,12 +481,22 @@ export default function GroupDetailPage() {
               {bookResults.length > 0 && (
                 <ul className="mt-4 grid max-h-[240px] gap-2 overflow-y-auto border-t border-line pt-4">
                   {bookResults.map((book) => {
-                    const alreadyAdded = existingBookIds.has(book.bookId);
+                    const alreadyAdded = book.bookId ? existingBookIds.has(book.bookId) : false;
                     return (
-                      <li key={book.bookId} className="flex items-center justify-between gap-3 rounded bg-pageSoft p-2">
-                        <div className="min-w-0">
-                          <p className="truncate text-xs font-bold text-text">{book.title}</p>
-                          <p className="truncate text-[11px] text-text-muted">{book.author}</p>
+                      <li key={book.bookId || book.isbn} className="flex items-center justify-between gap-3 rounded bg-pageSoft p-2">
+                        <div className="flex min-w-0 items-center gap-2">
+                          {book.coverImageUrl ? (
+                            <img className="h-12 w-9 shrink-0 rounded-sm object-cover shadow-soft" src={book.coverImageUrl} alt={book.title} />
+                          ) : (
+                            <div className="h-12 w-9 shrink-0 rounded-sm bg-primary-soft" />
+                          )}
+                          <div className="min-w-0">
+                            <p className="truncate text-xs font-bold text-text">{book.title}</p>
+                            <p className="truncate text-[11px] text-text-muted">{book.author}</p>
+                            <p className="truncate text-[10px] text-text-subtle">
+                              {book.isExternal ? '알라딘' : '내 DB'} {book.isbn ? `· ISBN ${book.isbn}` : ''}
+                            </p>
+                          </div>
                         </div>
                         {alreadyAdded ? (
                           <span className="shrink-0 text-[11px] font-bold text-text-subtle">이미 추가됨</span>
