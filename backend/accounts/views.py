@@ -1,12 +1,18 @@
 from django.contrib.auth import authenticate, get_user_model
+from django.db.models import Q
+from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.exceptions import AuthenticationFailed, ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 
+from .models import Friend
 from .serializers import (
+    FriendActionSerializer,
+    FriendRequestCreateSerializer,
+    FriendSerializer,
     LoginSerializer,
     RegisterSerializer,
     UserPublicSerializer,
@@ -82,3 +88,74 @@ class UserSearchView(APIView):
         queryset = User.objects.filter(nickname__icontains=keyword).exclude(pk=request.user.pk)
         serializer = UserPublicSerializer(queryset, many=True)
         return Response({'data': serializer.data})
+
+
+class FriendListView(APIView):
+    """GET /api/users/me/friends 🔒 — ACCEPTED 관계만, 상대방 시점 목록. bare {data:[...]}."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        me = request.user
+        queryset = Friend.objects.filter(
+            Q(requester=me) | Q(addressee=me), status=Friend.Status.ACCEPTED,
+        ).select_related('requester', 'addressee').order_by('-created_at')
+        serializer = FriendSerializer(queryset, many=True, context={'me': me})
+        return Response({'data': serializer.data})
+
+
+class FriendRequestListView(APIView):
+    """GET /api/users/me/friend-requests?direction=received|sent 🔒 — PENDING만. direction 생략 시 received."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        me = request.user
+        direction = request.query_params.get('direction', 'received')
+        if direction not in ('received', 'sent'):
+            raise ValidationError('direction은 received 또는 sent여야 합니다.')
+        filter_kwargs = {'addressee': me} if direction == 'received' else {'requester': me}
+        queryset = Friend.objects.filter(status=Friend.Status.PENDING, **filter_kwargs) \
+            .select_related('requester', 'addressee').order_by('-created_at')
+        serializer = FriendSerializer(queryset, many=True, context={'me': me})
+        return Response({'data': serializer.data})
+
+
+class FriendCreateView(APIView):
+    """POST /api/friends 🔒 — 친구 요청 보내기. 역방향 PENDING이면 즉시 수락 처리."""
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = FriendRequestCreateSerializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        friend = serializer.save()
+        return Response(FriendActionSerializer(friend).data)
+
+
+class FriendAcceptView(APIView):
+    """POST /api/friends/{userId}/accept 🔒 — addressee만 수락 가능; 아니면 404로 수렴."""
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, user_id):
+        friend = get_object_or_404(
+            Friend, requester_id=user_id, addressee=request.user, status=Friend.Status.PENDING,
+        )
+        friend.status = Friend.Status.ACCEPTED
+        friend.save(update_fields=['status'])
+        return Response(FriendActionSerializer(friend).data)
+
+
+class FriendDeleteView(APIView):
+    """DELETE /api/friends/{userId} 🔒 — 요청 취소/거절/친구삭제 통합. 양쪽 당사자 모두 호출 가능."""
+
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, user_id):
+        me = request.user
+        friend = get_object_or_404(
+            Friend, Q(requester=me, addressee_id=user_id) | Q(requester_id=user_id, addressee=me),
+        )
+        friend.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

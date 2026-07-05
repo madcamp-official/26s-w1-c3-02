@@ -1,7 +1,10 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
+from rest_framework.exceptions import NotFound
 
 from common.exceptions import DuplicateError
+
+from .models import Friend
 
 User = get_user_model()
 
@@ -91,3 +94,64 @@ class UserPublicSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'nickname']
+
+
+class FriendSerializer(serializers.Serializer):
+    """GET /users/me/friends, GET /users/me/friend-requests 공용 — Friend row를 request.user 기준 상대방 시점으로 변환."""
+
+    userId = serializers.SerializerMethodField()
+    nickname = serializers.SerializerMethodField()
+    status = serializers.CharField(read_only=True)
+    createdAt = serializers.DateTimeField(source='created_at', read_only=True)
+
+    def _other(self, obj):
+        me = self.context['me']
+        return obj.addressee if obj.requester_id == me.id else obj.requester
+
+    def get_userId(self, obj):
+        return self._other(obj).id
+
+    def get_nickname(self, obj):
+        return self._other(obj).nickname
+
+
+class FriendActionSerializer(serializers.ModelSerializer):
+    """POST /friends, POST /friends/{userId}/accept 응답 — 고정 requester/addressee 시점."""
+
+    requesterId = serializers.IntegerField(source='requester_id', read_only=True)
+    addresseeId = serializers.IntegerField(source='addressee_id', read_only=True)
+    createdAt = serializers.DateTimeField(source='created_at', read_only=True)
+
+    class Meta:
+        model = Friend
+        fields = ['requesterId', 'addresseeId', 'status', 'createdAt']
+
+
+class FriendRequestCreateSerializer(serializers.Serializer):
+    """POST /friends 요청 바디 검증 + 생성. 역방향 PENDING 요청이 있으면 그 row를 즉시 ACCEPTED로 전환."""
+
+    friendId = serializers.IntegerField()
+
+    def validate_friendId(self, value):
+        me = self.context['request'].user
+        if value == me.id:
+            raise serializers.ValidationError('자기 자신에게 친구 요청을 보낼 수 없습니다.')
+        if not User.objects.filter(pk=value).exists():
+            raise NotFound('존재하지 않는 사용자입니다.')
+        if Friend.objects.filter(requester=me, addressee_id=value).exists():
+            raise DuplicateError('이미 친구 요청을 보냈거나 친구입니다.')
+        self._reverse = Friend.objects.filter(requester_id=value, addressee=me).first()
+        if self._reverse and self._reverse.status == Friend.Status.ACCEPTED:
+            raise DuplicateError('이미 친구입니다.')
+        return value
+
+    def create(self, validated_data):
+        me = self.context['request'].user
+        reverse = getattr(self, '_reverse', None)
+        if reverse:
+            reverse.status = Friend.Status.ACCEPTED
+            reverse.save(update_fields=['status'])
+            return reverse
+        return Friend.objects.create(
+            requester=me, addressee_id=validated_data['friendId'], status=Friend.Status.PENDING,
+        )
