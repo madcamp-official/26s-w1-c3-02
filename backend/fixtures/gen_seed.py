@@ -105,6 +105,8 @@ annotations = [
      '공리주의와 자유지상주의 각각의 한계가 뭘까요? 다른 분들 생각이 궁금합니다.', 35, 'public', False, 10),
     (11, 6, 9, 'DISCUSSION', '나는 내 안에서 솟아나오려는 것, 바로 그것을 살아보려 했다.',
      '이 그룹에서 가장 많이 인용된 문장입니다.', 12, 'group', False, 9),
+    (12, 4, 3, 'REVIEW', 'We did not domesticate wheat. It domesticated us.',
+     'Reading this with the group made me rethink who is really in control of agriculture.', 88, 'group', False, 2),
 ]
 for pk, book, user, typ, passage, review, page, vis, spoiler, group in annotations:
     add('annotations.annotation', pk, user=user, book=book, group=group, type=typ,

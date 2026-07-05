@@ -1,7 +1,7 @@
 from django.db import transaction
 from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404
-from rest_framework import status
+from rest_framework import generics, status
 from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -9,7 +9,8 @@ from rest_framework.views import APIView
 
 from accounts.serializers import UserPublicSerializer
 from annotations.models import Annotation
-from annotations.serializers import AnnotationBookSerializer
+from annotations.serializers import AnnotationBookSerializer, AnnotationSerializer
+from annotations.views import annotations_with_stats, sort_annotations
 from common.permissions import IsGroupMember
 
 from .models import Group, GroupBook, GroupMember
@@ -150,3 +151,26 @@ class GroupBookDeleteView(APIView):
         group_book = get_object_or_404(GroupBook, group=group, book_id=book_id)
         group_book.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class GroupAnnotationFeedView(generics.ListAPIView):
+    """GET /api/groups/{groupId}/annotations 🔒 — 그룹 멤버만. A의 annotations_with_stats(visible_to 포함)
+    + AnnotationSerializer 재사용, group으로 추가 필터링."""
+
+    serializer_class = AnnotationSerializer
+    permission_classes = [IsAuthenticated, IsGroupMember]
+
+    def get_queryset(self):
+        group = get_object_or_404(Group, pk=self.kwargs['group_id'])
+        self.check_object_permissions(self.request, group)
+
+        queryset = annotations_with_stats(self.request).filter(group=group)
+        book_id = self.request.query_params.get('bookId')
+        annotation_type = self.request.query_params.get('type')
+
+        if book_id:
+            queryset = queryset.filter(book_id=book_id)
+        if annotation_type:
+            queryset = queryset.filter(type=annotation_type)
+
+        return sort_annotations(queryset, self.request.query_params.get('sort'))
