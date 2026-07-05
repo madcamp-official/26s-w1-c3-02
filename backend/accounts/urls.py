@@ -14,5 +14,28 @@
 """
 from django.urls import path
 
+from .views import (
+    FriendAcceptView,
+    FriendCreateView,
+    FriendDeleteView,
+    FriendListView,
+    FriendRequestListView,
+    LoginView,
+    LogoutView,
+    MeView,
+    RegisterView,
+    UserSearchView,
+)
+
 urlpatterns = [
+    path('auth/register', RegisterView.as_view(), name='auth-register'),
+    path('auth/login', LoginView.as_view(), name='auth-login'),
+    path('auth/logout', LogoutView.as_view(), name='auth-logout'),
+    path('users/me', MeView.as_view(), name='users-me'),
+    path('users', UserSearchView.as_view(), name='users-search'),
+    path('users/me/friends', FriendListView.as_view(), name='friends-list'),
+    path('users/me/friend-requests', FriendRequestListView.as_view(), name='friend-requests-list'),
+    path('friends', FriendCreateView.as_view(), name='friends-create'),
+    path('friends/<int:user_id>/accept', FriendAcceptView.as_view(), name='friends-accept'),
+    path('friends/<int:user_id>', FriendDeleteView.as_view(), name='friends-delete'),
 ]
