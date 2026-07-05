@@ -6,7 +6,7 @@ from accounts.models import Friend
 from books.models import Book
 from groups.models import Group, GroupMember
 
-from .models import Annotation, Like
+from .models import Annotation, AnnotationFavorite, Comment, Like
 
 
 class AnnotationApiTests(APITestCase):
@@ -47,6 +47,12 @@ class AnnotationApiTests(APITestCase):
         Like.objects.create(user=self.user, target_type=Like.TargetType.ANNOTATION, target_id=self.public_annotation.id)
         Like.objects.create(user=self.friend, target_type=Like.TargetType.ANNOTATION, target_id=self.public_annotation.id)
         Like.objects.create(user=self.user, target_type=Like.TargetType.ANNOTATION, target_id=self.friend_annotation.id)
+        self.comment = Comment.objects.create(
+            annotation=self.public_annotation,
+            user=self.friend,
+            type='REVIEW',
+            content='좋은 해석이에요.',
+        )
 
     def test_create_annotation_requires_auth_and_uses_api_spec_shape(self):
         payload = {
@@ -102,6 +108,71 @@ class AnnotationApiTests(APITestCase):
 
         self.client.force_authenticate(self.other)
         response = self.client.delete(f'/api/annotations/{self.public_annotation.id}')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_comment_list_create_patch_delete_and_counts(self):
+        response = self.client.get(f'/api/annotations/{self.public_annotation.id}/comments')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['data'][0]['commentId'], self.comment.id)
+        self.assertEqual(response.data['data'][0]['commentType'], 'REVIEW')
+
+        self.client.force_authenticate(self.user)
+        response = self.client.post(
+            f'/api/annotations/{self.public_annotation.id}/comments',
+            {'commentCategory': 'QUESTION', 'content': '질문이 있어요.'},
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['type'], 'QUESTION')
+
+        comment_id = response.data['commentId']
+        response = self.client.patch(f'/api/comments/{comment_id}', {'content': '수정된 질문'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['content'], '수정된 질문')
+
+        self.client.force_authenticate(self.other)
+        response = self.client.delete(f'/api/comments/{comment_id}')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+        self.client.force_authenticate(self.user)
+        response = self.client.delete(f'/api/comments/{comment_id}')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_like_unlike_annotation_and_comment(self):
+        self.client.force_authenticate(self.other)
+
+        response = self.client.post(
+            '/api/likes',
+            {'targetType': 'comment', 'targetId': self.comment.id},
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['targetType'], 'comment')
+
+        response = self.client.get(f'/api/annotations/{self.public_annotation.id}/comments')
+        self.assertEqual(response.data['data'][0]['likeCount'], 1)
+        self.assertTrue(response.data['data'][0]['isLiked'])
+
+        response = self.client.delete('/api/likes', {'targetType': 'comment', 'targetId': self.comment.id})
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_annotation_favorite_and_my_lists(self):
+        self.client.force_authenticate(self.user)
+
+        response = self.client.post(f'/api/annotations/{self.public_annotation.id}/favorite')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(AnnotationFavorite.objects.filter(user=self.user, annotation=self.public_annotation).exists())
+
+        response = self.client.get('/api/users/me/favorite-annotations')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['data'][0]['annotationId'], self.public_annotation.id)
+        self.assertTrue(response.data['data'][0]['isFavorited'])
+
+        response = self.client.get('/api/users/me/annotations')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['pagination']['totalElements'], 0)
+
+        response = self.client.delete(f'/api/annotations/{self.public_annotation.id}/favorite')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
 # Create your tests here.

@@ -1,13 +1,16 @@
 from django.db.models import Count, Exists, IntegerField, OuterRef, Q, Subquery, Value
 from django.db.models.functions import Coalesce
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, status
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from accounts.models import Friend
+from common.exceptions import DuplicateError
 from common.permissions import IsOwnerOrReadOnly
 from groups.models import GroupMember
 
-from .models import Annotation, AnnotationFavorite, Like
-from .serializers import AnnotationSerializer
+from .models import Annotation, AnnotationFavorite, Comment, Like
+from .serializers import AnnotationSerializer, CommentSerializer
 
 
 def visible_to(user):
@@ -58,6 +61,33 @@ def sort_annotations(queryset, sort):
     return queryset.order_by('-created_at', '-id')
 
 
+def comments_with_stats(request):
+    like_counts = Like.objects.filter(
+        target_type=Like.TargetType.COMMENT,
+        target_id=OuterRef('pk'),
+    ).values('target_id').annotate(count=Count('id')).values('count')[:1]
+
+    queryset = Comment.objects.select_related('annotation', 'user').annotate(
+        like_count=Coalesce(Subquery(like_counts, output_field=IntegerField()), Value(0)),
+    )
+
+    if request.user.is_authenticated:
+        liked = Like.objects.filter(
+            user=request.user,
+            target_type=Like.TargetType.COMMENT,
+            target_id=OuterRef('pk'),
+        )
+        queryset = queryset.annotate(is_liked=Exists(liked))
+
+    return queryset
+
+
+def sort_comments(queryset, sort):
+    if sort == 'popular':
+        return queryset.order_by('-like_count', '-created_at', '-id')
+    return queryset.order_by('-created_at', '-id')
+
+
 class AnnotationCreateView(generics.CreateAPIView):
     serializer_class = AnnotationSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -90,5 +120,119 @@ class BookAnnotationListView(generics.ListAPIView):
             queryset = queryset.filter(type=annotation_type)
 
         return sort_annotations(queryset, self.request.query_params.get('sort'))
+
+
+class MyAnnotationListView(generics.ListAPIView):
+    serializer_class = AnnotationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = annotations_with_stats(self.request).filter(user=self.request.user)
+        return sort_annotations(queryset, self.request.query_params.get('sort'))
+
+
+class FavoriteAnnotationListView(generics.ListAPIView):
+    serializer_class = AnnotationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = annotations_with_stats(self.request).filter(favorites__user=self.request.user)
+        return sort_annotations(queryset, self.request.query_params.get('sort'))
+
+
+class AnnotationFavoriteView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, annotation_id):
+        annotation = generics.get_object_or_404(annotations_with_stats(request), pk=annotation_id)
+        AnnotationFavorite.objects.get_or_create(user=request.user, annotation=annotation)
+        return Response({}, status=status.HTTP_201_CREATED)
+
+    def delete(self, request, annotation_id):
+        annotation = generics.get_object_or_404(annotations_with_stats(request), pk=annotation_id)
+        AnnotationFavorite.objects.filter(user=request.user, annotation=annotation).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class CommentListCreateView(generics.ListCreateAPIView):
+    serializer_class = CommentSerializer
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [permissions.IsAuthenticated()]
+        return [permissions.AllowAny()]
+
+    def get_annotation(self):
+        return generics.get_object_or_404(annotations_with_stats(self.request), pk=self.kwargs['annotation_id'])
+
+    def get_queryset(self):
+        self.get_annotation()
+        queryset = comments_with_stats(self.request).filter(annotation_id=self.kwargs['annotation_id'])
+        comment_type = self.request.query_params.get('type')
+
+        if comment_type:
+            queryset = queryset.filter(type=comment_type)
+
+        return sort_comments(queryset, self.request.query_params.get('sort'))
+
+    def perform_create(self, serializer):
+        serializer.save(annotation=self.get_annotation(), user=self.request.user)
+
+
+class CommentDetailView(generics.UpdateAPIView, generics.DestroyAPIView):
+    serializer_class = CommentSerializer
+    permission_classes = [IsOwnerOrReadOnly]
+    lookup_url_kwarg = 'comment_id'
+
+    def get_queryset(self):
+        return comments_with_stats(self.request)
+
+
+class LikeView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        target_type = request.data.get('targetType')
+        target_id = request.data.get('targetId')
+        self.validate_target(target_type, target_id, request)
+
+        like, created = Like.objects.get_or_create(
+            user=request.user,
+            target_type=target_type,
+            target_id=target_id,
+        )
+        if not created:
+            raise DuplicateError('Already liked.')
+
+        return Response(
+            {
+                'likeId': like.id,
+                'targetType': like.target_type,
+                'targetId': like.target_id,
+                'createdAt': like.created_at,
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+    def delete(self, request):
+        target_type = request.query_params.get('targetType') or request.data.get('targetType')
+        target_id = request.query_params.get('targetId') or request.data.get('targetId')
+        self.validate_target(target_type, target_id, request)
+
+        Like.objects.filter(user=request.user, target_type=target_type, target_id=target_id).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @staticmethod
+    def validate_target(target_type, target_id, request):
+        if target_type not in (Like.TargetType.ANNOTATION, Like.TargetType.COMMENT) or not target_id:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError('targetType and targetId are required.')
+
+        if target_type == Like.TargetType.ANNOTATION:
+            generics.get_object_or_404(annotations_with_stats(request), pk=target_id)
+            return
+
+        comment = generics.get_object_or_404(Comment.objects.select_related('annotation'), pk=target_id)
+        generics.get_object_or_404(annotations_with_stats(request), pk=comment.annotation_id)
 
 # Create your views here.
