@@ -15,5 +15,30 @@
 """
 from django.urls import path
 
+from .views import (
+    AnnotationCreateView,
+    AnnotationDetailView,
+    AnnotationFavoriteView,
+    AnnotationFeedView,
+    AnnotationSearchView,
+    BookAnnotationListView,
+    CommentDetailView,
+    CommentListCreateView,
+    FavoriteAnnotationListView,
+    LikeView,
+    MyAnnotationListView,
+)
+
 urlpatterns = [
+    path('annotations/feed', AnnotationFeedView.as_view(), name='annotation-feed'),
+    path('annotations/search', AnnotationSearchView.as_view(), name='annotation-search'),
+    path('annotations', AnnotationCreateView.as_view(), name='annotation-create'),
+    path('annotations/<int:annotation_id>', AnnotationDetailView.as_view(), name='annotation-detail'),
+    path('books/<int:book_id>/annotations', BookAnnotationListView.as_view(), name='book-annotation-list'),
+    path('annotations/<int:annotation_id>/favorite', AnnotationFavoriteView.as_view(), name='annotation-favorite'),
+    path('users/me/annotations', MyAnnotationListView.as_view(), name='my-annotation-list'),
+    path('users/me/favorite-annotations', FavoriteAnnotationListView.as_view(), name='favorite-annotation-list'),
+    path('annotations/<int:annotation_id>/comments', CommentListCreateView.as_view(), name='comment-list-create'),
+    path('comments/<int:comment_id>', CommentDetailView.as_view(), name='comment-detail'),
+    path('likes', LikeView.as_view(), name='like'),
 ]
