@@ -12,6 +12,21 @@ const sortOptions = [
   { label: '페이지순', value: 'pageNumber' },
 ];
 
+const annotationTypeOptions = [
+  { label: '전체', value: '' },
+  { label: '일반', value: 'NORMAL' },
+  { label: '감상', value: 'REVIEW' },
+  { label: '질문', value: 'QUESTION' },
+  { label: '토론', value: 'DISCUSSION' },
+];
+
+const annotationTypeLabels = {
+  NORMAL: '일반',
+  REVIEW: '감상',
+  QUESTION: '질문',
+  DISCUSSION: '토론',
+};
+
 const genreLabels = {
   NOVEL: '소설',
   ESSAY: '시/에세이',
@@ -43,6 +58,8 @@ function normalizeAnnotation(annotation) {
   return {
     id: annotation.annotationId ?? annotation.id,
     page: annotation.page ?? annotation.pageNumber ?? '-',
+    type: annotation.type ?? 'NORMAL',
+    typeLabel: annotationTypeLabels[annotation.type] ?? '일반',
     visibility: visibilityLabels[annotation.visibility] ?? annotation.visibility ?? '공개',
     quote: annotation.passage ?? annotation.quote ?? '',
     review: annotation.review ?? annotation.content ?? '',
@@ -248,6 +265,7 @@ function AnnotationCard({ annotation }) {
       <div className="flex items-start justify-between gap-4">
         <div className="flex flex-wrap gap-2">
           <span className="tag">p.{annotation.page}</span>
+          <span className="tag tag--cream">{annotation.typeLabel}</span>
           <span className="tag tag--blue">{annotation.visibility}</span>
           {annotation.isSpoiler && <span className="tag tag--danger">스포일러</span>}
         </div>
@@ -359,6 +377,7 @@ export default function BookDetailPage() {
   const [book, setBook] = useState(null);
   const [annotations, setAnnotations] = useState([]);
   const [sort, setSort] = useState('recent,desc');
+  const [annotationType, setAnnotationType] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [searchKeyword, setSearchKeyword] = useState('');
   const [isBookLoading, setIsBookLoading] = useState(true);
@@ -411,6 +430,7 @@ export default function BookDetailPage() {
       try {
         const params = {
           sort,
+          type: annotationType || undefined,
           page: 1,
           size: 20,
         };
@@ -441,7 +461,7 @@ export default function BookDetailPage() {
     return () => {
       ignore = true;
     };
-  }, [bookId, sort, searchKeyword]);
+  }, [annotationType, bookId, sort, searchKeyword]);
 
   const handleSearch = (event) => {
     event.preventDefault();
@@ -505,6 +525,18 @@ export default function BookDetailPage() {
 
           <section className="grid gap-4">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div className="flex flex-wrap gap-2">
+                {annotationTypeOptions.map((type) => (
+                  <button
+                    key={type.value || 'all'}
+                    className={`button button--sm ${annotationType === type.value ? 'button--primary' : 'button--secondary'}`}
+                    type="button"
+                    onClick={() => setAnnotationType(type.value)}
+                  >
+                    {type.label}
+                  </button>
+                ))}
+              </div>
               <select
                 className="select w-full md:w-[140px]"
                 aria-label="정렬"

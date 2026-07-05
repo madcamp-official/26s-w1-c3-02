@@ -86,10 +86,6 @@ class CommentSerializer(serializers.ModelSerializer):
     commentId = serializers.IntegerField(source='id', read_only=True)
     annotationId = serializers.IntegerField(source='annotation_id', read_only=True)
     author = AnnotationAuthorSerializer(source='user', read_only=True)
-    commentType = serializers.CharField(source='type', read_only=True)
-    comment_type = serializers.CharField(source='type', read_only=True)
-    category = serializers.CharField(source='type', read_only=True)
-    commentCategory = serializers.CharField(source='type', read_only=True)
     likeCount = serializers.SerializerMethodField()
     isLiked = serializers.SerializerMethodField()
     createdAt = serializers.DateTimeField(source='created_at', read_only=True)
@@ -100,11 +96,6 @@ class CommentSerializer(serializers.ModelSerializer):
             'commentId',
             'annotationId',
             'author',
-            'type',
-            'commentType',
-            'comment_type',
-            'category',
-            'commentCategory',
             'content',
             'likeCount',
             'isLiked',
@@ -116,11 +107,3 @@ class CommentSerializer(serializers.ModelSerializer):
 
     def get_isLiked(self, obj):
         return bool(getattr(obj, 'is_liked', False))
-
-    def to_internal_value(self, data):
-        mutable_data = data.copy()
-        for key in ('commentType', 'comment_type', 'category', 'commentCategory'):
-            if not mutable_data.get('type') and mutable_data.get(key):
-                mutable_data['type'] = mutable_data[key]
-                break
-        return super().to_internal_value(mutable_data)

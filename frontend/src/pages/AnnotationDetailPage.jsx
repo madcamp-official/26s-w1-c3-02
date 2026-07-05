@@ -7,24 +7,17 @@ import { getPageData } from '../api/client';
 import { getMe } from '../api/users';
 import SiteHeader from '../components/SiteHeader';
 
-const commentTypes = [
-  { label: '전체', value: '' },
-  { label: '질문', value: 'QUESTION' },
-  { label: '감상', value: 'REVIEW' },
-  { label: '토론', value: 'DISCUSSION' },
-];
-
-const writableTypes = [
-  { label: '질문', value: 'QUESTION' },
-  { label: '감상', value: 'REVIEW' },
-  { label: '토론', value: 'DISCUSSION' },
-  { label: '일반', value: 'NORMAL' },
-];
-
 const sortOptions = [
   { label: '인기순', value: 'popular' },
   { label: '최신순', value: 'recent,desc' },
 ];
+
+const annotationTypeLabels = {
+  NORMAL: '일반',
+  REVIEW: '감상',
+  QUESTION: '질문',
+  DISCUSSION: '토론',
+};
 
 const visibilityLabels = {
   public: '공개',
@@ -67,6 +60,8 @@ function normalizeAnnotation(annotation) {
     bookTitle: annotation.book?.title ?? annotation.bookTitle ?? '책 정보 없음',
     authorId: annotation.author?.id ?? annotation.authorId,
     author: annotation.author?.nickname ?? annotation.authorName ?? '익명',
+    type: annotation.type ?? 'NORMAL',
+    typeLabel: annotationTypeLabels[annotation.type] ?? '일반',
     page: annotation.page ?? '-',
     passage: annotation.passage ?? '',
     review: annotation.review ?? '',
@@ -80,15 +75,10 @@ function normalizeAnnotation(annotation) {
 }
 
 function normalizeComment(comment) {
-  const type = String(
-    comment.commentType ?? comment.comment_type ?? comment.commentCategory ?? comment.category ?? comment.type ?? 'NORMAL',
-  ).toUpperCase();
-
   return {
     id: comment.commentId ?? comment.id,
     authorId: comment.author?.id ?? comment.authorId,
     author: comment.author?.nickname ?? comment.authorName ?? '익명',
-    type,
     content: comment.content ?? '',
     likeCount: comment.likeCount ?? 0,
     isLiked: Boolean(comment.isLiked),
@@ -153,6 +143,7 @@ function AnnotationCard({ annotation, isMine, onDelete }) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
           <span className="tag">p.{annotation.page}</span>
+          <span className="tag tag--cream">{annotation.typeLabel}</span>
           <span className="tag tag--blue">{annotation.visibility}</span>
           {annotation.isSpoiler && <span className="tag tag--danger">스포일러</span>}
           <span className="text-sm font-semibold text-text-muted">「{annotation.bookTitle}」</span>
@@ -209,7 +200,6 @@ function AnnotationCard({ annotation, isMine, onDelete }) {
 function CommentCard({ comment, isMine, onDelete }) {
   const [isLiked, setIsLiked] = useState(comment.isLiked);
   const [likeCount, setLikeCount] = useState(comment.likeCount);
-  const typeLabel = commentTypes.find((item) => item.value === comment.type)?.label ?? '일반';
 
   const handleLike = async () => {
     const nextLiked = !isLiked;
@@ -231,7 +221,6 @@ function CommentCard({ comment, isMine, onDelete }) {
   return (
     <article className="border-l-4 border-primary-soft py-1 pl-5">
       <header className="flex flex-wrap items-center gap-3">
-        <span className="tag tag--cream">{typeLabel}</span>
         <strong className="text-sm text-text">{comment.author}</strong>
         <span className="text-sm text-text-subtle">{formatDate(comment.createdAt)}</span>
       </header>
@@ -255,12 +244,9 @@ export default function AnnotationDetailPage() {
   const navigate = useNavigate();
   const [annotation, setAnnotation] = useState(null);
   const [comments, setComments] = useState([]);
-  const [counts, setCounts] = useState({});
   const [me, setMe] = useState(null);
-  const [filterType, setFilterType] = useState('');
   const [sort, setSort] = useState('popular');
   const [visibleCount, setVisibleCount] = useState(5);
-  const [draftType, setDraftType] = useState('REVIEW');
   const [draftContent, setDraftContent] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -269,26 +255,12 @@ export default function AnnotationDetailPage() {
   const visibleComments = comments.slice(0, visibleCount);
 
   const commentCountLabel = useMemo(() => {
-    const total = counts.total ?? comments.length;
-    return total;
-  }, [counts.total, comments.length]);
+    return comments.length;
+  }, [comments.length]);
 
-  async function loadComments(nextFilter = filterType, nextSort = sort) {
-    const [filteredResponse, allResponse] = await Promise.all([
-      getComments(annotationId, { type: nextFilter || undefined, sort: nextSort, page: 1, size: 100 }),
-      getComments(annotationId, { page: 1, size: 100 }),
-    ]);
-    const filteredComments = getPageData(filteredResponse).data.map(normalizeComment);
-    const allComments = getPageData(allResponse).data.map(normalizeComment);
-    const nextCounts = {
-      total: allComments.length,
-      QUESTION: allComments.filter((comment) => comment.type === 'QUESTION').length,
-      REVIEW: allComments.filter((comment) => comment.type === 'REVIEW').length,
-      DISCUSSION: allComments.filter((comment) => comment.type === 'DISCUSSION').length,
-      NORMAL: allComments.filter((comment) => comment.type === 'NORMAL').length,
-    };
-    setComments(filteredComments);
-    setCounts(nextCounts);
+  async function loadComments(nextSort = sort) {
+    const response = await getComments(annotationId, { sort: nextSort, page: 1, size: 100 });
+    setComments(getPageData(response).data.map(normalizeComment));
   }
 
   useEffect(() => {
@@ -302,7 +274,7 @@ export default function AnnotationDetailPage() {
         const [annotationResponse, meResponse] = await Promise.all([
           getAnnotation(annotationId),
           getMe().catch(() => null),
-          loadComments(filterType, sort),
+          loadComments(sort),
         ]);
         if (!ignore) {
           setAnnotation(normalizeAnnotation(annotationResponse));
@@ -324,10 +296,10 @@ export default function AnnotationDetailPage() {
 
   useEffect(() => {
     setVisibleCount(5);
-    loadComments(filterType, sort).catch((error) => {
+    loadComments(sort).catch((error) => {
       setErrorMessage(error.message || '댓글을 불러오지 못했습니다.');
     });
-  }, [filterType, sort]);
+  }, [sort]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -338,16 +310,11 @@ export default function AnnotationDetailPage() {
 
     try {
       await createComment(annotationId, {
-        type: draftType,
-        commentType: draftType,
-        comment_type: draftType,
-        category: draftType,
-        commentCategory: draftType,
         content: trimmedContent,
       });
       setDraftContent('');
       setVisibleCount(5);
-      await loadComments(filterType, sort);
+      await loadComments(sort);
     } catch (error) {
       setErrorMessage(error.message || '댓글을 작성하지 못했습니다.');
     } finally {
@@ -371,7 +338,7 @@ export default function AnnotationDetailPage() {
 
     try {
       await deleteComment(commentId);
-      await loadComments(filterType, sort);
+      await loadComments(sort);
     } catch (error) {
       setErrorMessage(error.message || '댓글을 삭제하지 못했습니다.');
     }
@@ -405,18 +372,7 @@ export default function AnnotationDetailPage() {
 
               <section className="grid gap-4">
                 <div className="flex flex-col gap-3 border-b border-line pb-4 md:flex-row md:items-center md:justify-between">
-                  <div className="flex flex-wrap gap-2">
-                    {commentTypes.map((type) => (
-                      <button
-                        key={type.value || 'all'}
-                        className={`button button--sm ${filterType === type.value ? 'button--primary' : 'button--secondary'}`}
-                        type="button"
-                        onClick={() => setFilterType(type.value)}
-                      >
-                        {type.label} {type.value ? counts[type.value] ?? 0 : commentCountLabel}
-                      </button>
-                    ))}
-                  </div>
+                  <h2 className="section-title">댓글 {commentCountLabel}</h2>
 
                   <select className="select w-full md:w-[140px]" value={sort} onChange={(event) => setSort(event.target.value)} aria-label="댓글 정렬">
                     {sortOptions.map((option) => (
@@ -452,23 +408,11 @@ export default function AnnotationDetailPage() {
               </section>
 
               <form className="card card--padded grid gap-4" onSubmit={handleSubmit}>
-                <div className="flex flex-wrap gap-2">
-                  {writableTypes.map((type) => (
-                    <button
-                      key={type.value}
-                      className={`button button--sm ${draftType === type.value ? 'button--primary' : 'button--secondary'}`}
-                      type="button"
-                      onClick={() => setDraftType(type.value)}
-                    >
-                      {type.label}
-                    </button>
-                  ))}
-                </div>
                 <textarea
                   className="textarea"
                   value={draftContent}
                   onChange={(event) => setDraftContent(event.target.value)}
-                  placeholder="이 구절에 대한 질문, 감상, 토론을 남겨보세요."
+                  placeholder="이 구절에 대한 댓글을 남겨보세요."
                 />
                 <div className="flex justify-end">
                   <button className="button button--primary" type="submit" disabled={isSubmitting || !draftContent.trim()}>
