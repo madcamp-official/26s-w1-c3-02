@@ -10,10 +10,10 @@
 
 ### 시작 전 정리할 것
 
-- [ ] `requirements.txt`가 다시 UTF-16으로 저장됨 → UTF-8로 재저장 (PowerShell에서 `pip freeze > requirements.txt` 하면 재발함. `pip freeze | Out-File -Encoding utf8 requirements.txt` 사용)
-- [ ] `djangorestframework-simplejwt` 설치 (JWT 인증)
-- [ ] `db.sqlite3` 삭제 후 재생성 — 커스텀 User 모델은 **첫 migrate 전에** 확정해야 함
-- [ ] `SECRET_KEY` 환경변수 분리, `TIME_ZONE = 'Asia/Seoul'` (USE_TZ는 True 유지)
+- [x] `requirements.txt`가 다시 UTF-16으로 저장됨 → UTF-8로 재저장 (PowerShell에서 `pip freeze > requirements.txt` 하면 재발함. `pip freeze | Out-File -Encoding utf8 requirements.txt` 사용)
+- [x] `djangorestframework-simplejwt` 설치 (JWT 인증) — 5.5.1
+- [x] `db.sqlite3` 삭제 완료 — **재생성(migrate)은 Phase 0에서 커스텀 User 모델 확정 후에** 할 것. `.gitignore`에 `db.sqlite3`/`__pycache__` 추가, git 추적 해제
+- [x] `SECRET_KEY` 환경변수 분리 (`DJANGO_SECRET_KEY`, 로컬 개발용 기본값 유지), `TIME_ZONE = 'Asia/Seoul'` (USE_TZ는 True 유지). 덤: MIDDLEWARE에 중복 등록돼 있던 `CommonMiddleware` 제거
 
 ## 1. 역할 분담 요약
 
