@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
-import { favoriteBook, getBooks, unfavoriteBook } from '../api/books';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { favoriteBook, getBooks, importBookFromAladin, searchExternalBooks, unfavoriteBook } from '../api/books';
 import { favoriteAnnotation, getAnnotationFeed, searchAnnotations, unfavoriteAnnotation } from '../api/annotations';
 import { getPageData } from '../api/client';
 import SiteHeader from '../components/SiteHeader';
 import { useAuth } from '../context/AuthContext';
+import { getErrorMessage } from '../utils/error';
 
 const searchCategories = [
   { label: '통합검색', value: 'all' },
@@ -269,6 +270,22 @@ function AnnotationResultCard({ annotation }) {
   );
 }
 
+function AddBookCard({ onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="card w-full max-w-[320px] justify-self-center flex flex-col items-center justify-center gap-3 border-2 border-dashed border-line bg-transparent p-4 text-center transition hover:border-primary hover:bg-primary-soft/40"
+    >
+      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-primary-soft text-2xl font-bold text-primary">+</span>
+      <div>
+        <p className="text-sm font-bold text-text">찾는 책이 없나요?</p>
+        <p className="mt-1 text-xs text-text-muted">책 추가하기</p>
+      </div>
+    </button>
+  );
+}
+
 function EmptyState({ children }) {
   return (
     <div className="py-12 text-center">
@@ -383,6 +400,7 @@ function BrowseAnnotationCard({ annotation }) {
 
 export default function SearchPage() {
   const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryParam = searchParams.get('category') || 'all';
   const keywordParam = searchParams.get('q') || searchParams.get('keyword') || searchParams.get('search') || '';
@@ -398,6 +416,12 @@ export default function SearchPage() {
   const [isBrowseLoading, setIsBrowseLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [browseErrorMessage, setBrowseErrorMessage] = useState('');
+
+  const [showAddBookModal, setShowAddBookModal] = useState(false);
+  const [addBookKeyword, setAddBookKeyword] = useState('');
+  const [addBookResults, setAddBookResults] = useState([]);
+  const [isSearchingAddBooks, setIsSearchingAddBooks] = useState(false);
+  const [addBookError, setAddBookError] = useState('');
 
   const activeCategory = useMemo(
     () => (searchCategories.some((item) => item.value === categoryParam) ? categoryParam : 'all'),
@@ -513,6 +537,48 @@ export default function SearchPage() {
     setSearchParams(params);
   };
 
+  const openAddBookModal = () => {
+    setAddBookKeyword(keywordParam);
+    setAddBookResults([]);
+    setAddBookError('');
+    setShowAddBookModal(true);
+  };
+
+  const handleSearchAddBooks = async (event) => {
+    event.preventDefault();
+    if (!addBookKeyword.trim()) return;
+
+    setIsSearchingAddBooks(true);
+    setAddBookError('');
+    try {
+      const keywordToSearch = addBookKeyword.trim();
+      const [localRes, externalRes] = await Promise.all([
+        getBooks({ keyword: keywordToSearch }),
+        searchExternalBooks({ keyword: keywordToSearch, size: 10 }).catch(() => ({ data: [] })),
+      ]);
+      const localBooks = localRes.data || [];
+      const localIsbns = new Set(localBooks.map((book) => book.isbn).filter(Boolean));
+      const externalBooks = (externalRes.data || [])
+        .filter((book) => book.isbn && !localIsbns.has(book.isbn))
+        .map((book) => ({ ...book, isExternal: true }));
+      setAddBookResults([...localBooks, ...externalBooks]);
+    } catch (error) {
+      setAddBookError(getErrorMessage(error));
+    } finally {
+      setIsSearchingAddBooks(false);
+    }
+  };
+
+  const handleImportBook = async (book) => {
+    try {
+      const targetBook = book.isExternal ? await importBookFromAladin(book.isbn) : book;
+      setShowAddBookModal(false);
+      navigate(`/books/${targetBook.bookId}`);
+    } catch (error) {
+      setAddBookError(getErrorMessage(error));
+    }
+  };
+
   const categoryLabel = searchCategories.find((item) => item.value === activeCategory)?.label ?? '통합검색';
 
   return (
@@ -617,15 +683,13 @@ export default function SearchPage() {
           {!isBrowseMode && !errorMessage && !isLoading && (activeCategory === 'all' || activeCategory === 'book' || activeCategory === 'author') && (
             <section className="grid gap-4">
               <h2 className="section-title">책 결과</h2>
-              {books.length === 0 ? (
-                <EmptyState>일치하는 책을 찾지 못했습니다</EmptyState>
-              ) : (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  {books.map((book) => (
-                    <BookResultCard key={book.id} book={book} />
-                  ))}
-                </div>
-              )}
+              {books.length === 0 && <EmptyState>일치하는 책을 찾지 못했습니다</EmptyState>}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {books.map((book) => (
+                  <BookResultCard key={book.id} book={book} />
+                ))}
+                <AddBookCard onClick={openAddBookModal} />
+              </div>
             </section>
           )}
 
@@ -645,6 +709,62 @@ export default function SearchPage() {
           )}
         </div>
       </main>
+
+      {showAddBookModal && (
+        <div className="modal-overlay">
+          <section className="modal card card--padded">
+            <h2 className="section-title mb-4">책 추가하기</h2>
+            <form onSubmit={handleSearchAddBooks} className="flex gap-2">
+              <input
+                className="input !h-9 flex-1"
+                type="text"
+                placeholder="책 제목 또는 저자"
+                value={addBookKeyword}
+                onChange={(event) => setAddBookKeyword(event.target.value)}
+                autoFocus
+              />
+              <button type="submit" className="button button--primary button--sm" disabled={isSearchingAddBooks}>
+                {isSearchingAddBooks ? '검색...' : '검색'}
+              </button>
+            </form>
+            {addBookError && <p className="mt-2 text-xs text-danger">{addBookError}</p>}
+            {addBookResults.length > 0 && (
+              <ul className="mt-4 grid max-h-[240px] gap-2 overflow-y-auto border-t border-line pt-4">
+                {addBookResults.map((book) => (
+                  <li key={book.bookId || book.isbn} className="flex items-center justify-between gap-3 rounded bg-pageSoft p-2">
+                    <div className="flex min-w-0 items-center gap-2">
+                      {book.coverImageUrl ? (
+                        <img className="h-12 w-9 shrink-0 rounded-sm object-cover shadow-soft" src={book.coverImageUrl} alt={book.title} />
+                      ) : (
+                        <div className="h-12 w-9 shrink-0 rounded-sm bg-primary-soft" />
+                      )}
+                      <div className="min-w-0">
+                        <p className="truncate text-xs font-bold text-text">{book.title}</p>
+                        <p className="truncate text-[11px] text-text-muted">{book.author}</p>
+                        <p className="truncate text-[10px] text-text-subtle">
+                          {book.isExternal ? '알라딘' : '내 서재'} {book.isbn ? `· ISBN ${book.isbn}` : ''}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleImportBook(book)}
+                      className="button button--primary button--sm !min-h-7 !px-2.5 text-xs shrink-0"
+                    >
+                      {book.isExternal ? '추가' : '보기'}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="mt-6 flex justify-end gap-2">
+              <button type="button" onClick={() => setShowAddBookModal(false)} className="button button--secondary">
+                닫기
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 }
