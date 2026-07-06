@@ -10,6 +10,7 @@ import AnnotationFormPage from './pages/AnnotationFormPage.jsx';
 import AnnotationDetailPage from './pages/AnnotationDetailPage.jsx';
 import GroupDetailPage from './pages/GroupDetailPage.jsx';
 import GroupsPage from './pages/GroupsPage.jsx';
+import UserProfilePage from './pages/UserProfilePage.jsx';
 
 const EmptyPage = ({ title }) => <main>{title}</main>;
 
@@ -48,6 +49,7 @@ export default function App() {
       />
       <Route path="/annotations/:annotationId" element={<AnnotationDetailPage />} />
       <Route path="/search" element={<SearchPage />} />
+      <Route path="/users/:userId" element={<UserProfilePage />} />
       
       <Route
         path="/login"

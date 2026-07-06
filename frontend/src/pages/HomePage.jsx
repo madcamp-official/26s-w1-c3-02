@@ -38,6 +38,7 @@ function normalizeBook(book) {
 function normalizeFeedItem(annotation) {
   return {
     id: annotation.annotationId ?? annotation.id,
+    authorId: annotation.author?.id ?? annotation.authorId,
     author: annotation.author?.nickname ?? annotation.authorName ?? annotation.author ?? '익명',
     time: formatRelativeTime(annotation.createdAt),
     book: annotation.book?.title ?? annotation.bookTitle ?? '책 정보 없음',
@@ -299,8 +300,15 @@ function BookCardSkeleton() {
 }
 
 function AnnotationCard({ item }) {
+  const navigate = useNavigate();
   const [isFavorited, setIsFavorited] = useState(item.isFavorited);
   const [isPending, setIsPending] = useState(false);
+
+  const goToProfile = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (item.authorId) navigate(`/users/${item.authorId}`);
+  };
 
   const handleFavorite = async (event) => {
     event.preventDefault();
@@ -331,7 +339,17 @@ function AnnotationCard({ item }) {
           <span className={`avatar ${item.avatar}`} />
           <div className="min-w-0">
             <div className="flex items-center gap-3">
-              <strong className="text-sm text-text">{item.author}</strong>
+              {item.authorId ? (
+                <button
+                  type="button"
+                  onClick={goToProfile}
+                  className="text-sm font-bold text-text transition hover:text-primary"
+                >
+                  {item.author}
+                </button>
+              ) : (
+                <strong className="text-sm text-text">{item.author}</strong>
+              )}
               <span className="text-sm text-text-muted">{item.time}</span>
             </div>
             <p className="mt-1 truncate text-xs font-semibold text-text-muted">「{item.book}」</p>

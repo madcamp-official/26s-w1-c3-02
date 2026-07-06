@@ -297,12 +297,21 @@ function AnnotationCard({ annotation, isMine, onRequireAuth }) {
 
       {!shouldHideContent && (
         <footer className="mt-7 flex items-center justify-between gap-4 text-sm text-text-muted">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary-soft text-xs font-bold text-primary">
-              {annotation.author.slice(0, 1)}
-            </span>
-            <span>{annotation.author}</span>
-          </div>
+          {annotation.authorId ? (
+            <Link to={`/users/${annotation.authorId}`} className="flex items-center gap-2 transition hover:text-primary">
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary-soft text-xs font-bold text-primary">
+                {annotation.author.slice(0, 1)}
+              </span>
+              <span className="font-semibold">{annotation.author}</span>
+            </Link>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary-soft text-xs font-bold text-primary">
+                {annotation.author.slice(0, 1)}
+              </span>
+              <span>{annotation.author}</span>
+            </div>
+          )}
           <div className="flex flex-wrap items-center justify-end gap-2">
             <button
               className={`button button--sm ${isLiked ? 'button--primary' : 'button--secondary'}`}
