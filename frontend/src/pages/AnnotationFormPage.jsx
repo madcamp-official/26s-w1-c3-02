@@ -8,7 +8,7 @@ const visibilityOptions = [
   {
     label: '공개',
     value: 'public',
-    help: '다른 사용자도 이 구절 노트를 볼 수 있어요.',
+    help: '모두에게 이 구절 노트를 공개해요.',
   },
   {
     label: '비공개',
@@ -31,10 +31,7 @@ const annotationTypes = [
 
 function LogoMark() {
   return (
-    <span className="relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-primary-soft">
-      <span className="absolute left-2 top-1.5 h-5 w-2 -skew-y-12 rounded-[2px] bg-primary" />
-      <span className="absolute right-2 top-1.5 h-5 w-2 skew-y-12 rounded-[2px] bg-primary/85" />
-    </span>
+    <img className="w-[132px] shrink-0 object-contain sm:w-[160px] lg:w-[190px]" src="/logo.png" alt="문장서재" />
   );
 }
 
@@ -44,7 +41,6 @@ function Header() {
       <div className="container grid min-h-[72px] grid-cols-[auto_1fr_auto] items-center gap-4 lg:gap-8">
         <Link to="/" className="brand justify-self-start">
           <LogoMark />
-          <span>문장서재</span>
           <span className="brand__subtitle hidden xl:inline">문장을 수집하고, 생각을 나누는 공간</span>
         </Link>
 
@@ -280,9 +276,9 @@ export default function AnnotationFormPage() {
               />
             </label>
 
-            <fieldset className="grid gap-3">
+            <fieldset className="grid gap-5">
               <legend className="form-label">노트 유형</legend>
-              <div className="flex flex-wrap gap-2">
+              <div className="mt-2 flex flex-wrap gap-2">
                 {annotationTypes.map((type) => (
                   <button
                     key={type.value}
@@ -296,9 +292,9 @@ export default function AnnotationFormPage() {
               </div>
             </fieldset>
 
-            <fieldset className="grid gap-3">
+            <fieldset className="grid gap-5">
               <legend className="form-label">공개 설정</legend>
-              <div className="grid gap-3 md:grid-cols-3">
+              <div className="mt-2 grid gap-3 md:grid-cols-3">
                 {visibilityOptions.map((option) => (
                   <label
                     key={option.value}

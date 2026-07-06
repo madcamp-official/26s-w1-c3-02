@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getBooks } from '../api/books';
+import { getBookCategories, getBooks } from '../api/books';
 import { favoriteAnnotation, getAnnotationFeed, unfavoriteAnnotation } from '../api/annotations';
 import { getPageData } from '../api/client';
 import SiteHeader from '../components/SiteHeader';
@@ -82,10 +82,7 @@ function formatTodayLabel() {
 
 function LogoMark() {
   return (
-    <span className="relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-primary-soft">
-      <span className="absolute left-2 top-1.5 h-5 w-2 -skew-y-12 rounded-[2px] bg-primary" />
-      <span className="absolute right-2 top-1.5 h-5 w-2 skew-y-12 rounded-[2px] bg-primary/85" />
-    </span>
+    <img className="w-[132px] shrink-0 object-contain sm:w-[160px] lg:w-[190px]" src="/logo.png" alt="문장서재" />
   );
 }
 
@@ -164,7 +161,6 @@ function Header({ keyword, onKeywordChange, onSearch, searchCategory, onSearchCa
       <div className="container grid min-h-[72px] grid-cols-[auto_1fr_auto] items-center gap-4 lg:gap-8">
         <Link to="/" className="brand justify-self-start">
           <LogoMark />
-          <span>문장서재</span>
           <span className="brand__subtitle hidden xl:inline">문장을 수집하고, 생각을 나누는 공간</span>
         </Link>
 
@@ -262,8 +258,8 @@ function BookCoverFallback({ title }) {
 
 function BookCard({ book }) {
   return (
-    <Link to={`/books/${book.id}`} className="group relative block w-full max-w-[190px] justify-self-center">
-      <article className="grid h-full gap-2.5">
+    <Link to={`/books/${book.id}`} className="group relative block w-full max-w-[220px] justify-self-center">
+      <article className="grid h-full gap-3">
         {book.coverImageUrl ? (
           <img
             className="aspect-[3/4] w-full rounded-sm object-cover shadow-soft transition group-hover:-translate-y-1 group-hover:shadow-card"
@@ -275,8 +271,8 @@ function BookCard({ book }) {
         )}
 
         <div className="min-w-0">
-          <h3 className="line-clamp-2 text-xs font-extrabold leading-[1.45] text-text">{book.title}</h3>
-          <div className="mt-1 flex items-center justify-between gap-2 text-[11px] font-semibold text-text-muted">
+          <h3 className="line-clamp-2 text-sm font-extrabold leading-[1.45] text-text">{book.title}</h3>
+          <div className="mt-1.5 flex items-center justify-between gap-2 text-xs font-semibold text-text-muted">
             <p className="min-w-0 truncate">{book.author}</p>
             <span className="shrink-0 whitespace-nowrap">노트 {book.annotationCount}</span>
           </div>
@@ -288,7 +284,7 @@ function BookCard({ book }) {
 
 function BookCardSkeleton() {
   return (
-    <article className="grid h-full w-full max-w-[190px] justify-self-center gap-2.5 animate-pulse">
+    <article className="grid h-full w-full max-w-[220px] justify-self-center gap-3 animate-pulse">
       <div className="aspect-[3/4] w-full rounded-sm bg-surfaceMuted" />
       <div className="min-w-0">
         <div className="h-4 w-2/3 rounded bg-surfaceMuted" />
@@ -376,7 +372,6 @@ function Footer() {
       <div className="container flex flex-col gap-4 py-6 text-sm text-text-muted md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-3">
           <LogoMark />
-          <strong className="text-lg text-primary">문장서재</strong>
           <span className="hidden sm:inline">문장을 수집하고, 생각을 나누는 공간</span>
         </div>
       </div>
@@ -390,11 +385,31 @@ export default function HomePage() {
   const [todayFeed, setTodayFeed] = useState([]);
   const [keyword, setKeyword] = useState('');
   const [searchCategory, setSearchCategory] = useState('all');
-  const [genreCode, setGenreCode] = useState('');
+  const [categoryGroup, setCategoryGroup] = useState('');
+  const [categoryFilters, setCategoryFilters] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFeedLoading, setIsFeedLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [feedErrorMessage, setFeedErrorMessage] = useState('');
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadCategoryFilters() {
+      try {
+        const response = await getBookCategories();
+        if (!ignore) setCategoryFilters(response.data || []);
+      } catch {
+        if (!ignore) setCategoryFilters([]);
+      }
+    }
+
+    loadCategoryFilters();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   useEffect(() => {
     let ignore = false;
@@ -405,7 +420,7 @@ export default function HomePage() {
 
       try {
         const response = await getBooks({
-          genreCode: genreCode || undefined,
+          categoryGroup: categoryGroup || undefined,
           sort: 'recentAnnotations',
           recentHours: 24,
           page: 1,
@@ -428,7 +443,7 @@ export default function HomePage() {
     return () => {
       ignore = true;
     };
-  }, [genreCode]);
+  }, [categoryGroup]);
 
   useEffect(() => {
     let ignore = false;
@@ -491,12 +506,19 @@ export default function HomePage() {
             </div>
 
             <div className="flex flex-wrap gap-2">
-              {genreFilters.map((filter) => (
+              <button
+                className={`button button--sm ${categoryGroup ? 'button--secondary' : 'button--primary'}`}
+                type="button"
+                onClick={() => setCategoryGroup('')}
+              >
+                전체
+              </button>
+              {categoryFilters.map((filter) => (
                 <button
-                  key={filter.label}
-                  className={`button button--sm ${genreCode === filter.value ? 'button--primary' : 'button--secondary'}`}
+                  key={filter.value}
+                  className={`button button--sm ${categoryGroup === filter.value ? 'button--primary' : 'button--secondary'}`}
                   type="button"
-                  onClick={() => setGenreCode(filter.value)}
+                  onClick={() => setCategoryGroup((value) => (value === filter.value ? '' : filter.value))}
                 >
                   {filter.label}
                 </button>
@@ -510,7 +532,7 @@ export default function HomePage() {
             )}
 
             {!errorMessage && (
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
                 {isLoading
                   ? Array.from({ length: 5 }).map((_, index) => <BookCardSkeleton key={index} />)
                   : books.slice(0, 5).map((book) => <BookCard key={book.id} book={book} />)}

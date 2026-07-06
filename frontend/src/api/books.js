@@ -5,6 +5,10 @@ export const getBooks = (params) => {
   return client.get('/books', { params });
 };
 
+export const getBookCategories = () => {
+  return client.get('/books/categories');
+};
+
 export const getBook = (bookId) => {
   return client.get(`/books/${bookId}`);
 };

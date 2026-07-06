@@ -1,14 +1,23 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+@import url('https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --font-body: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
+    --font-title: 'Gowun Batang', 'Batang', serif;
+  }
+
   * {
     @apply box-border;
   }
 
   html {
-    @apply bg-page text-text font-sans;
+    @apply bg-page text-text;
+    font-family: var(--font-body);
   }
 
   body {
@@ -36,6 +45,16 @@
   textarea:disabled,
   select:disabled {
     @apply cursor-not-allowed;
+  }
+
+  h1,
+  h2,
+  h3,
+  .page-title,
+  .section-title,
+  .annotation-quote,
+  blockquote {
+    font-family: var(--font-title);
   }
 }
 

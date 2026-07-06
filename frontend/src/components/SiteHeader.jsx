@@ -11,10 +11,7 @@ const searchCategories = [
 
 function LogoMark() {
   return (
-    <span className="relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-primary-soft">
-      <span className="absolute left-2 top-1.5 h-5 w-2 -skew-y-12 rounded-[2px] bg-primary" />
-      <span className="absolute right-2 top-1.5 h-5 w-2 skew-y-12 rounded-[2px] bg-primary/85" />
-    </span>
+    <img className="w-[132px] shrink-0 object-contain sm:w-[160px] lg:w-[190px]" src="/logo.png" alt="문장서재" />
   );
 }
 
@@ -67,7 +64,6 @@ export default function SiteHeader({ active = 'auto', showSearch = true }) {
       <div className="container grid min-h-[72px] grid-cols-[auto_1fr_auto] items-center gap-4 lg:gap-8">
         <Link to="/" className="brand justify-self-start">
           <LogoMark />
-          <span>문장서재</span>
           <span className="brand__subtitle hidden xl:inline">문장을 수집하고, 생각을 나누는 공간</span>
         </Link>
 

@@ -29,10 +29,7 @@ const visibilityLabels = {
 
 function LogoMark() {
   return (
-    <span className="relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-primary-soft">
-      <span className="absolute left-2 top-1.5 h-5 w-2 -skew-y-12 rounded-[2px] bg-primary" />
-      <span className="absolute right-2 top-1.5 h-5 w-2 skew-y-12 rounded-[2px] bg-primary/85" />
-    </span>
+    <img className="w-[132px] shrink-0 object-contain sm:w-[160px] lg:w-[190px]" src="/logo.png" alt="문장서재" />
   );
 }
 
@@ -42,7 +39,6 @@ function Header() {
       <div className="container grid min-h-[72px] grid-cols-[auto_1fr_auto] items-center gap-4 lg:gap-8">
         <Link to="/" className="brand justify-self-start">
           <LogoMark />
-          <span>문장서재</span>
         </Link>
         <nav className="hidden justify-self-end md:flex md:items-center md:gap-5" aria-label="주요 메뉴">
           <Link className="nav__link" to="/">홈</Link>

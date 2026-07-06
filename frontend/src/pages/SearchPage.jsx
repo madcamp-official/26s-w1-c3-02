@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { getBooks, importBookFromAladin, searchExternalBooks } from '../api/books';
 import { favoriteAnnotation, getAnnotationFeed, searchAnnotations, unfavoriteAnnotation } from '../api/annotations';
 import { getPageData } from '../api/client';
@@ -23,10 +23,7 @@ const visibilityLabels = {
 
 function LogoMark() {
   return (
-    <span className="relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-primary-soft">
-      <span className="absolute left-2 top-1.5 h-5 w-2 -skew-y-12 rounded-[2px] bg-primary" />
-      <span className="absolute right-2 top-1.5 h-5 w-2 skew-y-12 rounded-[2px] bg-primary/85" />
-    </span>
+    <img className="w-[132px] shrink-0 object-contain sm:w-[160px] lg:w-[190px]" src="/logo.png" alt="문장서재" />
   );
 }
 
@@ -99,7 +96,6 @@ function SearchHeader({ category, keyword, onCategoryChange, onKeywordChange, on
       <div className="container grid min-h-[72px] grid-cols-[auto_1fr_auto] items-center gap-4 lg:gap-8">
         <Link to="/" className="brand justify-self-start">
           <LogoMark />
-          <span>문장서재</span>
         </Link>
 
         <form
@@ -160,7 +156,7 @@ function BookmarkButton({ isActive, isPending, onClick, label = '북마크' }) {
 
 function BookResultCard({ book }) {
   return (
-    <Link to={`/books/${book.id}`} className="group relative block">
+    <Link to={`/books/${book.id}`} className="group relative block w-full max-w-[220px] justify-self-center">
       <article className="grid h-full gap-3">
         {book.coverImageUrl ? (
           <img
@@ -173,7 +169,7 @@ function BookResultCard({ book }) {
         )}
         <div className="min-w-0">
           <h3 className="line-clamp-2 text-sm font-extrabold leading-[1.45] text-text">{book.title}</h3>
-          <div className="mt-1 flex items-center justify-between gap-3 text-xs font-semibold text-text-muted">
+          <div className="mt-1.5 flex items-center justify-between gap-2 text-xs font-semibold text-text-muted">
             <p className="min-w-0 truncate">{book.author}</p>
             <span className="shrink-0 whitespace-nowrap">노트 {book.annotationCount}</span>
           </div>
@@ -287,8 +283,8 @@ function EmptyState({ children }) {
 
 function PopularBookCard({ book }) {
   return (
-    <Link to={`/books/${book.id}`} className="group relative block w-full max-w-[190px] justify-self-center">
-      <article className="grid h-full gap-2.5">
+    <Link to={`/books/${book.id}`} className="group relative block w-full max-w-[220px] justify-self-center">
+      <article className="grid h-full gap-3">
         {book.coverImageUrl ? (
           <img
             className="aspect-[3/4] w-full rounded-sm object-cover shadow-soft transition group-hover:-translate-y-1 group-hover:shadow-card"
@@ -299,8 +295,8 @@ function PopularBookCard({ book }) {
           <div className="aspect-[3/4] w-full rounded-sm bg-primary-soft" />
         )}
         <div className="min-w-0">
-          <h3 className="line-clamp-2 text-xs font-extrabold leading-[1.45] text-text">{book.title}</h3>
-          <div className="mt-1 flex items-center justify-between gap-2 text-[11px] font-semibold text-text-muted">
+          <h3 className="line-clamp-2 text-sm font-extrabold leading-[1.45] text-text">{book.title}</h3>
+          <div className="mt-1.5 flex items-center justify-between gap-2 text-xs font-semibold text-text-muted">
             <p className="min-w-0 truncate">{book.author}</p>
             <span className="shrink-0 whitespace-nowrap">노트 {book.annotationCount}</span>
           </div>
@@ -369,6 +365,7 @@ function BrowseAnnotationCard({ annotation, onRequireAuth }) {
 
 export default function SearchPage() {
   const { isAuthenticated, user } = useAuth();
+  const location = useLocation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryParam = searchParams.get('category') || 'all';
@@ -531,6 +528,12 @@ export default function SearchPage() {
 
   const handleSearchAddBooks = async (event) => {
     event.preventDefault();
+
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: location } });
+      return;
+    }
+
     if (!addBookKeyword.trim()) return;
 
     setIsSearchingAddBooks(true);
@@ -601,7 +604,7 @@ export default function SearchPage() {
                     </div>
 
                     {isBrowseLoading ? (
-                      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+                      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
                         {Array.from({ length: 5 }).map((_, index) => (
                           <article key={index} className="aspect-[3/4] animate-pulse rounded-sm bg-surfaceMuted" />
                         ))}
@@ -609,7 +612,7 @@ export default function SearchPage() {
                     ) : visiblePopularBooks.length === 0 ? (
                       <EmptyState>인기 책이 없습니다.</EmptyState>
                     ) : (
-                      <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+                      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
                         {visiblePopularBooks.map((book) => (
                           <PopularBookCard key={book.id} book={book} />
                         ))}
@@ -671,7 +674,7 @@ export default function SearchPage() {
               {books.length === 0 && (
                 <p className="text-sm font-semibold text-text-muted">일치하는 책을 찾지 못했습니다</p>
               )}
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
                 {books.map((book) => (
                   <BookResultCard key={book.id} book={book} />
                 ))}
