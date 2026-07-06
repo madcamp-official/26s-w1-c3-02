@@ -75,6 +75,7 @@ function normalizeAnnotation(annotation) {
     page: annotation.page ?? annotation.pageNumber ?? '-',
     passage: annotation.passage ?? annotation.quote ?? '',
     review: annotation.review ?? annotation.content ?? '',
+    authorId: annotation.author?.id ?? annotation.authorId,
     author: annotation.author?.nickname ?? annotation.authorName ?? '익명',
     visibility: visibilityLabels[annotation.visibility] ?? annotation.visibility ?? '공개',
     likeCount: annotation.likeCount ?? 0,
@@ -211,11 +212,16 @@ function BookResultCard({ book, onRequireAuth }) {
   );
 }
 
+<<<<<<< HEAD
 function AnnotationResultCard({ annotation, onRequireAuth }) {
   const [isRevealed, setIsRevealed] = useState(!annotation.isSpoiler);
+=======
+function AnnotationResultCard({ annotation, isMine }) {
+  const [isRevealed, setIsRevealed] = useState(!annotation.isSpoiler || isMine);
+>>>>>>> 3e4c2522f77b8935b23460fae9607b7d0f7d1e21
   const [isFavorited, setIsFavorited] = useState(annotation.isFavorited);
   const [isPending, setIsPending] = useState(false);
-  const shouldHideContent = annotation.isSpoiler && !isRevealed;
+  const shouldHideContent = annotation.isSpoiler && !isMine && !isRevealed;
 
   const handleFavorite = async (event) => {
     event.preventDefault();
@@ -420,7 +426,7 @@ function BrowseAnnotationCard({ annotation, onRequireAuth }) {
 }
 
 export default function SearchPage() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryParam = searchParams.get('category') || 'all';
@@ -740,7 +746,11 @@ export default function SearchPage() {
               ) : (
                 <div className="grid gap-4">
                   {annotations.map((annotation) => (
+<<<<<<< HEAD
                     <AnnotationResultCard key={annotation.id} annotation={annotation} onRequireAuth={requireAuth} />
+=======
+                    <AnnotationResultCard key={annotation.id} annotation={annotation} isMine={user?.id === annotation.authorId} />
+>>>>>>> 3e4c2522f77b8935b23460fae9607b7d0f7d1e21
                   ))}
                 </div>
               )}

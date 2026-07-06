@@ -65,6 +65,7 @@ function normalizeAnnotation(annotation) {
     visibility: visibilityLabels[annotation.visibility] ?? annotation.visibility ?? '공개',
     quote: annotation.passage ?? annotation.quote ?? '',
     review: annotation.review ?? annotation.content ?? '',
+    authorId: annotation.author?.id ?? annotation.authorId,
     author: annotation.author?.nickname ?? annotation.authorName ?? annotation.author ?? '익명',
     time: formatDate(annotation.createdAt),
     comments: annotation.commentCount ?? annotation.comments ?? 0,
@@ -206,14 +207,14 @@ function BookHero({ book, isLoading, onToggleFavorite, isFavoritePending }) {
   );
 }
 
-function AnnotationCard({ annotation, onRequireAuth }) {
+function AnnotationCard({ annotation }) {
   const [isRevealed, setIsRevealed] = useState(!annotation.isSpoiler);
   const [isLiked, setIsLiked] = useState(annotation.isLiked);
   const [isFavorited, setIsFavorited] = useState(annotation.isFavorited);
   const [likeCount, setLikeCount] = useState(annotation.likeCount);
   const [isLikePending, setIsLikePending] = useState(false);
   const [isFavoritePending, setIsFavoritePending] = useState(false);
-  const shouldHideContent = annotation.isSpoiler && !isRevealed;
+  const shouldHideContent = annotation.isSpoiler && !isMine && !isRevealed;
 
   const handleLike = async (event) => {
     event.preventDefault();
@@ -378,6 +379,7 @@ function SearchAndAction({ bookId, value, onChange, onSearch, onReset }) {
 
 export default function BookDetailPage() {
   const { bookId } = useParams();
+  const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const groupId = searchParams.get('groupId');
   const { isAuthenticated } = useAuth();
@@ -610,9 +612,7 @@ export default function BookDetailPage() {
               <div className="grid gap-4">
                 {isAnnotationsLoading
                   ? Array.from({ length: 2 }).map((_, index) => <AnnotationSkeleton key={index} />)
-                  : annotations.map((annotation) => (
-                      <AnnotationCard key={annotation.id} annotation={annotation} onRequireAuth={requireAuth} />
-                    ))}
+                  : annotations.map((annotation) => <AnnotationCard key={annotation.id} annotation={annotation} />)}
               </div>
             )}
 

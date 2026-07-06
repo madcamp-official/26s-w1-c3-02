@@ -94,13 +94,18 @@ function formatDate(value) {
   return new Intl.DateTimeFormat('ko-KR', { month: 'short', day: 'numeric' }).format(date);
 }
 
+<<<<<<< HEAD
 function AnnotationCard({ annotation, isMine, onDelete, onRequireAuth }) {
   const [isRevealed, setIsRevealed] = useState(!annotation.isSpoiler);
+=======
+function AnnotationCard({ annotation, isMine, onDelete }) {
+  const [isRevealed, setIsRevealed] = useState(!annotation.isSpoiler || isMine);
+>>>>>>> 3e4c2522f77b8935b23460fae9607b7d0f7d1e21
   const [isLiked, setIsLiked] = useState(annotation.isLiked);
   const [isFavorited, setIsFavorited] = useState(annotation.isFavorited);
   const [likeCount, setLikeCount] = useState(annotation.likeCount);
   const [isFavoritePending, setIsFavoritePending] = useState(false);
-  const shouldHideContent = annotation.isSpoiler && !isRevealed;
+  const shouldHideContent = annotation.isSpoiler && !isMine && !isRevealed;
 
   const handleLike = async () => {
     if (!onRequireAuth()) return;
