@@ -148,14 +148,17 @@ const ANNOTATION_TYPE_META = {
 };
 const getTypeMeta = (type) => ANNOTATION_TYPE_META[type] || { label: '일반', tagClass: '' };
 
-// 대시보드 "내 주석 요약" 도넛 차트 색상 — dataviz 스킬 검증된 categorical 팔레트(blue/aqua/yellow/green),
-// 고정 순서(질문/토론/감상/일반)로만 사용한다. scripts/validate_palette.js로 CVD 분리·명도·채도 확인 완료.
-const DONUT_TYPE_ORDER = [
-  { key: 'QUESTION', label: '질문', color: '#2a78d6' },
-  { key: 'DISCUSSION', label: '토론', color: '#1baf7a' },
-  { key: 'REVIEW', label: '감상', color: '#eda100' },
-  { key: 'NORMAL', label: '일반', color: '#008300' },
-];
+// genreCode: 알라딘 categoryName 원문("국내도서>소설/시/희곡>판타지/환상문학>...").
+// 첫 '>'와 두 번째 '>' 사이의 중분류(위 예시라면 "소설/시/희곡")를 취향 분석 기준으로 쓴다.
+// 세그먼트 구조가 없는(중분류가 없는) 예전/축약 코드는 집계에서 제외(null 반환).
+const parseGenreLabel = (genreCode) => {
+  const parts = (genreCode || '').split('>').map((s) => s.trim()).filter(Boolean);
+  return parts.length >= 2 ? parts[1] : null;
+};
+
+// 대시보드 "나의 취향 분석" 도넛 차트 색상 — 내 서재(즐겨찾기 책) 중분류 상위 5개 + 나머지(기타)는 회색 고정
+const GENRE_CHART_COLORS = ['#2a78d6', '#1baf7a', '#eda100', '#008300', '#8a63d2', '#c65b6e'];
+const GENRE_OTHER_COLOR = '#9aa4b5';
 
 // 선택 가능한 프로필 아이콘 프리셋 — 사용자가 이미지를 업로드하는 대신 이 중 하나를 고른다.
 // 다른 화면(헤더, 그룹 멤버 목록 등)에 실제로 노출하는 작업은 아직 하지 않는다(팀원 작업과의 충돌 방지를 위해
@@ -369,7 +372,8 @@ export default function MyPage() {
     groups: 0,
     friends: 0,
     totalLikes: 0,
-    typeBreakdown: { QUESTION: 0, DISCUSSION: 0, REVIEW: 0, NORMAL: 0 },
+    genreSummary: [],
+    genreTotal: 0,
     recentAnnotations: [],
     recentGroups: [],
     recentQuotes: [],
@@ -440,13 +444,35 @@ export default function MyPage() {
         if (isStale()) return;
 
         const myAnnotations = annRes.data || [];
+        const favoriteBookList = favBooksRes.data || [];
         const groupList = Array.isArray(groupsRes) ? groupsRes : groupsRes.data || [];
 
-        const typeBreakdown = { QUESTION: 0, DISCUSSION: 0, REVIEW: 0, NORMAL: 0 };
+        // "나의 취향 분석": 내 서재(즐겨찾기 책)의 중분류 장르 분포
+        const genreCounts = new Map();
+        favoriteBookList.forEach((book) => {
+          const label = parseGenreLabel(book.genreCode);
+          if (label) {
+            genreCounts.set(label, (genreCounts.get(label) || 0) + 1);
+          }
+        });
+
+        const sortedGenres = [...genreCounts.entries()].sort((a, b) => b[1] - a[1]);
+        const topGenres = sortedGenres.slice(0, 5);
+        const otherCount = sortedGenres.slice(5).reduce((sum, [, count]) => sum + count, 0);
+
+        const genreSummary = topGenres.map(([label, value], i) => ({
+          key: label,
+          label,
+          value,
+          color: GENRE_CHART_COLORS[i],
+        }));
+        if (otherCount > 0) {
+          genreSummary.push({ key: '__other__', label: '기타', value: otherCount, color: GENRE_OTHER_COLOR });
+        }
+        const genreTotal = genreSummary.reduce((sum, g) => sum + g.value, 0);
+
         let totalLikes = 0;
         myAnnotations.forEach((a) => {
-          const key = Object.prototype.hasOwnProperty.call(typeBreakdown, a.type) ? a.type : 'NORMAL';
-          typeBreakdown[key] += 1;
           totalLikes += a.likeCount || 0;
         });
 
@@ -465,7 +491,8 @@ export default function MyPage() {
           groups: groupList.length,
           friends: (friendsRes.data || []).length,
           totalLikes,
-          typeBreakdown,
+          genreSummary,
+          genreTotal,
           recentAnnotations,
           recentGroups,
           recentQuotes: (favAnnRes.data || []).slice(0, 2),
@@ -845,7 +872,7 @@ export default function MyPage() {
                   </div>
                 </section>
 
-                {/* 최근 활동 + 내 주석 요약 */}
+                {/* 최근 활동 + 나의 취향 분석 */}
                 <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
                   <section className="card card--padded bg-white">
                     <h2 className="section-title !text-lg mb-4">최근 활동</h2>
@@ -899,35 +926,39 @@ export default function MyPage() {
 
                   <section className="card card--padded bg-white">
                     <div className="mb-2 flex items-center justify-between">
-                      <h2 className="section-title !text-lg">내 주석 요약</h2>
+                      <h2 className="section-title !text-lg">나의 취향 분석</h2>
                       <button
-                        onClick={() => handleTabClick('annotations')}
+                        onClick={() => handleTabClick('favoriteBooks')}
                         className="text-xs font-bold text-text-muted hover:text-primary"
                       >
                         더보기 ›
                       </button>
                     </div>
-                    <DonutChart
-                      total={dashboardStats.annotations}
-                      segments={DONUT_TYPE_ORDER.map((t) => ({ ...t, value: dashboardStats.typeBreakdown[t.key] || 0 }))}
-                    />
-                    <ul className="mt-4 grid gap-2 text-sm">
-                      {DONUT_TYPE_ORDER.map((t) => {
-                        const value = dashboardStats.typeBreakdown[t.key] || 0;
-                        const pct = dashboardStats.annotations > 0
-                          ? Math.round((value / dashboardStats.annotations) * 100)
-                          : 0;
-                        return (
-                          <li key={t.key} className="flex items-center justify-between gap-3">
-                            <span className="flex items-center gap-2 text-text-muted">
-                              <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: t.color }} />
-                              {t.label}
-                            </span>
-                            <span className="font-bold text-text">{value} ({pct}%)</span>
-                          </li>
-                        );
-                      })}
-                    </ul>
+                    {dashboardStats.genreTotal > 0 ? (
+                      <>
+                        <DonutChart total={dashboardStats.genreTotal} segments={dashboardStats.genreSummary} />
+                        <ul className="mt-4 grid gap-2 text-sm">
+                          {dashboardStats.genreSummary.map((g) => {
+                            const pct = dashboardStats.genreTotal > 0
+                              ? Math.round((g.value / dashboardStats.genreTotal) * 100)
+                              : 0;
+                            return (
+                              <li key={g.key} className="flex items-center justify-between gap-3">
+                                <span className="flex items-center gap-2 text-text-muted">
+                                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: g.color }} />
+                                  {g.label}
+                                </span>
+                                <span className="font-bold text-text">{g.value} ({pct}%)</span>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </>
+                    ) : (
+                      <p className="py-10 text-center text-sm text-text-muted">
+                        내 서재에 책을 담으면 장르 취향을 분석해 드려요.
+                      </p>
+                    )}
                   </section>
                 </div>
 
