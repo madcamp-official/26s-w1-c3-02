@@ -94,12 +94,12 @@ function formatDate(value) {
 }
 
 function AnnotationCard({ annotation, isMine, onDelete }) {
-  const [isRevealed, setIsRevealed] = useState(!annotation.isSpoiler);
+  const [isRevealed, setIsRevealed] = useState(!annotation.isSpoiler || isMine);
   const [isLiked, setIsLiked] = useState(annotation.isLiked);
   const [isFavorited, setIsFavorited] = useState(annotation.isFavorited);
   const [likeCount, setLikeCount] = useState(annotation.likeCount);
   const [isFavoritePending, setIsFavoritePending] = useState(false);
-  const shouldHideContent = annotation.isSpoiler && !isRevealed;
+  const shouldHideContent = annotation.isSpoiler && !isMine && !isRevealed;
 
   const handleLike = async () => {
     const nextLiked = !isLiked;
