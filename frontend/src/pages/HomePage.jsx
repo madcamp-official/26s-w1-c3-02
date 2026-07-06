@@ -509,7 +509,7 @@ export default function HomePage() {
           <section className="grid gap-4">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
-                <h2 className="section-title">최근 24시간 주석 많은 책</h2>
+                <h2 className="section-title">인기 책</h2>
               </div>
             </div>
 

@@ -586,7 +586,7 @@ export default function SearchPage() {
                 <>
                   <section className="grid gap-4">
                     <div className="flex items-center justify-between gap-4">
-                      <h2 className="section-title">최근 24시간 주석 많은 책</h2>
+                      <h2 className="section-title">인기 책</h2>
                       <button
                         className="button button--secondary button--sm"
                         type="button"
