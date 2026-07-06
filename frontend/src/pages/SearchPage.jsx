@@ -683,7 +683,9 @@ export default function SearchPage() {
           {!isBrowseMode && !errorMessage && !isLoading && (activeCategory === 'all' || activeCategory === 'book' || activeCategory === 'author') && (
             <section className="grid gap-4">
               <h2 className="section-title">책 결과</h2>
-              {books.length === 0 && <EmptyState>일치하는 책을 찾지 못했습니다</EmptyState>}
+              {books.length === 0 && (
+                <p className="text-sm font-semibold text-text-muted">일치하는 책을 찾지 못했습니다</p>
+              )}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {books.map((book) => (
                   <BookResultCard key={book.id} book={book} />
