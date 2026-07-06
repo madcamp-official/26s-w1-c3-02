@@ -2,9 +2,11 @@ services:
   db:
     image: mysql:8.0
     restart: unless-stopped
+    env_file:
+      - ./backend/.env
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ""
+      MYSQL_PASSWORD: ""
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     volumes:
       - db_data:/var/lib/mysql
@@ -14,12 +16,9 @@ services:
     restart: unless-stopped
     depends_on:
       - db
+    env_file:
+      - ./backend/.env
     environment:
-      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
-      ALADIN_TTB_KEY: ${ALADIN_TTB_KEY}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: root
-      MYSQL_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_HOST: db
       MYSQL_PORT: 3306
     expose:
