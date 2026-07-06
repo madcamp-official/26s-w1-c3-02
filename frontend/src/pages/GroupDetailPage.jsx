@@ -58,6 +58,23 @@ const BookIcon = (props) => (
   </svg>
 );
 
+function ScrollingBookTitle({ title }) {
+  const shouldScroll = (title || '').length > 24;
+
+  if (!shouldScroll) {
+    return <p className="truncate text-xs font-bold text-text">{title}</p>;
+  }
+
+  return (
+    <p className="scrolling-title scrolling-title--animate text-xs font-bold text-text" title={title}>
+      <span className="scrolling-title__track">
+        <span>{title}</span>
+        <span aria-hidden="true">{title}</span>
+      </span>
+    </p>
+  );
+}
+
 export default function GroupDetailPage() {
   const { groupId } = useParams();
   const { user } = useAuth();
@@ -483,25 +500,22 @@ export default function GroupDetailPage() {
                   {bookResults.map((book) => {
                     const alreadyAdded = book.bookId ? existingBookIds.has(book.bookId) : false;
                     return (
-                      <li key={book.bookId || book.isbn} className="flex items-center justify-between gap-3 rounded bg-pageSoft p-2">
-                        <div className="flex min-w-0 items-center gap-2">
+                      <li key={book.bookId || book.isbn} className="flex min-w-0 items-center justify-between gap-3 rounded bg-pageSoft p-2">
+                        <div className="flex min-w-0 flex-1 items-center gap-2">
                           {book.coverImageUrl ? (
                             <img className="h-12 w-9 shrink-0 rounded-sm object-cover shadow-soft" src={book.coverImageUrl} alt={book.title} />
                           ) : (
                             <div className="h-12 w-9 shrink-0 rounded-sm bg-primary-soft" />
                           )}
-                          <div className="min-w-0">
-                            <p className="truncate text-xs font-bold text-text">{book.title}</p>
+                          <div className="min-w-0 flex-1">
+                            <ScrollingBookTitle title={book.title} />
                             <p className="truncate text-[11px] text-text-muted">{book.author}</p>
-                            <p className="truncate text-[10px] text-text-subtle">
-                              {book.isExternal ? '알라딘' : '내 DB'} {book.isbn ? `· ISBN ${book.isbn}` : ''}
-                            </p>
                           </div>
                         </div>
                         {alreadyAdded ? (
                           <span className="shrink-0 text-[11px] font-bold text-text-subtle">이미 추가됨</span>
                         ) : (
-                          <button type="button" onClick={() => handleAddBook(book)} className="button button--primary button--sm !min-h-7 !px-2.5 text-xs">
+                          <button type="button" onClick={() => handleAddBook(book)} className="button button--primary button--sm !min-h-7 !px-2.5 text-xs shrink-0">
                             추가
                           </button>
                         )}
