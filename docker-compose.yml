@@ -3,8 +3,9 @@ services:
     image: mysql:8.0
     restart: unless-stopped
     env_file:
-      - ./backend/.env
+      - .env
     environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_USER: ""
       MYSQL_PASSWORD: ""
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
@@ -17,10 +18,7 @@ services:
     depends_on:
       - db
     env_file:
-      - ./backend/.env
-    environment:
-      MYSQL_HOST: db
-      MYSQL_PORT: 3306
+      - .env
     expose:
       - "8000"
 
