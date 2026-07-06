@@ -65,6 +65,21 @@ function formatRelativeTime(value) {
   return `${Math.floor(diffHours / 24)}일 전`;
 }
 
+function formatTodayLabel() {
+  const parts = new Intl.DateTimeFormat('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    month: 'long',
+    day: 'numeric',
+    weekday: 'long',
+  }).formatToParts(new Date());
+
+  const month = parts.find((part) => part.type === 'month')?.value ?? '';
+  const day = parts.find((part) => part.type === 'day')?.value ?? '';
+  const weekday = parts.find((part) => part.type === 'weekday')?.value ?? '';
+
+  return `${month} ${day}일 ${weekday}`;
+}
+
 function LogoMark() {
   return (
     <span className="relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-sm bg-primary-soft">
@@ -208,13 +223,15 @@ function HeroScene() {
 }
 
 function HomeHero() {
+  const todayLabel = formatTodayLabel();
+
   return (
     <section className="hero-card relative min-h-[260px] p-8 md:p-10">
       <HeroScene />
       <div className="relative z-10 max-w-[620px]">
         <div className="flex flex-wrap items-center gap-4">
           <p className="text-2xl font-bold text-text">오늘의 문장</p>
-          <p className="text-sm font-semibold text-text-muted">5월 16일 금요일</p>
+          <p className="text-sm font-semibold text-text-muted">{todayLabel}</p>
         </div>
 
         <div className="mt-9 flex gap-5">
