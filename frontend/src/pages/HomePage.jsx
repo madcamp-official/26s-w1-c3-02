@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { favoriteBook, getBooks, unfavoriteBook } from '../api/books';
+import { getBooks } from '../api/books';
 import { favoriteAnnotation, getAnnotationFeed, unfavoriteAnnotation } from '../api/annotations';
 import { getPageData } from '../api/client';
 import SiteHeader from '../components/SiteHeader';
@@ -50,14 +50,6 @@ const genreFilters = [
   { label: '자기계발', value: 'SELF_HELP' },
 ];
 
-const genreLabels = {
-  NOVEL: '소설',
-  ESSAY: '시/에세이',
-  HUMANITIES: '인문',
-  SCIENCE: '과학',
-  SELF_HELP: '자기계발',
-};
-
 const searchCategories = [
   { label: '통합검색', value: 'all' },
   { label: '책', value: 'book' },
@@ -72,8 +64,7 @@ function normalizeBook(book) {
     id: bookId,
     title: book.title ?? '제목 없음',
     author: book.author ?? '작가 미상',
-    genre: book.genreName ?? genreLabels[book.genreCode] ?? book.genre ?? '일반',
-    saves: book.favoriteCount ?? book.annotationCount ?? 0,
+    annotationCount: book.annotationCount ?? 0,
     coverImageUrl: book.coverImageUrl,
     isFavorited: Boolean(book.isFavorited),
   };
@@ -288,51 +279,24 @@ function BookCoverFallback({ title }) {
 }
 
 function BookCard({ book }) {
-  const [isFavorited, setIsFavorited] = useState(book.isFavorited);
-  const [isPending, setIsPending] = useState(false);
-
-  const handleFavorite = async (event) => {
-    event.preventDefault();
-    if (isPending) return;
-
-    const nextFavorited = !isFavorited;
-    setIsPending(true);
-    setIsFavorited(nextFavorited);
-
-    try {
-      if (nextFavorited) {
-        await favoriteBook(book.id);
-      } else {
-        await unfavoriteBook(book.id);
-      }
-    } catch {
-      setIsFavorited(!nextFavorited);
-    } finally {
-      setIsPending(false);
-    }
-  };
-
   return (
-    <Link to={`/books/${book.id}`} className="block">
-      <article className="card book-card relative">
-        
+    <Link to={`/books/${book.id}`} className="group relative block w-full max-w-[190px] justify-self-center">
+      <article className="grid h-full gap-2.5">
         {book.coverImageUrl ? (
-          <img className="book-cover" src={book.coverImageUrl} alt={`${book.title} 표지`} />
+          <img
+            className="aspect-[3/4] w-full rounded-sm object-cover shadow-soft transition group-hover:-translate-y-1 group-hover:shadow-card"
+            src={book.coverImageUrl}
+            alt={`${book.title} 표지`}
+          />
         ) : (
-          <BookCoverFallback title={book.title} />
+          <div className="aspect-[3/4] w-full rounded-sm bg-primary-soft" />
         )}
 
-        <div className="min-w-0 flex h-full flex-col">
-          <h3 className="line-clamp-2 min-h-[44px] text-[15px] font-bold leading-[1.45] text-text">
-            {book.title}
-          </h3>
-          <p className="mt-1 truncate text-sm text-text-muted">{book.author}</p>
-          <div className="mt-auto flex items-center justify-between gap-3 pt-4">
-            <span className="tag tag--blue shrink-0 whitespace-nowrap">{book.genre}</span>
-            <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-sm text-text-muted">
-              <span>노트</span>
-              <span>{book.saves}</span>
-            </span>
+        <div className="min-w-0">
+          <h3 className="line-clamp-2 text-xs font-extrabold leading-[1.45] text-text">{book.title}</h3>
+          <div className="mt-1 flex items-center justify-between gap-2 text-[11px] font-semibold text-text-muted">
+            <p className="min-w-0 truncate">{book.author}</p>
+            <span className="shrink-0 whitespace-nowrap">노트 {book.annotationCount}</span>
           </div>
         </div>
       </article>
@@ -342,13 +306,13 @@ function BookCard({ book }) {
 
 function BookCardSkeleton() {
   return (
-    <article className="card book-card animate-pulse">
-      <div className="book-cover bg-surfaceMuted" />
+    <article className="grid h-full w-full max-w-[190px] justify-self-center gap-2.5 animate-pulse">
+      <div className="aspect-[3/4] w-full rounded-sm bg-surfaceMuted" />
       <div className="min-w-0">
         <div className="h-4 w-2/3 rounded bg-surfaceMuted" />
         <div className="mt-2 h-3 w-1/2 rounded bg-surfaceMuted" />
-        <div className="mt-5 flex items-center justify-between">
-          <div className="h-6 w-14 rounded-full bg-surfaceMuted" />
+        <div className="mt-2 flex items-center justify-between">
+          <div className="h-3 w-16 rounded bg-surfaceMuted" />
           <div className="h-3 w-10 rounded bg-surfaceMuted" />
         </div>
       </div>
@@ -465,8 +429,10 @@ export default function HomePage() {
       try {
         const response = await getBooks({
           genreCode: genreCode || undefined,
+          sort: 'recentAnnotations',
+          recentHours: 24,
           page: 1,
-          size: 4,
+          size: 5,
         });
         const page = getPageData(response);
         if (!ignore) setBooks(page.data.map(normalizeBook));
@@ -543,7 +509,7 @@ export default function HomePage() {
           <section className="grid gap-4">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div>
-                <h2 className="section-title">홈·책 목록</h2>
+                <h2 className="section-title">최근 24시간 주석 많은 책</h2>
               </div>
             </div>
 
@@ -571,10 +537,10 @@ export default function HomePage() {
             )}
 
             {!errorMessage && (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
                 {isLoading
-                  ? Array.from({ length: 4 }).map((_, index) => <BookCardSkeleton key={index} />)
-                  : books.slice(0, 4).map((book) => <BookCard key={book.id} book={book} />)}
+                  ? Array.from({ length: 5 }).map((_, index) => <BookCardSkeleton key={index} />)
+                  : books.slice(0, 5).map((book) => <BookCard key={book.id} book={book} />)}
               </div>
             )}
 

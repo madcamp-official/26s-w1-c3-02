@@ -1,4 +1,7 @@
+from datetime import timedelta
+
 from django.db.models import Count, Exists, OuterRef, Q
+from django.utils import timezone
 from rest_framework import generics, permissions, status
 from rest_framework import exceptions
 from rest_framework.response import Response
@@ -12,7 +15,23 @@ from .serializers import BookSerializer
 
 
 def books_with_stats(request):
-    queryset = Book.objects.annotate(annotation_count=Count('annotations', distinct=True))
+    recent_hours = request.query_params.get('recentHours')
+    annotation_filter = Q()
+
+    if recent_hours:
+        try:
+            hours = float(recent_hours)
+            if hours <= 0:
+                raise ValueError
+        except (TypeError, ValueError):
+            raise exceptions.ValidationError('recentHours must be a positive number.')
+
+        cutoff = timezone.now() - timedelta(hours=hours)
+        annotation_filter = Q(annotations__created_at__gte=cutoff)
+
+    queryset = Book.objects.annotate(
+        annotation_count=Count('annotations', filter=annotation_filter, distinct=True),
+    )
 
     if request.user.is_authenticated:
         favorites = BookFavorite.objects.filter(user=request.user, book_id=OuterRef('pk'))
@@ -46,7 +65,9 @@ class BookListCreateView(generics.ListCreateAPIView):
         if genre_code:
             queryset = queryset.filter(genre_code=genre_code)
 
-        if self.request.query_params.get('sort') == 'popular':
+        sort = self.request.query_params.get('sort')
+
+        if sort in ('popular', 'recentAnnotations'):
             return queryset.order_by('-annotation_count', 'title', 'id')
 
         return queryset.order_by('title', 'id')
