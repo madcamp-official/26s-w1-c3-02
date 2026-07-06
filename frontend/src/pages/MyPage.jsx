@@ -23,6 +23,7 @@ import { unfavoriteBook } from '../api/books';
 import { deleteAnnotation } from '../api/annotations';
 import { acceptGroupInvitation, createGroup, removeGroupMember } from '../api/groups';
 import { getErrorMessage } from '../utils/error';
+import { getBookCardCategory } from '../utils/bookCategory';
 
 // 사이드바 아이콘 (lucide-react 미설치 상태라 최소 인라인 SVG로 대체)
 const iconProps = {
@@ -1128,7 +1129,7 @@ export default function MyPage() {
                         <h3 className="truncate text-base font-bold text-text leading-tight">{book.title}</h3>
                         <p className="mt-1 text-xs text-text-muted truncate">{book.author}</p>
                         <div className="mt-3">
-                          <span className="tag tag--blue">{book.genreCode}</span>
+                          <span className="tag tag--blue max-w-full truncate">{getBookCardCategory(book.genreCode)}</span>
                         </div>
                       </div>
                     </article>

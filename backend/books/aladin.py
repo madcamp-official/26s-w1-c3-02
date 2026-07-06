@@ -59,7 +59,7 @@ def call_aladin(path, params):
         with urlopen(url, timeout=5) as response:
             body = response.read().decode('utf-8')
     except Exception as exc:
-        raise exceptions.APIException('알라딘 도서 정보를 불러오지 못했습니다.') from exc
+        raise exceptions.APIException('Failed to load book data from Aladin.') from exc
 
     payload = parse_aladin_json(body)
     cache.set(cache_key, payload, settings.ALADIN_CACHE_TTL)
@@ -79,21 +79,22 @@ def parse_aladin_json(body):
     try:
         return json.loads(text)
     except json.JSONDecodeError as exc:
-        raise exceptions.APIException('알라딘 응답 형식을 해석하지 못했습니다.') from exc
+        raise exceptions.APIException('Failed to parse Aladin response.') from exc
 
 
 def normalize_aladin_item(item):
     isbn = item.get('isbn13') or item.get('isbn') or ''
+    category_name = item.get('categoryName', '')
     return {
         'title': clean_title(item.get('title', '')),
         'author': item.get('author', ''),
         'publishDate': normalize_date(item.get('pubDate') or item.get('pubdate')),
         'isbn': isbn,
-        'genreCode': map_genre_code(item.get('categoryName', '')),
+        'genreCode': category_name,
         'coverImageUrl': item.get('cover', ''),
         'aladinItemId': item.get('itemId'),
         'publisher': item.get('publisher', ''),
-        'categoryName': item.get('categoryName', ''),
+        'categoryName': category_name,
         'description': item.get('description', ''),
         'link': item.get('link', ''),
     }
@@ -112,17 +113,3 @@ def normalize_date(value):
         except ValueError:
             pass
     return None
-
-
-def map_genre_code(category_name):
-    if '소설' in category_name:
-        return 'NOVEL'
-    if '에세이' in category_name or '시' in category_name:
-        return 'ESSAY'
-    if '과학' in category_name:
-        return 'SCIENCE'
-    if '자기계발' in category_name:
-        return 'SELF_HELP'
-    if any(keyword in category_name for keyword in ('인문', '사회', '역사', '철학')):
-        return 'HUMANITIES'
-    return ''

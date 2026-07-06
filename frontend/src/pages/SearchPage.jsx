@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { favoriteBook, getBooks, importBookFromAladin, searchExternalBooks, unfavoriteBook } from '../api/books';
+import { getBooks, importBookFromAladin, searchExternalBooks } from '../api/books';
 import { favoriteAnnotation, getAnnotationFeed, searchAnnotations, unfavoriteAnnotation } from '../api/annotations';
 import { getPageData } from '../api/client';
 import SiteHeader from '../components/SiteHeader';
@@ -13,14 +13,6 @@ const searchCategories = [
   { label: '주석', value: 'annotation' },
   { label: '저자', value: 'author' },
 ];
-
-const genreLabels = {
-  NOVEL: '소설',
-  ESSAY: '시/에세이',
-  HUMANITIES: '인문',
-  SCIENCE: '과학',
-  SELF_HELP: '자기계발',
-};
 
 const visibilityLabels = {
   public: '공개',
@@ -43,7 +35,7 @@ function normalizeBook(book) {
     id: book.bookId ?? book.id,
     title: book.title ?? '제목 없음',
     author: book.author ?? '작가 미상',
-    genre: book.genreName ?? genreLabels[book.genreCode] ?? book.genre ?? '일반',
+    genre: book.genreName ?? book.genreCode ?? book.genre ?? '일반',
     coverImageUrl: book.coverImageUrl,
     annotationCount: book.annotationCount ?? 0,
     isFavorited: Boolean(book.isFavorited),
@@ -166,48 +158,27 @@ function BookmarkButton({ isActive, isPending, onClick, label = '북마크' }) {
   );
 }
 
-function BookResultCard({ book, onRequireAuth }) {
-  const [isFavorited, setIsFavorited] = useState(book.isFavorited);
-  const [isPending, setIsPending] = useState(false);
-
-  const handleFavorite = async (event) => {
-    event.preventDefault();
-    if (!onRequireAuth()) return;
-    if (isPending) return;
-
-    const nextFavorited = !isFavorited;
-    setIsPending(true);
-    setIsFavorited(nextFavorited);
-
-    try {
-      if (nextFavorited) {
-        await favoriteBook(book.id);
-      } else {
-        await unfavoriteBook(book.id);
-      }
-    } catch {
-      setIsFavorited(!nextFavorited);
-    } finally {
-      setIsPending(false);
-    }
-  };
-
+function BookResultCard({ book }) {
   return (
-    <Link to={`/books/${book.id}`} className="card book-card relative">
-      
-      {book.coverImageUrl ? (
-        <img className="book-cover" src={book.coverImageUrl} alt={`${book.title} 표지`} />
-      ) : (
-        <div className="book-cover bg-primary-soft" />
-      )}
-      <div className="min-w-0">
-        <h3 className="line-clamp-2 text-[16px] font-bold leading-[1.45] text-text">{book.title}</h3>
-        <p className="mt-1 truncate text-sm text-text-muted">{book.author}</p>
-        <div className="mt-4 flex items-center justify-between gap-3">
-          <span className="tag tag--blue">{book.genre}</span>
-          <span className="text-sm font-semibold text-text-muted">노트 {book.annotationCount}</span>
+    <Link to={`/books/${book.id}`} className="group relative block">
+      <article className="grid h-full gap-3">
+        {book.coverImageUrl ? (
+          <img
+            className="aspect-[3/4] w-full rounded-sm object-cover shadow-soft transition group-hover:-translate-y-1 group-hover:shadow-card"
+            src={book.coverImageUrl}
+            alt={`${book.title} 표지`}
+          />
+        ) : (
+          <div className="aspect-[3/4] w-full rounded-sm bg-primary-soft" />
+        )}
+        <div className="min-w-0">
+          <h3 className="line-clamp-2 text-sm font-extrabold leading-[1.45] text-text">{book.title}</h3>
+          <div className="mt-1 flex items-center justify-between gap-3 text-xs font-semibold text-text-muted">
+            <p className="min-w-0 truncate">{book.author}</p>
+            <span className="shrink-0 whitespace-nowrap">노트 {book.annotationCount}</span>
+          </div>
         </div>
-      </div>
+      </article>
     </Link>
   );
 }
@@ -314,37 +285,10 @@ function EmptyState({ children }) {
   );
 }
 
-function PopularBookCard({ book, onRequireAuth }) {
-  const [isFavorited, setIsFavorited] = useState(book.isFavorited);
-  const [isPending, setIsPending] = useState(false);
-
-  const handleFavorite = async (event) => {
-    event.preventDefault();
-    if (!onRequireAuth()) return;
-    if (isPending) return;
-
-    const nextFavorited = !isFavorited;
-    setIsPending(true);
-    setIsFavorited(nextFavorited);
-
-    try {
-      if (nextFavorited) {
-        await favoriteBook(book.id);
-      } else {
-        await unfavoriteBook(book.id);
-      }
-    } catch {
-      setIsFavorited(!nextFavorited);
-    } finally {
-      setIsPending(false);
-    }
-  };
-
+function PopularBookCard({ book }) {
   return (
-    <Link to={`/books/${book.id}`} className="group relative block">
-      <div className="absolute right-2 top-2 z-10">
-      </div>
-      <article className="grid h-full gap-3">
+    <Link to={`/books/${book.id}`} className="group relative block w-full max-w-[190px] justify-self-center">
+      <article className="grid h-full gap-2.5">
         {book.coverImageUrl ? (
           <img
             className="aspect-[3/4] w-full rounded-sm object-cover shadow-soft transition group-hover:-translate-y-1 group-hover:shadow-card"
@@ -355,8 +299,11 @@ function PopularBookCard({ book, onRequireAuth }) {
           <div className="aspect-[3/4] w-full rounded-sm bg-primary-soft" />
         )}
         <div className="min-w-0">
-          <h3 className="line-clamp-2 text-sm font-extrabold leading-[1.45] text-text">{book.title}</h3>
-          <p className="mt-1 truncate text-xs font-semibold text-text-muted">{book.author}</p>
+          <h3 className="line-clamp-2 text-xs font-extrabold leading-[1.45] text-text">{book.title}</h3>
+          <div className="mt-1 flex items-center justify-between gap-2 text-[11px] font-semibold text-text-muted">
+            <p className="min-w-0 truncate">{book.author}</p>
+            <span className="shrink-0 whitespace-nowrap">노트 {book.annotationCount}</span>
+          </div>
         </div>
       </article>
     </Link>
@@ -535,7 +482,7 @@ export default function SearchPage() {
 
       try {
         const [bookResponse, annotationResponse] = await Promise.all([
-          getBooks({ sort: 'popular', page: 1, size: 20 }),
+          getBooks({ sort: 'recentAnnotations', recentHours: 24, page: 1, size: 20 }),
           getAnnotationFeed({
             recentHours: 72,
             scope: isAuthenticated && annotationFilter === 'friends' ? 'friends' : undefined,
@@ -664,7 +611,7 @@ export default function SearchPage() {
                     ) : (
                       <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
                         {visiblePopularBooks.map((book) => (
-                          <PopularBookCard key={book.id} book={book} onRequireAuth={requireAuth} />
+                          <PopularBookCard key={book.id} book={book} />
                         ))}
                       </div>
                     )}
@@ -724,9 +671,9 @@ export default function SearchPage() {
               {books.length === 0 && (
                 <p className="text-sm font-semibold text-text-muted">일치하는 책을 찾지 못했습니다</p>
               )}
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
                 {books.map((book) => (
-                  <BookResultCard key={book.id} book={book} onRequireAuth={requireAuth} />
+                  <BookResultCard key={book.id} book={book} />
                 ))}
                 <AddBookCard onClick={openAddBookModal} />
               </div>

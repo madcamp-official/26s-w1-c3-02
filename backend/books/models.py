@@ -7,7 +7,7 @@ class Book(models.Model):
     author = models.CharField(max_length=255)
     publish_date = models.DateField(null=True, blank=True)
     isbn = models.CharField(max_length=20, blank=True, default='')
-    genre_code = models.CharField(max_length=20, blank=True, default='')
+    genre_code = models.CharField(max_length=255, blank=True, default='')
     cover_image_url = models.CharField(max_length=500, blank=True, default='')
     created_at = models.DateTimeField(auto_now_add=True)
 

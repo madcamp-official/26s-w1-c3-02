@@ -7,6 +7,7 @@ import { getPageData } from '../api/client';
 import { like, unlike } from '../api/likes';
 import SiteHeader from '../components/SiteHeader';
 import { useAuth } from '../context/AuthContext';
+import { splitBookCategory } from '../utils/bookCategory';
 
 const sortOptions = [
   { label: '최신순', value: 'recent,desc' },
@@ -29,14 +30,6 @@ const annotationTypeLabels = {
   DISCUSSION: '토론',
 };
 
-const genreLabels = {
-  NOVEL: '소설',
-  ESSAY: '시/에세이',
-  HUMANITIES: '인문',
-  SCIENCE: '과학',
-  SELF_HELP: '자기계발',
-};
-
 const visibilityLabels = {
   public: '공개',
   friends: '친구',
@@ -49,7 +42,7 @@ function normalizeBook(book) {
     id: book.bookId ?? book.id,
     title: book.title ?? '제목 없음',
     author: book.author ?? '작가 미상',
-    genre: book.genreName ?? genreLabels[book.genreCode] ?? book.genre ?? '일반',
+    genre: book.genreName ?? book.genreCode ?? book.genre ?? '일반',
     coverImageUrl: book.coverImageUrl,
     annotationCount: book.annotationCount ?? 0,
     isFavorited: Boolean(book.isFavorited),
@@ -185,7 +178,13 @@ function BookHero({ book, isLoading, onToggleFavorite, isFavoritePending }) {
       </div>
 
       <div className="min-w-0 text-center md:text-left">
-        <span className="tag tag--blue mx-auto md:mx-0">{book.genre}</span>
+        <div className="flex flex-wrap justify-center gap-2 md:justify-start">
+          {splitBookCategory(book.genre).map((category) => (
+            <span key={category} className="tag tag--blue max-w-full truncate">
+              {category}
+            </span>
+          ))}
+        </div>
         <h1 className="mt-5 break-words text-4xl font-extrabold leading-tight text-text md:text-5xl">
           {book.title}
         </h1>

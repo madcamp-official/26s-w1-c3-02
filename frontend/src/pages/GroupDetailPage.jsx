@@ -14,6 +14,7 @@ import {
 import { getBooks, importBookFromAladin, searchExternalBooks } from '../api/books';
 import { searchUsers } from '../api/users';
 import { getErrorMessage } from '../utils/error';
+import { getBookCardCategory } from '../utils/bookCategory';
 import SiteHeader from '../components/SiteHeader';
 
 const iconProps = {
@@ -404,7 +405,11 @@ export default function GroupDetailPage() {
                           <div className="min-w-0">
                             <h3 className="truncate text-base font-bold text-text">{book.title}</h3>
                             <p className="mt-1 truncate text-xs text-text-muted">{book.author}</p>
-                            {book.genreCode && <span className="tag tag--blue mt-3">{book.genreCode}</span>}
+                            {book.genreCode && (
+                              <span className="tag tag--blue mt-3 max-w-full truncate">
+                                {getBookCardCategory(book.genreCode)}
+                              </span>
+                            )}
                           </div>
                         </Link>
                         {isOwner && (
