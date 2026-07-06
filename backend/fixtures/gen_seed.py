@@ -1,157 +1,416 @@
-# mock-server.js의 데모 데이터를 Django fixture(seed.json)로 변환
 import json
+from pathlib import Path
 
 PW = 'pbkdf2_sha256$1200000$hm8GLPflDTxt91b6M57LOU$yCMpLUSp3I80MZGD1nF0urSCFepYCWmNVnsvNgUnmLM='
-out = []
+OUT = []
+
 
 def add(model, pk, **fields):
-    out.append({'model': model, 'pk': pk, 'fields': fields})
+    OUT.append({'model': model, 'pk': pk, 'fields': fields})
 
-# ---- users (mock-server.js users[]) ----
+
 users = [
-    (1, '테스트유저', 'a@b.com', '책 속의 문장이 나를 바꾸고, 나의 문장이 누군가에게 닿기를.', '2026-07-03T12:00:00Z'),
+    (1, '테스트유저', 'a@b.com', '책 속의 문장을 나누고 서로의 생각을 연결하는 독자입니다.', '2026-07-03T12:00:00Z'),
     (2, 'seo_reader', 'seo@example.com', '', '2026-07-03T12:30:00Z'),
     (3, 'book_mate', 'mate@example.com', '', '2026-07-03T13:00:00Z'),
     (4, 'note_keeper', 'note@example.com', '', '2026-07-03T13:30:00Z'),
     (5, 'quiet_reader', 'quiet@example.com', '', '2026-07-03T14:00:00Z'),
     (6, 'easy0131', 'easy@example.com', '', '2026-07-03T15:00:00Z'),
-    (7, '지나가던독서가', 'passerby@example.com', '', '2026-07-03T15:30:00Z'),
+    (7, '지나가는독서가', 'passerby@example.com', '', '2026-07-03T15:30:00Z'),
     (8, '정의구현빌런', 'justice@example.com', '', '2026-07-03T16:00:00Z'),
-    (9, '헤세매니아', 'hesse@example.com', '', '2026-07-03T16:30:00Z'),
-    (10, '책벌레A', 'bookworm@example.com', '', '2026-07-03T17:00:00Z'),
-    (11, '소설조아', 'novel@example.com', '', '2026-07-03T17:30:00Z'),
+    (9, '헤세마니아', 'hesse@example.com', '', '2026-07-03T16:30:00Z'),
+    (10, '책벌레', 'bookworm@example.com', '', '2026-07-03T17:00:00Z'),
+    (11, '소설좋아', 'novel@example.com', '', '2026-07-03T17:30:00Z'),
     (12, '개발하는독자', 'devreader@example.com', '', '2026-07-03T18:00:00Z'),
 ]
-for pk, nick, email, bio, joined in users:
-    add('accounts.user', pk, password=PW, last_login=None, is_superuser=False,
-        is_staff=False, is_active=True, date_joined=joined,
-        email=email, nickname=nick, bio=bio, avatar_url='', avatar_icon='')
 
-# ---- books ----
+for pk, nickname, email, bio, joined in users:
+    add(
+        'accounts.user',
+        pk,
+        password=PW,
+        last_login=None,
+        is_superuser=False,
+        is_staff=False,
+        is_active=True,
+        date_joined=joined,
+        email=email,
+        nickname=nickname,
+        bio=bio,
+        avatar_url='',
+        avatar_icon='',
+    )
+
+
+# Aladin Open API ItemLookUp results, normalized with books.aladin.normalize_aladin_item.
 books = [
-    (1, 'The Little Prince', 'Antoine de Saint-Exupery', '1943-04-06', '9780156012195', 'NOVEL',
-     'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=420&q=80'),
-    (2, 'Demian', 'Hermann Hesse', '1919-01-01', '9780143106784', 'NOVEL',
-     'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&w=420&q=80'),
-    (3, 'The Stranger', 'Albert Camus', '1942-01-01', '9780679720201', 'NOVEL',
-     'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=420&q=80'),
-    (4, 'Sapiens', 'Yuval Noah Harari', '2011-01-01', '9780062316097', 'HUMANITIES',
-     'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&w=420&q=80'),
-    (5, 'Cosmos', 'Carl Sagan', '1980-01-01', '9780345539434', 'SCIENCE',
-     'https://images.unsplash.com/photo-1519682337058-a94d519337bc?auto=format&fit=crop&w=420&q=80'),
-    (6, '데미안', '헤르만 헤세', '1919-01-01', '9788937460449', 'NOVEL', ''),
-    (7, '호밀밭의 파수꾼', 'J.D. 샐린저', '1951-07-16', '9788937460470', 'NOVEL', ''),
-    (8, '정의란 무엇인가', '마이클 샌델', '2010-05-26', '9788934939603', 'HUMANITY', ''),
-    (9, '군주론', '니콜로 마키아벨리', '1532-01-01', '9788937460777', 'HUMANITY', ''),
-    (10, '1984', '조지 오웰', '1949-06-08', '9788937460778', 'NOVEL', ''),
+    (
+        1,
+        '데미안',
+        '헤르만 헤세 (지은이), 전영애 (옮긴이)',
+        '2000-12-20',
+        '9788937460449',
+        '국내도서>소설/시/희곡>독일소설',
+        'https://image.aladin.co.kr/product/26/0/cover200/s452139198_1.jpg',
+    ),
+    (
+        2,
+        '참을 수 없는 존재의 가벼움',
+        '밀란 쿤데라 (지은이), 이재룡 (옮긴이)',
+        '2009-12-24',
+        '9788937462344',
+        '국내도서>소설/시/희곡>세계의 소설>동유럽소설',
+        'https://image.aladin.co.kr/product/610/30/cover200/s772137205_1.jpg',
+    ),
+    (
+        3,
+        '1984',
+        '조지 오웰 (지은이), 정회성 (옮긴이)',
+        '2003-06-16',
+        '9788937460777',
+        '국내도서>소설/시/희곡>영미소설',
+        'https://image.aladin.co.kr/product/41/89/cover200/s122531356_2.jpg',
+    ),
+    (
+        4,
+        '사피엔스',
+        '유발 하라리 (지은이), 조현욱 (옮긴이), 이태수 (감수)',
+        '2023-04-01',
+        '9788934972464',
+        '국내도서>인문학>인류학/고고학>인류학',
+        'https://image.aladin.co.kr/product/31424/4/cover200/k482832219_1.jpg',
+    ),
+    (
+        5,
+        '소년이 온다',
+        '한강 (지은이)',
+        '2014-05-19',
+        '9788936434120',
+        '국내도서>소설/시/희곡>한국소설>2000년대 이후 한국소설',
+        'https://image.aladin.co.kr/product/4086/97/cover200/8936434128_2.jpg',
+    ),
+    (
+        6,
+        '인간 실격',
+        '다자이 오사무 (지은이), 김춘미 (옮긴이)',
+        '2004-05-15',
+        '9788937461033',
+        '국내도서>소설/시/희곡>일본소설>1950년대 이전 일본소설',
+        'https://image.aladin.co.kr/product/49/16/cover200/893746103x_3.jpg',
+    ),
+    (
+        7,
+        '설국',
+        '가와바타 야스나리 (지은이), 유숙자 (옮긴이)',
+        '2002-01-28',
+        '9788937460616',
+        '국내도서>소설/시/희곡>일본소설>1950년대 이후 일본소설',
+        'https://image.aladin.co.kr/product/32/87/cover200/s092934786_1.jpg',
+    ),
+    (
+        8,
+        '백의 그림자',
+        '황정은 (지은이)',
+        '2010-06-25',
+        '9788937483059',
+        '국내도서>소설/시/희곡>한국소설>2000년대 이후 한국소설',
+        'https://image.aladin.co.kr/product/729/55/cover200/893748305x_1.jpg',
+    ),
+    (
+        9,
+        '우리가 빛의 속도로 갈 수 없다면',
+        '김초엽 (지은이)',
+        '2019-06-24',
+        '9791190090018',
+        '국내도서>소설/시/희곡>과학소설(SF)>한국 과학소설',
+        'https://image.aladin.co.kr/product/19359/16/cover200/s722039767_1.jpg',
+    ),
 ]
-for pk, title, author, pub, isbn, genre, cover in books:
-    add('books.book', pk, title=title, author=author, publish_date=pub, isbn=isbn,
-        genre_code=genre, cover_image_url=cover, created_at='2026-07-03T00:00:00Z')
 
-# ---- friends (mock friendRequests[]) ----
+for pk, title, author, publish_date, isbn, genre_code, cover_image_url in books:
+    add(
+        'books.book',
+        pk,
+        title=title,
+        author=author,
+        publish_date=publish_date,
+        isbn=isbn,
+        genre_code=genre_code,
+        cover_image_url=cover_image_url,
+        created_at='2026-07-03T00:00:00Z',
+    )
+
+
 friends = [
-    (2, 1, 'PENDING', '2026-07-03T14:00:00Z'),
-    (1, 4, 'PENDING', '2026-07-03T14:30:00Z'),
-    (1, 3, 'ACCEPTED', '2026-07-03T13:10:00Z'),
-    (5, 1, 'ACCEPTED', '2026-07-03T13:20:00Z'),
-    (10, 1, 'PENDING', '2026-07-03T15:00:00Z'),
-    (11, 1, 'PENDING', '2026-07-03T16:30:00Z'),
-    (1, 12, 'PENDING', '2026-07-03T17:00:00Z'),
-    (1, 6, 'ACCEPTED', '2026-07-03T18:00:00Z'),
-    (1, 7, 'ACCEPTED', '2026-07-03T18:30:00Z'),
+    (1, 2, 1, 'PENDING', '2026-07-03T14:00:00Z'),
+    (2, 1, 4, 'PENDING', '2026-07-03T14:30:00Z'),
+    (3, 1, 3, 'ACCEPTED', '2026-07-03T13:10:00Z'),
+    (4, 5, 1, 'ACCEPTED', '2026-07-03T13:20:00Z'),
+    (5, 10, 1, 'PENDING', '2026-07-03T15:00:00Z'),
+    (6, 11, 1, 'PENDING', '2026-07-03T16:30:00Z'),
+    (7, 1, 12, 'PENDING', '2026-07-03T17:00:00Z'),
+    (8, 1, 6, 'ACCEPTED', '2026-07-03T18:00:00Z'),
+    (9, 1, 7, 'ACCEPTED', '2026-07-03T18:30:00Z'),
 ]
-for i, (req, addr, status, ts) in enumerate(friends, 1):
-    add('accounts.friend', i, requester=req, addressee=addr, status=status, created_at=ts)
 
-# ---- groups ----
+for pk, requester, addressee, status, created_at in friends:
+    add('accounts.friend', pk, requester=requester, addressee=addressee, status=status, created_at=created_at)
+
+
 groups = [
-    (1, 'Demian Reading Room', 1, [1, 2, 3], [2], '2026-07-03T15:10:00Z'),
-    (2, 'Science Notes', 3, [1, 3, 5], [4, 5], '2026-07-03T15:40:00Z'),
-    (9, '데미안 같이 읽기 소모임', 9, [9, 1, 5, 7], [6, 7], '2026-07-01T14:00:00Z'),
-    (10, 'madCamp 웹 개발 스터디', 1, [1, 6], [8], '2026-07-03T11:00:00Z'),
+    (1, '데미안 읽기 모임', 1, [1, 2, 3, 9], [1], '2026-07-03T15:10:00Z'),
+    (2, '인문 과학 노트', 3, [1, 3, 5], [4, 9], '2026-07-03T15:40:00Z'),
+    (3, '한국소설 같이 읽기', 9, [9, 1, 5, 7, 11], [5, 8], '2026-07-01T14:00:00Z'),
+    (4, 'madCamp 개발자 독서회', 1, [1, 6, 12], [3, 9], '2026-07-03T11:00:00Z'),
 ]
-mpk = bpk = 0
-for pk, name, owner, members, gbooks, ts in groups:
-    add('groups.group', pk, group_name=name, owner=owner, created_at=ts)
-    for u in members:
-        mpk += 1
-        add('groups.groupmember', mpk, group=pk, user=u, joined_at=ts)
-    for b in gbooks:
-        bpk += 1
-        add('groups.groupbook', bpk, group=pk, book=b)
 
-# ---- annotations (id, book, user, type, passage, review, page, visibility, spoiler, group) ----
+member_pk = 0
+group_book_pk = 0
+for pk, group_name, owner, members, group_books, created_at in groups:
+    add('groups.group', pk, group_name=group_name, owner=owner, created_at=created_at)
+    for user in members:
+        member_pk += 1
+        add('groups.groupmember', member_pk, group=pk, user=user, status='ACCEPTED', joined_at=created_at)
+    for book in group_books:
+        group_book_pk += 1
+        add('groups.groupbook', group_book_pk, group=pk, book=book)
+
+
 annotations = [
-    (1, 1, 1, 'QUESTION', 'What makes a person responsible for what they tame?',
-     'This line feels simple, but it asks for a complete ethic of care.', 33, 'public', False, None),
-    (2, 2, 2, 'REVIEW', 'The bird fights its way out of the egg.',
-     'A sharp image for growing up: the world has to crack before it becomes larger.', 48, 'public', False, None),
-    (3, 3, 1, 'DISCUSSION', 'Mother died today. Or maybe yesterday; I cannot be sure.',
-     'The emotional distance is uncomfortable, which is exactly why it works.', 9, 'friends', False, None),
-    (4, 4, 3, 'NORMAL', 'History began when humans invented gods, and will end when humans become gods.',
-     'Useful sentence for talking about technology and hubris.', 412, 'public', True, None),
-    (5, 5, 1, 'REVIEW', 'Somewhere, something incredible is waiting to be known.',
-     'A good reminder that curiosity is not decoration. It is propulsion.', 72, 'private', False, None),
-    (6, 2, 1, 'NORMAL', 'I wanted only to try to live in accord with the promptings which came from my true self.',
-     'A personal compass sentence.', 12, 'group', False, 1),
-    (7, 1, 3, 'DISCUSSION', 'It is only with the heart that one can see rightly.',
-     'The most quoted line still deserves a real conversation.', 64, 'public', False, None),
-    (8, 6, 1, 'REVIEW', '새는 알에서 나오려고 투쟁한다. 알은 세계이다. 태어나려는 자는 하나의 세계를 깨뜨려야 한다.',
-     '안주해 있던 현실의 알을 깨부수고 자기 자신이라는 세계로 나아가는 고통스러운 성장의 과정을 묘사한 인생 명구절입니다.', 48, 'public', False, 9),
-    (9, 7, 1, 'DISCUSSION', '내가 하고 싶은 건 오직 호밀밭의 파수꾼이 되는 거야.',
-     '순수함을 간직한 채 위선적인 어른들의 세계에서 탈출하고 싶어하는 홀든의 진심어린 독백이 인상적입니다.', 211, 'public', True, 9),
-    (10, 8, 1, 'QUESTION', '정의로운 사회는 단순히 효용을 극대화하거나 선택의 자유를 존중하는 것만으로는 완성되지 않는다.',
-     '공리주의와 자유지상주의 각각의 한계가 뭘까요? 다른 분들 생각이 궁금합니다.', 35, 'public', False, 10),
-    (11, 6, 9, 'DISCUSSION', '나는 내 안에서 솟아나오려는 것, 바로 그것을 살아보려 했다.',
-     '이 그룹에서 가장 많이 인용된 문장입니다.', 12, 'group', False, 9),
-    (12, 4, 3, 'REVIEW', 'We did not domesticate wheat. It domesticated us.',
-     'Reading this with the group made me rethink who is really in control of agriculture.', 88, 'group', False, 2),
+    (
+        1,
+        1,
+        1,
+        None,
+        'QUESTION',
+        '새는 알에서 나오려고 투쟁한다. 알은 세계다.',
+        '성장이 부드러운 확장이 아니라 기존 세계를 깨는 일이라는 점이 선명하게 느껴진다.',
+        48,
+        'public',
+        False,
+        '2026-07-03T12:00:00Z',
+    ),
+    (
+        2,
+        1,
+        2,
+        1,
+        'DISCUSSION',
+        '태어나려는 자는 하나의 세계를 깨뜨려야 한다.',
+        '데미안 모임에서 가장 먼저 이야기하고 싶은 문장. 변화가 왜 늘 두려움과 같이 오는지 묻고 싶다.',
+        49,
+        'group',
+        False,
+        '2026-07-03T13:00:00Z',
+    ),
+    (
+        3,
+        2,
+        1,
+        None,
+        'REVIEW',
+        '한 번뿐인 것은 전혀 없었던 것과 같다.',
+        '가벼움이라는 말이 오히려 삶의 무게를 더 또렷하게 만든다.',
+        11,
+        'public',
+        False,
+        '2026-07-03T14:00:00Z',
+    ),
+    (
+        4,
+        3,
+        8,
+        4,
+        'QUESTION',
+        '전쟁은 평화, 자유는 예속, 무지는 힘.',
+        '슬로건이 현실을 덮어버릴 때 사람들은 어떤 방식으로 저항할 수 있을까?',
+        34,
+        'group',
+        False,
+        '2026-07-03T15:00:00Z',
+    ),
+    (
+        5,
+        4,
+        3,
+        2,
+        'NORMAL',
+        '우리가 밀을 길들인 것이 아니라 밀이 우리를 길들였다.',
+        '농업혁명을 다르게 바라보게 만드는 문장. 읽을수록 주체가 뒤집힌다.',
+        96,
+        'group',
+        False,
+        '2026-07-03T16:00:00Z',
+    ),
+    (
+        6,
+        5,
+        11,
+        3,
+        'REVIEW',
+        '당신이 죽은 뒤 장례식을 치르지 못해, 내 삶이 장례식이 되었습니다.',
+        '상실이 한 사람의 일상을 어떻게 바꾸는지 보여주는 문장이라 오래 남는다.',
+        102,
+        'group',
+        True,
+        '2026-07-03T17:00:00Z',
+    ),
+    (
+        7,
+        6,
+        5,
+        None,
+        'DISCUSSION',
+        '부끄럼 많은 생애를 보냈습니다.',
+        '첫 문장부터 고백과 변명이 동시에 들린다. 독자가 어느 거리에서 읽어야 할지 고민하게 된다.',
+        7,
+        'friends',
+        False,
+        '2026-07-03T18:00:00Z',
+    ),
+    (
+        8,
+        7,
+        7,
+        None,
+        'NORMAL',
+        '국경의 긴 터널을 빠져나오자, 눈의 고장이었다.',
+        '장면이 열리는 속도가 압도적이다. 풍경이 곧 감정의 입구가 된다.',
+        9,
+        'public',
+        False,
+        '2026-07-03T19:00:00Z',
+    ),
+    (
+        9,
+        8,
+        1,
+        3,
+        'QUESTION',
+        '그림자가 일어선다는 것은 무엇을 두고 하는 말일까.',
+        '현실적인 배경 안에 낯선 감각이 섞이는 지점이 좋아서 같이 해석해보고 싶다.',
+        42,
+        'group',
+        False,
+        '2026-07-03T20:00:00Z',
+    ),
+    (
+        10,
+        9,
+        12,
+        4,
+        'REVIEW',
+        '우리가 빛의 속도로 갈 수조차 없다면, 같은 우주라는 말을 어떻게 믿을 수 있을까.',
+        'SF적 상상력이 관계의 거리와 기다림을 말하는 방식이 인상적이다.',
+        156,
+        'group',
+        False,
+        '2026-07-03T21:00:00Z',
+    ),
+    (
+        11,
+        9,
+        1,
+        None,
+        'DISCUSSION',
+        '나는 내가 이해하지 못하는 세계에도 누군가의 자리가 있다는 것을 배웠다.',
+        '정확한 인용이라기보다 읽고 난 뒤 남은 감각에 가까운 메모. 다양성을 다루는 방식이 따뜻했다.',
+        83,
+        'public',
+        False,
+        '2026-07-03T22:00:00Z',
+    ),
+    (
+        12,
+        4,
+        1,
+        None,
+        'QUESTION',
+        '인간은 이야기로 협력하는 동물이라는 설명은 어디까지 유효할까?',
+        '공동체와 서비스 설계를 같이 생각하게 만드는 대목이라 따로 적어두었다.',
+        171,
+        'private',
+        False,
+        '2026-07-03T23:00:00Z',
+    ),
 ]
-for pk, book, user, typ, passage, review, page, vis, spoiler, group in annotations:
-    add('annotations.annotation', pk, user=user, book=book, group=group, type=typ,
-        passage=passage, review=review, page=page, visibility=vis, is_spoiler=spoiler,
-        created_at=f'2026-07-03T{11 + pk}:00:00Z')
 
-# ---- comments ----
+for pk, book, user, group, typ, passage, review, page, visibility, is_spoiler, created_at in annotations:
+    add(
+        'annotations.annotation',
+        pk,
+        user=user,
+        book=book,
+        group=group,
+        type=typ,
+        passage=passage,
+        review=review,
+        page=page,
+        visibility=visibility,
+        is_spoiler=is_spoiler,
+        created_at=created_at,
+    )
+
+
 comments = [
-    (1, 1, 2, 'REVIEW', 'I read this as care becoming a promise.', '2026-07-03T15:00:00Z'),
-    (2, 1, 3, 'QUESTION', 'The page number helped me find it immediately. Does this connect to the ending too?', '2026-07-03T15:30:00Z'),
-    (3, 2, 1, 'DISCUSSION', 'This passage always feels like a door opening.', '2026-07-03T16:00:00Z'),
+    (1, 1, 2, 'REVIEW', '이 문장 때문에 데미안을 다시 읽고 싶어졌어요.', '2026-07-04T10:00:00Z'),
+    (2, 1, 9, 'DISCUSSION', '세계를 깬다는 표현이 지금 읽어도 강하네요.', '2026-07-04T10:30:00Z'),
+    (3, 3, 5, 'NORMAL', '가벼움과 책임이 같이 떠오르는 부분이었어요.', '2026-07-04T11:00:00Z'),
+    (4, 5, 1, 'QUESTION', '농업혁명 파트를 읽고 나면 진짜 관점이 바뀌는 것 같아요.', '2026-07-04T11:30:00Z'),
+    (5, 10, 6, 'REVIEW', '이 책은 과학보다 마음의 거리 이야기처럼 읽혔어요.', '2026-07-04T12:00:00Z'),
 ]
-for pk, ann, user, typ, content, ts in comments:
-    add('annotations.comment', pk, annotation=ann, user=user, type=typ, content=content, created_at=ts)
 
-# ---- favorites (mock: favoriteBookIds {1,3,5}, favoriteAnnotationIds {2,4} — user 1 기준) ----
-for i, b in enumerate([1, 3, 5], 1):
-    add('books.bookfavorite', i, user=1, book=b, created_at='2026-07-03T18:00:00Z')
-for i, a in enumerate([2, 4], 1):
-    add('annotations.annotationfavorite', i, user=1, annotation=a, created_at='2026-07-03T18:00:00Z')
+for pk, annotation, user, typ, content, created_at in comments:
+    add(
+        'annotations.comment',
+        pk,
+        annotation=annotation,
+        user=user,
+        type=typ,
+        content=content,
+        created_at=created_at,
+    )
 
-# ---- likes (mock likeCount는 수백 건이라 재현 불가 → COUNT 정렬이 유의미하도록 상대적 크기만 유지) ----
+
+for pk, book in enumerate([1, 3, 5, 9], 1):
+    add('books.bookfavorite', pk, user=1, book=book, created_at='2026-07-04T13:00:00Z')
+
+for pk, annotation in enumerate([1, 3, 10], 1):
+    add('annotations.annotationfavorite', pk, user=1, annotation=annotation, created_at='2026-07-04T13:10:00Z')
+
+
 likes = {
-    ('annotation', 1): [1, 4, 6, 7],
-    ('annotation', 2): [1, 3, 5, 6, 9],
-    ('annotation', 3): [3, 5],
-    ('annotation', 4): [2, 5, 6],
-    ('annotation', 5): [3],
-    ('annotation', 6): [2],
-    ('annotation', 7): [2, 3, 4, 5, 6, 8],
-    ('annotation', 8): [2, 3, 5, 7],
-    ('annotation', 9): [5, 7],
-    ('annotation', 10): [6],
-    ('annotation', 11): [1, 5],
+    ('annotation', 1): [2, 3, 4, 6, 9],
+    ('annotation', 2): [1, 3, 5, 9],
+    ('annotation', 3): [2, 5, 7],
+    ('annotation', 4): [1, 6, 8, 12],
+    ('annotation', 5): [1, 2, 5],
+    ('annotation', 6): [1, 5, 7, 11],
+    ('annotation', 7): [1, 3],
+    ('annotation', 8): [1, 4, 5, 10],
+    ('annotation', 9): [5, 7, 11],
+    ('annotation', 10): [1, 3, 6, 9],
+    ('annotation', 11): [2, 6, 12],
     ('comment', 1): [1, 3, 4],
-    ('comment', 2): [5],
-    ('comment', 3): [2, 4],
+    ('comment', 2): [2, 5],
+    ('comment', 3): [1, 7],
+    ('comment', 5): [1, 12],
 }
-pk = 0
-for (ttype, tid), user_ids in likes.items():
-    for u in user_ids:
-        pk += 1
-        add('annotations.like', pk, user=u, target_type=ttype, target_id=tid,
-            created_at='2026-07-04T00:00:00Z')
 
-with open(r'c:\Users\suh10\workspace\madCamp\26s-w1-c3-02\backend\fixtures\seed.json', 'w', encoding='utf-8') as f:
-    json.dump(out, f, ensure_ascii=False, indent=2)
-print(f'{len(out)} objects written')
+like_pk = 0
+for (target_type, target_id), users_for_like in likes.items():
+    for user in users_for_like:
+        like_pk += 1
+        add(
+            'annotations.like',
+            like_pk,
+            user=user,
+            target_type=target_type,
+            target_id=target_id,
+            created_at='2026-07-04T14:00:00Z',
+        )
+
+
+fixture_path = Path(__file__).with_name('seed.json')
+fixture_path.write_text(json.dumps(OUT, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+print(f'{len(OUT)} objects written to {fixture_path}')

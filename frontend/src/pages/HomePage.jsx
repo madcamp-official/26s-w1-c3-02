@@ -5,41 +5,6 @@ import { favoriteAnnotation, getAnnotationFeed, unfavoriteAnnotation } from '../
 import { getPageData } from '../api/client';
 import SiteHeader from '../components/SiteHeader';
 
-const feedItems = [
-  {
-    id: 1,
-    author: '서연',
-    time: '2시간 전',
-    book: '소년이 온다',
-    quote: '죽은 자가 산 자를 구하는 일은 가능한가. 산 자가 죽은 자를 기억하는 일은 가능한가.',
-    tag: '기억',
-    likes: 128,
-    comments: 15,
-    avatar: 'bg-rose-200',
-  },
-  {
-    id: 2,
-    author: '민준',
-    time: '4시간 전',
-    book: '데미안',
-    quote: '새는 알에서 나오기 위해 투쟁한다. 알은 세계이다. 태어나려는 자는 하나의 세계를 파괴해야 한다.',
-    tag: '성장',
-    likes: 96,
-    comments: 8,
-    avatar: 'bg-slate-300',
-  },
-  {
-    id: 3,
-    author: '지우',
-    time: '6시간 전',
-    book: '나미야 잡화점의 기적',
-    quote: '누군가의 진심은 언젠가 반드시 누군가에게 닿기 마련입니다.',
-    tag: '위로',
-    likes: 142,
-    comments: 22,
-    avatar: 'bg-orange-200',
-  },
-];
 
 const genreFilters = [
   { label: '전체', value: '' },

@@ -11,7 +11,7 @@
       "date_joined": "2026-07-03T12:00:00Z",
       "email": "a@b.com",
       "nickname": "테스트유저",
-      "bio": "책 속의 문장이 나를 바꾸고, 나의 문장이 누군가에게 닿기를.",
+      "bio": "책 속의 문장을 나누고 서로의 생각을 연결하는 독자입니다.",
       "avatar_url": "",
       "avatar_icon": ""
     }
@@ -112,7 +112,7 @@
       "is_active": true,
       "date_joined": "2026-07-03T15:30:00Z",
       "email": "passerby@example.com",
-      "nickname": "지나가던독서가",
+      "nickname": "지나가는독서가",
       "bio": "",
       "avatar_url": "",
       "avatar_icon": ""
@@ -146,7 +146,7 @@
       "is_active": true,
       "date_joined": "2026-07-03T16:30:00Z",
       "email": "hesse@example.com",
-      "nickname": "헤세매니아",
+      "nickname": "헤세마니아",
       "bio": "",
       "avatar_url": "",
       "avatar_icon": ""
@@ -163,7 +163,7 @@
       "is_active": true,
       "date_joined": "2026-07-03T17:00:00Z",
       "email": "bookworm@example.com",
-      "nickname": "책벌레A",
+      "nickname": "책벌레",
       "bio": "",
       "avatar_url": "",
       "avatar_icon": ""
@@ -180,7 +180,7 @@
       "is_active": true,
       "date_joined": "2026-07-03T17:30:00Z",
       "email": "novel@example.com",
-      "nickname": "소설조아",
+      "nickname": "소설좋아",
       "bio": "",
       "avatar_url": "",
       "avatar_icon": ""
@@ -207,12 +207,12 @@
     "model": "books.book",
     "pk": 1,
     "fields": {
-      "title": "The Little Prince",
-      "author": "Antoine de Saint-Exupery",
-      "publish_date": "1943-04-06",
-      "isbn": "9780156012195",
-      "genre_code": "NOVEL",
-      "cover_image_url": "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=420&q=80",
+      "title": "데미안",
+      "author": "헤르만 헤세 (지은이), 전영애 (옮긴이)",
+      "publish_date": "2000-12-20",
+      "isbn": "9788937460449",
+      "genre_code": "국내도서>소설/시/희곡>독일소설",
+      "cover_image_url": "https://image.aladin.co.kr/product/26/0/cover200/s452139198_1.jpg",
       "created_at": "2026-07-03T00:00:00Z"
     }
   },
@@ -220,12 +220,12 @@
     "model": "books.book",
     "pk": 2,
     "fields": {
-      "title": "Demian",
-      "author": "Hermann Hesse",
-      "publish_date": "1919-01-01",
-      "isbn": "9780143106784",
-      "genre_code": "NOVEL",
-      "cover_image_url": "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&w=420&q=80",
+      "title": "참을 수 없는 존재의 가벼움",
+      "author": "밀란 쿤데라 (지은이), 이재룡 (옮긴이)",
+      "publish_date": "2009-12-24",
+      "isbn": "9788937462344",
+      "genre_code": "국내도서>소설/시/희곡>세계의 소설>동유럽소설",
+      "cover_image_url": "https://image.aladin.co.kr/product/610/30/cover200/s772137205_1.jpg",
       "created_at": "2026-07-03T00:00:00Z"
     }
   },
@@ -233,12 +233,12 @@
     "model": "books.book",
     "pk": 3,
     "fields": {
-      "title": "The Stranger",
-      "author": "Albert Camus",
-      "publish_date": "1942-01-01",
-      "isbn": "9780679720201",
-      "genre_code": "NOVEL",
-      "cover_image_url": "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=420&q=80",
+      "title": "1984",
+      "author": "조지 오웰 (지은이), 정회성 (옮긴이)",
+      "publish_date": "2003-06-16",
+      "isbn": "9788937460777",
+      "genre_code": "국내도서>소설/시/희곡>영미소설",
+      "cover_image_url": "https://image.aladin.co.kr/product/41/89/cover200/s122531356_2.jpg",
       "created_at": "2026-07-03T00:00:00Z"
     }
   },
@@ -246,12 +246,12 @@
     "model": "books.book",
     "pk": 4,
     "fields": {
-      "title": "Sapiens",
-      "author": "Yuval Noah Harari",
-      "publish_date": "2011-01-01",
-      "isbn": "9780062316097",
-      "genre_code": "HUMANITIES",
-      "cover_image_url": "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&w=420&q=80",
+      "title": "사피엔스",
+      "author": "유발 하라리 (지은이), 조현욱 (옮긴이), 이태수 (감수)",
+      "publish_date": "2023-04-01",
+      "isbn": "9788934972464",
+      "genre_code": "국내도서>인문학>인류학/고고학>인류학",
+      "cover_image_url": "https://image.aladin.co.kr/product/31424/4/cover200/k482832219_1.jpg",
       "created_at": "2026-07-03T00:00:00Z"
     }
   },
@@ -259,12 +259,12 @@
     "model": "books.book",
     "pk": 5,
     "fields": {
-      "title": "Cosmos",
-      "author": "Carl Sagan",
-      "publish_date": "1980-01-01",
-      "isbn": "9780345539434",
-      "genre_code": "SCIENCE",
-      "cover_image_url": "https://images.unsplash.com/photo-1519682337058-a94d519337bc?auto=format&fit=crop&w=420&q=80",
+      "title": "소년이 온다",
+      "author": "한강 (지은이)",
+      "publish_date": "2014-05-19",
+      "isbn": "9788936434120",
+      "genre_code": "국내도서>소설/시/희곡>한국소설>2000년대 이후 한국소설",
+      "cover_image_url": "https://image.aladin.co.kr/product/4086/97/cover200/8936434128_2.jpg",
       "created_at": "2026-07-03T00:00:00Z"
     }
   },
@@ -272,12 +272,12 @@
     "model": "books.book",
     "pk": 6,
     "fields": {
-      "title": "데미안",
-      "author": "헤르만 헤세",
-      "publish_date": "1919-01-01",
-      "isbn": "9788937460449",
-      "genre_code": "NOVEL",
-      "cover_image_url": "",
+      "title": "인간 실격",
+      "author": "다자이 오사무 (지은이), 김춘미 (옮긴이)",
+      "publish_date": "2004-05-15",
+      "isbn": "9788937461033",
+      "genre_code": "국내도서>소설/시/희곡>일본소설>1950년대 이전 일본소설",
+      "cover_image_url": "https://image.aladin.co.kr/product/49/16/cover200/893746103x_3.jpg",
       "created_at": "2026-07-03T00:00:00Z"
     }
   },
@@ -285,12 +285,12 @@
     "model": "books.book",
     "pk": 7,
     "fields": {
-      "title": "호밀밭의 파수꾼",
-      "author": "J.D. 샐린저",
-      "publish_date": "1951-07-16",
-      "isbn": "9788937460470",
-      "genre_code": "NOVEL",
-      "cover_image_url": "",
+      "title": "설국",
+      "author": "가와바타 야스나리 (지은이), 유숙자 (옮긴이)",
+      "publish_date": "2002-01-28",
+      "isbn": "9788937460616",
+      "genre_code": "국내도서>소설/시/희곡>일본소설>1950년대 이후 일본소설",
+      "cover_image_url": "https://image.aladin.co.kr/product/32/87/cover200/s092934786_1.jpg",
       "created_at": "2026-07-03T00:00:00Z"
     }
   },
@@ -298,12 +298,12 @@
     "model": "books.book",
     "pk": 8,
     "fields": {
-      "title": "정의란 무엇인가",
-      "author": "마이클 샌델",
-      "publish_date": "2010-05-26",
-      "isbn": "9788934939603",
-      "genre_code": "HUMANITY",
-      "cover_image_url": "",
+      "title": "백의 그림자",
+      "author": "황정은 (지은이)",
+      "publish_date": "2010-06-25",
+      "isbn": "9788937483059",
+      "genre_code": "국내도서>소설/시/희곡>한국소설>2000년대 이후 한국소설",
+      "cover_image_url": "https://image.aladin.co.kr/product/729/55/cover200/893748305x_1.jpg",
       "created_at": "2026-07-03T00:00:00Z"
     }
   },
@@ -311,25 +311,12 @@
     "model": "books.book",
     "pk": 9,
     "fields": {
-      "title": "군주론",
-      "author": "니콜로 마키아벨리",
-      "publish_date": "1532-01-01",
-      "isbn": "9788937460777",
-      "genre_code": "HUMANITY",
-      "cover_image_url": "",
-      "created_at": "2026-07-03T00:00:00Z"
-    }
-  },
-  {
-    "model": "books.book",
-    "pk": 10,
-    "fields": {
-      "title": "1984",
-      "author": "조지 오웰",
-      "publish_date": "1949-06-08",
-      "isbn": "9788937460778",
-      "genre_code": "NOVEL",
-      "cover_image_url": "",
+      "title": "우리가 빛의 속도로 갈 수 없다면",
+      "author": "김초엽 (지은이)",
+      "publish_date": "2019-06-24",
+      "isbn": "9791190090018",
+      "genre_code": "국내도서>소설/시/희곡>과학소설(SF)>한국 과학소설",
+      "cover_image_url": "https://image.aladin.co.kr/product/19359/16/cover200/s722039767_1.jpg",
       "created_at": "2026-07-03T00:00:00Z"
     }
   },
@@ -427,7 +414,7 @@
     "model": "groups.group",
     "pk": 1,
     "fields": {
-      "group_name": "Demian Reading Room",
+      "group_name": "데미안 읽기 모임",
       "owner": 1,
       "created_at": "2026-07-03T15:10:00Z"
     }
@@ -438,6 +425,7 @@
     "fields": {
       "group": 1,
       "user": 1,
+      "status": "ACCEPTED",
       "joined_at": "2026-07-03T15:10:00Z"
     }
   },
@@ -447,6 +435,7 @@
     "fields": {
       "group": 1,
       "user": 2,
+      "status": "ACCEPTED",
       "joined_at": "2026-07-03T15:10:00Z"
     }
   },
@@ -456,6 +445,17 @@
     "fields": {
       "group": 1,
       "user": 3,
+      "status": "ACCEPTED",
+      "joined_at": "2026-07-03T15:10:00Z"
+    }
+  },
+  {
+    "model": "groups.groupmember",
+    "pk": 4,
+    "fields": {
+      "group": 1,
+      "user": 9,
+      "status": "ACCEPTED",
       "joined_at": "2026-07-03T15:10:00Z"
     }
   },
@@ -464,25 +464,16 @@
     "pk": 1,
     "fields": {
       "group": 1,
-      "book": 2
+      "book": 1
     }
   },
   {
     "model": "groups.group",
     "pk": 2,
     "fields": {
-      "group_name": "Science Notes",
+      "group_name": "인문 과학 노트",
       "owner": 3,
       "created_at": "2026-07-03T15:40:00Z"
-    }
-  },
-  {
-    "model": "groups.groupmember",
-    "pk": 4,
-    "fields": {
-      "group": 2,
-      "user": 1,
-      "joined_at": "2026-07-03T15:40:00Z"
     }
   },
   {
@@ -490,7 +481,8 @@
     "pk": 5,
     "fields": {
       "group": 2,
-      "user": 3,
+      "user": 1,
+      "status": "ACCEPTED",
       "joined_at": "2026-07-03T15:40:00Z"
     }
   },
@@ -499,7 +491,18 @@
     "pk": 6,
     "fields": {
       "group": 2,
+      "user": 3,
+      "status": "ACCEPTED",
+      "joined_at": "2026-07-03T15:40:00Z"
+    }
+  },
+  {
+    "model": "groups.groupmember",
+    "pk": 7,
+    "fields": {
+      "group": 2,
       "user": 5,
+      "status": "ACCEPTED",
       "joined_at": "2026-07-03T15:40:00Z"
     }
   },
@@ -516,33 +519,25 @@
     "pk": 3,
     "fields": {
       "group": 2,
-      "book": 5
+      "book": 9
     }
   },
   {
     "model": "groups.group",
-    "pk": 9,
+    "pk": 3,
     "fields": {
-      "group_name": "데미안 같이 읽기 소모임",
+      "group_name": "한국소설 같이 읽기",
       "owner": 9,
       "created_at": "2026-07-01T14:00:00Z"
     }
   },
   {
     "model": "groups.groupmember",
-    "pk": 7,
-    "fields": {
-      "group": 9,
-      "user": 9,
-      "joined_at": "2026-07-01T14:00:00Z"
-    }
-  },
-  {
-    "model": "groups.groupmember",
     "pk": 8,
     "fields": {
-      "group": 9,
-      "user": 1,
+      "group": 3,
+      "user": 9,
+      "status": "ACCEPTED",
       "joined_at": "2026-07-01T14:00:00Z"
     }
   },
@@ -550,8 +545,9 @@
     "model": "groups.groupmember",
     "pk": 9,
     "fields": {
-      "group": 9,
-      "user": 5,
+      "group": 3,
+      "user": 1,
+      "status": "ACCEPTED",
       "joined_at": "2026-07-01T14:00:00Z"
     }
   },
@@ -559,8 +555,29 @@
     "model": "groups.groupmember",
     "pk": 10,
     "fields": {
-      "group": 9,
+      "group": 3,
+      "user": 5,
+      "status": "ACCEPTED",
+      "joined_at": "2026-07-01T14:00:00Z"
+    }
+  },
+  {
+    "model": "groups.groupmember",
+    "pk": 11,
+    "fields": {
+      "group": 3,
       "user": 7,
+      "status": "ACCEPTED",
+      "joined_at": "2026-07-01T14:00:00Z"
+    }
+  },
+  {
+    "model": "groups.groupmember",
+    "pk": 12,
+    "fields": {
+      "group": 3,
+      "user": 11,
+      "status": "ACCEPTED",
       "joined_at": "2026-07-01T14:00:00Z"
     }
   },
@@ -568,42 +585,54 @@
     "model": "groups.groupbook",
     "pk": 4,
     "fields": {
-      "group": 9,
-      "book": 6
+      "group": 3,
+      "book": 5
     }
   },
   {
     "model": "groups.groupbook",
     "pk": 5,
     "fields": {
-      "group": 9,
-      "book": 7
+      "group": 3,
+      "book": 8
     }
   },
   {
     "model": "groups.group",
-    "pk": 10,
+    "pk": 4,
     "fields": {
-      "group_name": "madCamp 웹 개발 스터디",
+      "group_name": "madCamp 개발자 독서회",
       "owner": 1,
       "created_at": "2026-07-03T11:00:00Z"
     }
   },
   {
     "model": "groups.groupmember",
-    "pk": 11,
+    "pk": 13,
     "fields": {
-      "group": 10,
+      "group": 4,
       "user": 1,
+      "status": "ACCEPTED",
       "joined_at": "2026-07-03T11:00:00Z"
     }
   },
   {
     "model": "groups.groupmember",
-    "pk": 12,
+    "pk": 14,
     "fields": {
-      "group": 10,
+      "group": 4,
       "user": 6,
+      "status": "ACCEPTED",
+      "joined_at": "2026-07-03T11:00:00Z"
+    }
+  },
+  {
+    "model": "groups.groupmember",
+    "pk": 15,
+    "fields": {
+      "group": 4,
+      "user": 12,
+      "status": "ACCEPTED",
       "joined_at": "2026-07-03T11:00:00Z"
     }
   },
@@ -611,8 +640,16 @@
     "model": "groups.groupbook",
     "pk": 6,
     "fields": {
-      "group": 10,
-      "book": 8
+      "group": 4,
+      "book": 3
+    }
+  },
+  {
+    "model": "groups.groupbook",
+    "pk": 7,
+    "fields": {
+      "group": 4,
+      "book": 9
     }
   },
   {
@@ -623,9 +660,9 @@
       "book": 1,
       "group": null,
       "type": "QUESTION",
-      "passage": "What makes a person responsible for what they tame?",
-      "review": "This line feels simple, but it asks for a complete ethic of care.",
-      "page": 33,
+      "passage": "새는 알에서 나오려고 투쟁한다. 알은 세계다.",
+      "review": "성장이 부드러운 확장이 아니라 기존 세계를 깨는 일이라는 점이 선명하게 느껴진다.",
+      "page": 48,
       "visibility": "public",
       "is_spoiler": false,
       "created_at": "2026-07-03T12:00:00Z"
@@ -636,13 +673,13 @@
     "pk": 2,
     "fields": {
       "user": 2,
-      "book": 2,
-      "group": null,
-      "type": "REVIEW",
-      "passage": "The bird fights its way out of the egg.",
-      "review": "A sharp image for growing up: the world has to crack before it becomes larger.",
-      "page": 48,
-      "visibility": "public",
+      "book": 1,
+      "group": 1,
+      "type": "DISCUSSION",
+      "passage": "태어나려는 자는 하나의 세계를 깨뜨려야 한다.",
+      "review": "데미안 모임에서 가장 먼저 이야기하고 싶은 문장. 변화가 왜 늘 두려움과 같이 오는지 묻고 싶다.",
+      "page": 49,
+      "visibility": "group",
       "is_spoiler": false,
       "created_at": "2026-07-03T13:00:00Z"
     }
@@ -652,13 +689,13 @@
     "pk": 3,
     "fields": {
       "user": 1,
-      "book": 3,
+      "book": 2,
       "group": null,
-      "type": "DISCUSSION",
-      "passage": "Mother died today. Or maybe yesterday; I cannot be sure.",
-      "review": "The emotional distance is uncomfortable, which is exactly why it works.",
-      "page": 9,
-      "visibility": "friends",
+      "type": "REVIEW",
+      "passage": "한 번뿐인 것은 전혀 없었던 것과 같다.",
+      "review": "가벼움이라는 말이 오히려 삶의 무게를 더 또렷하게 만든다.",
+      "page": 11,
+      "visibility": "public",
       "is_spoiler": false,
       "created_at": "2026-07-03T14:00:00Z"
     }
@@ -667,15 +704,15 @@
     "model": "annotations.annotation",
     "pk": 4,
     "fields": {
-      "user": 3,
-      "book": 4,
-      "group": null,
-      "type": "NORMAL",
-      "passage": "History began when humans invented gods, and will end when humans become gods.",
-      "review": "Useful sentence for talking about technology and hubris.",
-      "page": 412,
-      "visibility": "public",
-      "is_spoiler": true,
+      "user": 8,
+      "book": 3,
+      "group": 4,
+      "type": "QUESTION",
+      "passage": "전쟁은 평화, 자유는 예속, 무지는 힘.",
+      "review": "슬로건이 현실을 덮어버릴 때 사람들은 어떤 방식으로 저항할 수 있을까?",
+      "page": 34,
+      "visibility": "group",
+      "is_spoiler": false,
       "created_at": "2026-07-03T15:00:00Z"
     }
   },
@@ -683,14 +720,14 @@
     "model": "annotations.annotation",
     "pk": 5,
     "fields": {
-      "user": 1,
-      "book": 5,
-      "group": null,
-      "type": "REVIEW",
-      "passage": "Somewhere, something incredible is waiting to be known.",
-      "review": "A good reminder that curiosity is not decoration. It is propulsion.",
-      "page": 72,
-      "visibility": "private",
+      "user": 3,
+      "book": 4,
+      "group": 2,
+      "type": "NORMAL",
+      "passage": "우리가 밀을 길들인 것이 아니라 밀이 우리를 길들였다.",
+      "review": "농업혁명을 다르게 바라보게 만드는 문장. 읽을수록 주체가 뒤집힌다.",
+      "page": 96,
+      "visibility": "group",
       "is_spoiler": false,
       "created_at": "2026-07-03T16:00:00Z"
     }
@@ -699,15 +736,15 @@
     "model": "annotations.annotation",
     "pk": 6,
     "fields": {
-      "user": 1,
-      "book": 2,
-      "group": 1,
-      "type": "NORMAL",
-      "passage": "I wanted only to try to live in accord with the promptings which came from my true self.",
-      "review": "A personal compass sentence.",
-      "page": 12,
+      "user": 11,
+      "book": 5,
+      "group": 3,
+      "type": "REVIEW",
+      "passage": "당신이 죽은 뒤 장례식을 치르지 못해, 내 삶이 장례식이 되었습니다.",
+      "review": "상실이 한 사람의 일상을 어떻게 바꾸는지 보여주는 문장이라 오래 남는다.",
+      "page": 102,
       "visibility": "group",
-      "is_spoiler": false,
+      "is_spoiler": true,
       "created_at": "2026-07-03T17:00:00Z"
     }
   },
@@ -715,14 +752,14 @@
     "model": "annotations.annotation",
     "pk": 7,
     "fields": {
-      "user": 3,
-      "book": 1,
+      "user": 5,
+      "book": 6,
       "group": null,
       "type": "DISCUSSION",
-      "passage": "It is only with the heart that one can see rightly.",
-      "review": "The most quoted line still deserves a real conversation.",
-      "page": 64,
-      "visibility": "public",
+      "passage": "부끄럼 많은 생애를 보냈습니다.",
+      "review": "첫 문장부터 고백과 변명이 동시에 들린다. 독자가 어느 거리에서 읽어야 할지 고민하게 된다.",
+      "page": 7,
+      "visibility": "friends",
       "is_spoiler": false,
       "created_at": "2026-07-03T18:00:00Z"
     }
@@ -731,13 +768,13 @@
     "model": "annotations.annotation",
     "pk": 8,
     "fields": {
-      "user": 1,
-      "book": 6,
-      "group": 9,
-      "type": "REVIEW",
-      "passage": "새는 알에서 나오려고 투쟁한다. 알은 세계이다. 태어나려는 자는 하나의 세계를 깨뜨려야 한다.",
-      "review": "안주해 있던 현실의 알을 깨부수고 자기 자신이라는 세계로 나아가는 고통스러운 성장의 과정을 묘사한 인생 명구절입니다.",
-      "page": 48,
+      "user": 7,
+      "book": 7,
+      "group": null,
+      "type": "NORMAL",
+      "passage": "국경의 긴 터널을 빠져나오자, 눈의 고장이었다.",
+      "review": "장면이 열리는 속도가 압도적이다. 풍경이 곧 감정의 입구가 된다.",
+      "page": 9,
       "visibility": "public",
       "is_spoiler": false,
       "created_at": "2026-07-03T19:00:00Z"
@@ -748,14 +785,14 @@
     "pk": 9,
     "fields": {
       "user": 1,
-      "book": 7,
-      "group": 9,
-      "type": "DISCUSSION",
-      "passage": "내가 하고 싶은 건 오직 호밀밭의 파수꾼이 되는 거야.",
-      "review": "순수함을 간직한 채 위선적인 어른들의 세계에서 탈출하고 싶어하는 홀든의 진심어린 독백이 인상적입니다.",
-      "page": 211,
-      "visibility": "public",
-      "is_spoiler": true,
+      "book": 8,
+      "group": 3,
+      "type": "QUESTION",
+      "passage": "그림자가 일어선다는 것은 무엇을 두고 하는 말일까.",
+      "review": "현실적인 배경 안에 낯선 감각이 섞이는 지점이 좋아서 같이 해석해보고 싶다.",
+      "page": 42,
+      "visibility": "group",
+      "is_spoiler": false,
       "created_at": "2026-07-03T20:00:00Z"
     }
   },
@@ -763,14 +800,14 @@
     "model": "annotations.annotation",
     "pk": 10,
     "fields": {
-      "user": 1,
-      "book": 8,
-      "group": 10,
-      "type": "QUESTION",
-      "passage": "정의로운 사회는 단순히 효용을 극대화하거나 선택의 자유를 존중하는 것만으로는 완성되지 않는다.",
-      "review": "공리주의와 자유지상주의 각각의 한계가 뭘까요? 다른 분들 생각이 궁금합니다.",
-      "page": 35,
-      "visibility": "public",
+      "user": 12,
+      "book": 9,
+      "group": 4,
+      "type": "REVIEW",
+      "passage": "우리가 빛의 속도로 갈 수조차 없다면, 같은 우주라는 말을 어떻게 믿을 수 있을까.",
+      "review": "SF적 상상력이 관계의 거리와 기다림을 말하는 방식이 인상적이다.",
+      "page": 156,
+      "visibility": "group",
       "is_spoiler": false,
       "created_at": "2026-07-03T21:00:00Z"
     }
@@ -779,14 +816,14 @@
     "model": "annotations.annotation",
     "pk": 11,
     "fields": {
-      "user": 9,
-      "book": 6,
-      "group": 9,
+      "user": 1,
+      "book": 9,
+      "group": null,
       "type": "DISCUSSION",
-      "passage": "나는 내 안에서 솟아나오려는 것, 바로 그것을 살아보려 했다.",
-      "review": "이 그룹에서 가장 많이 인용된 문장입니다.",
-      "page": 12,
-      "visibility": "group",
+      "passage": "나는 내가 이해하지 못하는 세계에도 누군가의 자리가 있다는 것을 배웠다.",
+      "review": "정확한 인용이라기보다 읽고 난 뒤 남은 감각에 가까운 메모. 다양성을 다루는 방식이 따뜻했다.",
+      "page": 83,
+      "visibility": "public",
       "is_spoiler": false,
       "created_at": "2026-07-03T22:00:00Z"
     }
@@ -795,14 +832,14 @@
     "model": "annotations.annotation",
     "pk": 12,
     "fields": {
-      "user": 3,
+      "user": 1,
       "book": 4,
-      "group": 2,
-      "type": "REVIEW",
-      "passage": "We did not domesticate wheat. It domesticated us.",
-      "review": "Reading this with the group made me rethink who is really in control of agriculture.",
-      "page": 88,
-      "visibility": "group",
+      "group": null,
+      "type": "QUESTION",
+      "passage": "인간은 이야기로 협력하는 동물이라는 설명은 어디까지 유효할까?",
+      "review": "공동체와 서비스 설계를 같이 생각하게 만드는 대목이라 따로 적어두었다.",
+      "page": 171,
+      "visibility": "private",
       "is_spoiler": false,
       "created_at": "2026-07-03T23:00:00Z"
     }
@@ -814,8 +851,8 @@
       "annotation": 1,
       "user": 2,
       "type": "REVIEW",
-      "content": "I read this as care becoming a promise.",
-      "created_at": "2026-07-03T15:00:00Z"
+      "content": "이 문장 때문에 데미안을 다시 읽고 싶어졌어요.",
+      "created_at": "2026-07-04T10:00:00Z"
     }
   },
   {
@@ -823,21 +860,43 @@
     "pk": 2,
     "fields": {
       "annotation": 1,
-      "user": 3,
-      "type": "QUESTION",
-      "content": "The page number helped me find it immediately. Does this connect to the ending too?",
-      "created_at": "2026-07-03T15:30:00Z"
+      "user": 9,
+      "type": "DISCUSSION",
+      "content": "세계를 깬다는 표현이 지금 읽어도 강하네요.",
+      "created_at": "2026-07-04T10:30:00Z"
     }
   },
   {
     "model": "annotations.comment",
     "pk": 3,
     "fields": {
-      "annotation": 2,
+      "annotation": 3,
+      "user": 5,
+      "type": "NORMAL",
+      "content": "가벼움과 책임이 같이 떠오르는 부분이었어요.",
+      "created_at": "2026-07-04T11:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.comment",
+    "pk": 4,
+    "fields": {
+      "annotation": 5,
       "user": 1,
-      "type": "DISCUSSION",
-      "content": "This passage always feels like a door opening.",
-      "created_at": "2026-07-03T16:00:00Z"
+      "type": "QUESTION",
+      "content": "농업혁명 파트를 읽고 나면 진짜 관점이 바뀌는 것 같아요.",
+      "created_at": "2026-07-04T11:30:00Z"
+    }
+  },
+  {
+    "model": "annotations.comment",
+    "pk": 5,
+    "fields": {
+      "annotation": 10,
+      "user": 6,
+      "type": "REVIEW",
+      "content": "이 책은 과학보다 마음의 거리 이야기처럼 읽혔어요.",
+      "created_at": "2026-07-04T12:00:00Z"
     }
   },
   {
@@ -846,7 +905,7 @@
     "fields": {
       "user": 1,
       "book": 1,
-      "created_at": "2026-07-03T18:00:00Z"
+      "created_at": "2026-07-04T13:00:00Z"
     }
   },
   {
@@ -855,7 +914,7 @@
     "fields": {
       "user": 1,
       "book": 3,
-      "created_at": "2026-07-03T18:00:00Z"
+      "created_at": "2026-07-04T13:00:00Z"
     }
   },
   {
@@ -864,7 +923,16 @@
     "fields": {
       "user": 1,
       "book": 5,
-      "created_at": "2026-07-03T18:00:00Z"
+      "created_at": "2026-07-04T13:00:00Z"
+    }
+  },
+  {
+    "model": "books.bookfavorite",
+    "pk": 4,
+    "fields": {
+      "user": 1,
+      "book": 9,
+      "created_at": "2026-07-04T13:00:00Z"
     }
   },
   {
@@ -872,8 +940,8 @@
     "pk": 1,
     "fields": {
       "user": 1,
-      "annotation": 2,
-      "created_at": "2026-07-03T18:00:00Z"
+      "annotation": 1,
+      "created_at": "2026-07-04T13:10:00Z"
     }
   },
   {
@@ -881,88 +949,97 @@
     "pk": 2,
     "fields": {
       "user": 1,
-      "annotation": 4,
-      "created_at": "2026-07-03T18:00:00Z"
+      "annotation": 3,
+      "created_at": "2026-07-04T13:10:00Z"
+    }
+  },
+  {
+    "model": "annotations.annotationfavorite",
+    "pk": 3,
+    "fields": {
+      "user": 1,
+      "annotation": 10,
+      "created_at": "2026-07-04T13:10:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 1,
     "fields": {
-      "user": 1,
+      "user": 2,
       "target_type": "annotation",
       "target_id": 1,
-      "created_at": "2026-07-04T00:00:00Z"
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 2,
     "fields": {
-      "user": 4,
+      "user": 3,
       "target_type": "annotation",
       "target_id": 1,
-      "created_at": "2026-07-04T00:00:00Z"
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 3,
     "fields": {
-      "user": 6,
+      "user": 4,
       "target_type": "annotation",
       "target_id": 1,
-      "created_at": "2026-07-04T00:00:00Z"
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 4,
     "fields": {
-      "user": 7,
+      "user": 6,
       "target_type": "annotation",
       "target_id": 1,
-      "created_at": "2026-07-04T00:00:00Z"
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 5,
     "fields": {
-      "user": 1,
+      "user": 9,
       "target_type": "annotation",
-      "target_id": 2,
-      "created_at": "2026-07-04T00:00:00Z"
+      "target_id": 1,
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 6,
     "fields": {
-      "user": 3,
+      "user": 1,
       "target_type": "annotation",
       "target_id": 2,
-      "created_at": "2026-07-04T00:00:00Z"
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 7,
     "fields": {
-      "user": 5,
+      "user": 3,
       "target_type": "annotation",
       "target_id": 2,
-      "created_at": "2026-07-04T00:00:00Z"
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 8,
     "fields": {
-      "user": 6,
+      "user": 5,
       "target_type": "annotation",
       "target_id": 2,
-      "created_at": "2026-07-04T00:00:00Z"
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
@@ -972,17 +1049,17 @@
       "user": 9,
       "target_type": "annotation",
       "target_id": 2,
-      "created_at": "2026-07-04T00:00:00Z"
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 10,
     "fields": {
-      "user": 3,
+      "user": 2,
       "target_type": "annotation",
       "target_id": 3,
-      "created_at": "2026-07-04T00:00:00Z"
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
@@ -992,27 +1069,27 @@
       "user": 5,
       "target_type": "annotation",
       "target_id": 3,
-      "created_at": "2026-07-04T00:00:00Z"
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 12,
     "fields": {
-      "user": 2,
+      "user": 7,
       "target_type": "annotation",
-      "target_id": 4,
-      "created_at": "2026-07-04T00:00:00Z"
+      "target_id": 3,
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 13,
     "fields": {
-      "user": 5,
+      "user": 1,
       "target_type": "annotation",
       "target_id": 4,
-      "created_at": "2026-07-04T00:00:00Z"
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
@@ -1022,237 +1099,347 @@
       "user": 6,
       "target_type": "annotation",
       "target_id": 4,
-      "created_at": "2026-07-04T00:00:00Z"
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 15,
     "fields": {
-      "user": 3,
+      "user": 8,
       "target_type": "annotation",
-      "target_id": 5,
-      "created_at": "2026-07-04T00:00:00Z"
+      "target_id": 4,
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 16,
     "fields": {
-      "user": 2,
+      "user": 12,
       "target_type": "annotation",
-      "target_id": 6,
-      "created_at": "2026-07-04T00:00:00Z"
+      "target_id": 4,
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 17,
     "fields": {
-      "user": 2,
+      "user": 1,
       "target_type": "annotation",
-      "target_id": 7,
-      "created_at": "2026-07-04T00:00:00Z"
+      "target_id": 5,
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 18,
     "fields": {
-      "user": 3,
+      "user": 2,
       "target_type": "annotation",
-      "target_id": 7,
-      "created_at": "2026-07-04T00:00:00Z"
+      "target_id": 5,
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 19,
     "fields": {
-      "user": 4,
+      "user": 5,
       "target_type": "annotation",
-      "target_id": 7,
-      "created_at": "2026-07-04T00:00:00Z"
+      "target_id": 5,
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 20,
     "fields": {
-      "user": 5,
+      "user": 1,
       "target_type": "annotation",
-      "target_id": 7,
-      "created_at": "2026-07-04T00:00:00Z"
+      "target_id": 6,
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 21,
     "fields": {
-      "user": 6,
+      "user": 5,
       "target_type": "annotation",
-      "target_id": 7,
-      "created_at": "2026-07-04T00:00:00Z"
+      "target_id": 6,
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 22,
     "fields": {
-      "user": 8,
+      "user": 7,
       "target_type": "annotation",
-      "target_id": 7,
-      "created_at": "2026-07-04T00:00:00Z"
+      "target_id": 6,
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 23,
     "fields": {
-      "user": 2,
+      "user": 11,
       "target_type": "annotation",
-      "target_id": 8,
-      "created_at": "2026-07-04T00:00:00Z"
+      "target_id": 6,
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 24,
     "fields": {
-      "user": 3,
+      "user": 1,
       "target_type": "annotation",
-      "target_id": 8,
-      "created_at": "2026-07-04T00:00:00Z"
+      "target_id": 7,
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 25,
     "fields": {
-      "user": 5,
+      "user": 3,
       "target_type": "annotation",
-      "target_id": 8,
-      "created_at": "2026-07-04T00:00:00Z"
+      "target_id": 7,
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 26,
     "fields": {
-      "user": 7,
+      "user": 1,
       "target_type": "annotation",
       "target_id": 8,
-      "created_at": "2026-07-04T00:00:00Z"
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 27,
     "fields": {
-      "user": 5,
+      "user": 4,
       "target_type": "annotation",
-      "target_id": 9,
-      "created_at": "2026-07-04T00:00:00Z"
+      "target_id": 8,
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 28,
     "fields": {
-      "user": 7,
+      "user": 5,
       "target_type": "annotation",
-      "target_id": 9,
-      "created_at": "2026-07-04T00:00:00Z"
+      "target_id": 8,
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 29,
     "fields": {
-      "user": 6,
+      "user": 10,
       "target_type": "annotation",
-      "target_id": 10,
-      "created_at": "2026-07-04T00:00:00Z"
+      "target_id": 8,
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 30,
     "fields": {
-      "user": 1,
+      "user": 5,
       "target_type": "annotation",
-      "target_id": 11,
-      "created_at": "2026-07-04T00:00:00Z"
+      "target_id": 9,
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 31,
     "fields": {
-      "user": 5,
+      "user": 7,
       "target_type": "annotation",
-      "target_id": 11,
-      "created_at": "2026-07-04T00:00:00Z"
+      "target_id": 9,
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 32,
     "fields": {
-      "user": 1,
-      "target_type": "comment",
-      "target_id": 1,
-      "created_at": "2026-07-04T00:00:00Z"
+      "user": 11,
+      "target_type": "annotation",
+      "target_id": 9,
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 33,
     "fields": {
-      "user": 3,
-      "target_type": "comment",
-      "target_id": 1,
-      "created_at": "2026-07-04T00:00:00Z"
+      "user": 1,
+      "target_type": "annotation",
+      "target_id": 10,
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 34,
     "fields": {
-      "user": 4,
-      "target_type": "comment",
-      "target_id": 1,
-      "created_at": "2026-07-04T00:00:00Z"
+      "user": 3,
+      "target_type": "annotation",
+      "target_id": 10,
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 35,
     "fields": {
-      "user": 5,
-      "target_type": "comment",
-      "target_id": 2,
-      "created_at": "2026-07-04T00:00:00Z"
+      "user": 6,
+      "target_type": "annotation",
+      "target_id": 10,
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 36,
     "fields": {
-      "user": 2,
-      "target_type": "comment",
-      "target_id": 3,
-      "created_at": "2026-07-04T00:00:00Z"
+      "user": 9,
+      "target_type": "annotation",
+      "target_id": 10,
+      "created_at": "2026-07-04T14:00:00Z"
     }
   },
   {
     "model": "annotations.like",
     "pk": 37,
     "fields": {
+      "user": 2,
+      "target_type": "annotation",
+      "target_id": 11,
+      "created_at": "2026-07-04T14:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 38,
+    "fields": {
+      "user": 6,
+      "target_type": "annotation",
+      "target_id": 11,
+      "created_at": "2026-07-04T14:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 39,
+    "fields": {
+      "user": 12,
+      "target_type": "annotation",
+      "target_id": 11,
+      "created_at": "2026-07-04T14:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 40,
+    "fields": {
+      "user": 1,
+      "target_type": "comment",
+      "target_id": 1,
+      "created_at": "2026-07-04T14:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 41,
+    "fields": {
+      "user": 3,
+      "target_type": "comment",
+      "target_id": 1,
+      "created_at": "2026-07-04T14:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 42,
+    "fields": {
       "user": 4,
       "target_type": "comment",
+      "target_id": 1,
+      "created_at": "2026-07-04T14:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 43,
+    "fields": {
+      "user": 2,
+      "target_type": "comment",
+      "target_id": 2,
+      "created_at": "2026-07-04T14:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 44,
+    "fields": {
+      "user": 5,
+      "target_type": "comment",
+      "target_id": 2,
+      "created_at": "2026-07-04T14:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 45,
+    "fields": {
+      "user": 1,
+      "target_type": "comment",
       "target_id": 3,
-      "created_at": "2026-07-04T00:00:00Z"
+      "created_at": "2026-07-04T14:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 46,
+    "fields": {
+      "user": 7,
+      "target_type": "comment",
+      "target_id": 3,
+      "created_at": "2026-07-04T14:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 47,
+    "fields": {
+      "user": 1,
+      "target_type": "comment",
+      "target_id": 5,
+      "created_at": "2026-07-04T14:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.like",
+    "pk": 48,
+    "fields": {
+      "user": 12,
+      "target_type": "comment",
+      "target_id": 5,
+      "created_at": "2026-07-04T14:00:00Z"
     }
   }
 ]
