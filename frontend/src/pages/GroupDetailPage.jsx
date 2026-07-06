@@ -346,7 +346,7 @@ export default function GroupDetailPage() {
                 {(group.books || []).length === 0 ? (
                   <p className="py-6 text-center text-sm text-text-muted">등록된 책이 없습니다.</p>
                 ) : (
-                  <div className="grid grid--books">
+                  <div className="grid grid-cols-3">
                     {group.books.map((book) => (
                       <article key={book.bookId} className="card book-card !justify-self-start relative bg-white transition hover:-translate-y-1 hover:shadow-card">
                         <Link to={`/books/${book.bookId}?groupId=${groupId}`} className="contents">
