@@ -94,7 +94,7 @@ function formatDate(value) {
   return new Intl.DateTimeFormat('ko-KR', { month: 'short', day: 'numeric' }).format(date);
 }
 
-function AnnotationCard({ annotation, isMine, onDelete }) {
+function AnnotationCard({ annotation, isMine, onDelete, onRequireAuth }) {
   const [isRevealed, setIsRevealed] = useState(!annotation.isSpoiler || isMine);
   const [isLiked, setIsLiked] = useState(annotation.isLiked);
   const [isFavorited, setIsFavorited] = useState(annotation.isFavorited);
