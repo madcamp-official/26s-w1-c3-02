@@ -32,9 +32,30 @@ def load_local_env(path):
 
 load_local_env(BASE_DIR / '.env')
 
-ALADIN_TTB_KEY = os.environ.get('ALADIN_TTB_KEY', '')
-ALADIN_API_BASE_URL = os.environ.get('ALADIN_API_BASE_URL', 'http://www.aladin.co.kr/ttb/api')
-ALADIN_CACHE_TTL = int(os.environ.get('ALADIN_CACHE_TTL', '86400'))
+
+def env(key, default=''):
+    return os.environ.get(key, default)
+
+
+def env_bool(key, default=False):
+    value = os.environ.get(key)
+    if value is None:
+        return default
+    return value.strip().lower() in {'1', 'true', 'yes', 'on'}
+
+
+def env_int(key, default):
+    return int(os.environ.get(key, default))
+
+
+def env_list(key, default=''):
+    value = os.environ.get(key, default)
+    return [item.strip() for item in value.split(',') if item.strip()]
+
+
+ALADIN_TTB_KEY = env('ALADIN_TTB_KEY')
+ALADIN_API_BASE_URL = env('ALADIN_API_BASE_URL', 'http://www.aladin.co.kr/ttb/api')
+ALADIN_CACHE_TTL = env_int('ALADIN_CACHE_TTL', 86400)
 
 
 # Quick-start development settings - unsuitable for production
@@ -42,15 +63,15 @@ ALADIN_CACHE_TTL = int(os.environ.get('ALADIN_CACHE_TTL', '86400'))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # 배포(KAIST VM) 시 반드시 DJANGO_SECRET_KEY 환경변수를 설정할 것. 아래 기본값은 로컬 개발용.
-SECRET_KEY = os.environ.get(
+SECRET_KEY = env(
     'DJANGO_SECRET_KEY',
     'django-insecure-_#bq)jkhqq-+qe@+=&&9j@_z6q-sausgku0bs+&snr(ifpjlu&',
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = env_bool('DJANGO_DEBUG', True)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = env_list('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1')
 
 
 # Application definition
@@ -110,14 +131,14 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('MYSQL_DATABASE', 'booknote_db'),
-        'USER': os.environ.get('MYSQL_USER', 'root'),
-        'PASSWORD': os.environ.get('MYSQL_PASSWORD', ''),
-        'HOST': os.environ.get('MYSQL_HOST', 'localhost'),
-        'PORT': os.environ.get('MYSQL_PORT', '3306'),
+        'ENGINE': env('DB_ENGINE', 'django.db.backends.mysql'),
+        'NAME': env('MYSQL_DATABASE', 'booknote_db'),
+        'USER': env('MYSQL_USER', 'root'),
+        'PASSWORD': env('MYSQL_PASSWORD'),
+        'HOST': env('MYSQL_HOST', 'localhost'),
+        'PORT': env('MYSQL_PORT', '3306'),
         'OPTIONS': {
-            'charset': 'utf8mb4',
+            'charset': env('MYSQL_CHARSET', 'utf8mb4'),
         },
     }
 }
@@ -144,9 +165,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = env('DJANGO_LANGUAGE_CODE', 'en-us')
 
-TIME_ZONE = 'Asia/Seoul'
+TIME_ZONE = env('DJANGO_TIME_ZONE', 'Asia/Seoul')
 
 USE_I18N = True
 
@@ -156,11 +177,16 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = env('DJANGO_STATIC_URL', 'static/')
+STATIC_ROOT = env('DJANGO_STATIC_ROOT', BASE_DIR / 'staticfiles')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = env_bool('CORS_ALLOW_ALL_ORIGINS', DEBUG)
+CORS_ALLOWED_ORIGINS = env_list('CORS_ALLOWED_ORIGINS')
+CORS_ALLOW_CREDENTIALS = env_bool('CORS_ALLOW_CREDENTIALS', False)
+
+CSRF_TRUSTED_ORIGINS = env_list('CSRF_TRUSTED_ORIGINS')
 
 CACHES = {
     'default': {
@@ -182,14 +208,14 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ],
     'DEFAULT_PAGINATION_CLASS': 'common.pagination.StandardPagination',
-    'PAGE_SIZE': 20,
+    'PAGE_SIZE': env_int('DRF_PAGE_SIZE', 20),
     'EXCEPTION_HANDLER': 'common.exceptions.custom_exception_handler',
     'UNAUTHENTICATED_USER': 'django.contrib.auth.models.AnonymousUser',
 }
 
 # JWT: 무상태 (refresh token 미사용, 로그아웃은 204만 반환 — api-spec 기준)
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=7),  # madCamp 데모 편의상 길게
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=env_int('JWT_ACCESS_TOKEN_LIFETIME_MINUTES', 10080)),
     'AUTH_HEADER_TYPES': ('Bearer',),
     'USER_ID_FIELD': 'id',
     'USER_ID_CLAIM': 'user_id',
