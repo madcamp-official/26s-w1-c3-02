@@ -129,19 +129,23 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+DATABASE_ENGINE = env('DB_ENGINE', 'django.db.backends.mysql')
+
 DATABASES = {
     'default': {
-        'ENGINE': env('DB_ENGINE', 'django.db.backends.mysql'),
+        'ENGINE': DATABASE_ENGINE,
         'NAME': env('MYSQL_DATABASE', 'booknote_db'),
         'USER': env('MYSQL_USER', 'root'),
         'PASSWORD': env('MYSQL_PASSWORD'),
         'HOST': env('MYSQL_HOST', 'localhost'),
         'PORT': env('MYSQL_PORT', '3306'),
-        'OPTIONS': {
-            'charset': env('MYSQL_CHARSET', 'utf8mb4'),
-        },
     }
 }
+
+if 'mysql' in DATABASE_ENGINE:
+    DATABASES['default']['OPTIONS'] = {
+        'charset': env('MYSQL_CHARSET', 'utf8mb4'),
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators

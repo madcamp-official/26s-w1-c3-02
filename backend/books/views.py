@@ -14,6 +14,35 @@ from .models import Book, BookFavorite
 from .serializers import BookSerializer
 
 
+BOOK_ROOT_CATEGORIES = {
+    '국내도서',
+    '외국도서',
+    'Domestic Books',
+    'Foreign Books',
+}
+FICTION_LARGE_CATEGORY = '소설/시/희곡'
+
+
+def split_category(category):
+    return [part.strip() for part in str(category or '').split('>') if part.strip()]
+
+
+def get_book_category_group(category):
+    parts = split_category(category)
+
+    if parts and parts[0] in BOOK_ROOT_CATEGORIES:
+        parts = parts[1:]
+
+    if not parts:
+        return ''
+
+    large_category = parts[0]
+    if large_category == FICTION_LARGE_CATEGORY and len(parts) > 1:
+        return parts[1]
+
+    return large_category
+
+
 def books_with_stats(request):
     recent_hours = request.query_params.get('recentHours')
     annotation_filter = Q()
@@ -53,6 +82,7 @@ class BookListCreateView(generics.ListCreateAPIView):
         keyword = self.request.query_params.get('keyword')
         search_field = self.request.query_params.get('field')
         genre_code = self.request.query_params.get('genreCode')
+        category_group = self.request.query_params.get('categoryGroup')
 
         if keyword:
             if search_field == 'author':
@@ -64,6 +94,9 @@ class BookListCreateView(generics.ListCreateAPIView):
 
         if genre_code:
             queryset = queryset.filter(genre_code=genre_code)
+
+        if category_group:
+            queryset = queryset.filter(genre_code__icontains=category_group)
 
         sort = self.request.query_params.get('sort')
 
@@ -90,6 +123,25 @@ class BookRecommendationView(generics.ListAPIView):
         return books_with_stats(self.request).annotate(
             favorite_count=Count('favorites', distinct=True),
         ).order_by('-annotation_count', '-favorite_count', 'title', 'id')[:size]
+
+
+class BookCategoryListView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        counts = {}
+
+        for genre_code in Book.objects.exclude(genre_code='').values_list('genre_code', flat=True):
+            category = get_book_category_group(genre_code)
+            if category:
+                counts[category] = counts.get(category, 0) + 1
+
+        categories = [
+            {'label': label, 'value': label, 'count': count}
+            for label, count in sorted(counts.items(), key=lambda item: (-item[1], item[0]))[:5]
+        ]
+
+        return Response({'data': categories})
 
 
 class BookDetailView(generics.RetrieveAPIView):

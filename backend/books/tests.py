@@ -68,6 +68,34 @@ class BookApiTests(APITestCase):
         self.assertEqual(response.data['data'][0]['annotationCount'], 2)
         self.assertEqual(response.data['data'][1]['annotationCount'], 0)
 
+    def test_book_categories_use_top_saved_category_groups(self):
+        Book.objects.create(title='Korean Novel', author='writer', genre_code='국내도서 > 소설/시/희곡 > 한국소설')
+        Book.objects.create(title='World Novel', author='writer', genre_code='국내도서 > 소설/시/희곡 > 세계의 소설')
+        Book.objects.create(title='Physics', author='writer', genre_code='국내도서 > 과학 > 물리학')
+        Book.objects.create(title='Biology', author='writer', genre_code='국내도서 > 과학 > 생명과학')
+
+        response = self.client.get('/api/books/categories')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        labels = [item['label'] for item in response.data['data']]
+        self.assertIn('과학', labels)
+        self.assertIn('한국소설', labels)
+        self.assertIn('세계의 소설', labels)
+        self.assertNotIn('소설/시/희곡', labels)
+
+        science = next(item for item in response.data['data'] if item['label'] == '과학')
+        self.assertEqual(science['count'], 2)
+
+    def test_list_books_can_filter_by_category_group(self):
+        target = Book.objects.create(title='Korean Novel', author='writer', genre_code='국내도서 > 소설/시/희곡 > 한국소설')
+        Book.objects.create(title='Physics', author='writer', genre_code='국내도서 > 과학 > 물리학')
+
+        response = self.client.get('/api/books', {'categoryGroup': '한국소설'})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['data'][0]['bookId'], target.id)
+        self.assertEqual(response.data['pagination']['totalElements'], 1)
+
     def test_create_book_requires_auth_and_rejects_duplicate_isbn(self):
         payload = {'title': '새 책', 'author': '작가', 'isbn': '9788937460449'}
 

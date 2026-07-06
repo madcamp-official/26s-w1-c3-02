@@ -12,6 +12,7 @@ from django.urls import path
 from .views import (
     BookDetailView,
     BookFavoriteView,
+    BookCategoryListView,
     BookListCreateView,
     BookRecommendationView,
     FavoriteBookListView,
@@ -21,6 +22,7 @@ from .views import (
 
 urlpatterns = [
     path('books', BookListCreateView.as_view(), name='book-list-create'),
+    path('books/categories', BookCategoryListView.as_view(), name='book-category-list'),
     path('books/external-search', AladinBookSearchView.as_view(), name='aladin-book-search'),
     path('books/import-from-aladin', AladinBookImportView.as_view(), name='aladin-book-import'),
     path('books/recommendations', BookRecommendationView.as_view(), name='book-recommendations'),
