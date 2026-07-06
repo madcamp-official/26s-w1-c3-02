@@ -532,7 +532,7 @@ export default function HomePage() {
             )}
 
             {!errorMessage && (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+              <div className="grid grid-cols-2 gap-x-8 gap-y-5 sm:grid-cols-3 lg:grid-cols-5">
                 {isLoading
                   ? Array.from({ length: 5 }).map((_, index) => <BookCardSkeleton key={index} />)
                   : books.slice(0, 5).map((book) => <BookCard key={book.id} book={book} />)}

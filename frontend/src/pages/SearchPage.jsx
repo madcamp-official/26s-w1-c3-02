@@ -604,7 +604,7 @@ export default function SearchPage() {
                     </div>
 
                     {isBrowseLoading ? (
-                      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+                      <div className="grid grid-cols-2 gap-x-8 gap-y-5 md:grid-cols-5">
                         {Array.from({ length: 5 }).map((_, index) => (
                           <article key={index} className="aspect-[3/4] animate-pulse rounded-sm bg-surfaceMuted" />
                         ))}
@@ -612,7 +612,7 @@ export default function SearchPage() {
                     ) : visiblePopularBooks.length === 0 ? (
                       <EmptyState>인기 책이 없습니다.</EmptyState>
                     ) : (
-                      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+                      <div className="grid grid-cols-2 gap-x-8 gap-y-5 md:grid-cols-5">
                         {visiblePopularBooks.map((book) => (
                           <PopularBookCard key={book.id} book={book} />
                         ))}
@@ -674,7 +674,7 @@ export default function SearchPage() {
               {books.length === 0 && (
                 <p className="text-sm font-semibold text-text-muted">일치하는 책을 찾지 못했습니다</p>
               )}
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+              <div className="grid grid-cols-2 gap-x-8 gap-y-5 md:grid-cols-5">
                 {books.map((book) => (
                   <BookResultCard key={book.id} book={book} />
                 ))}
