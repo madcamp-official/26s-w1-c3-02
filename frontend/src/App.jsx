@@ -30,8 +30,22 @@ export default function App() {
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/books/:bookId" element={<BookDetailPage />} />
-      <Route path="/annotations/new" element={<AnnotationFormPage />} />
-      <Route path="/annotations/:annotationId/edit" element={<AnnotationFormPage />} />
+      <Route
+        path="/annotations/new"
+        element={
+          <ProtectedRoute>
+            <AnnotationFormPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/annotations/:annotationId/edit"
+        element={
+          <ProtectedRoute>
+            <AnnotationFormPage />
+          </ProtectedRoute>
+        }
+      />
       <Route path="/annotations/:annotationId" element={<AnnotationDetailPage />} />
       <Route path="/search" element={<SearchPage />} />
       

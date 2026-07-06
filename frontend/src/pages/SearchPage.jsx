@@ -165,12 +165,13 @@ function BookmarkButton({ isActive, isPending, onClick, label = '북마크' }) {
   );
 }
 
-function BookResultCard({ book }) {
+function BookResultCard({ book, onRequireAuth }) {
   const [isFavorited, setIsFavorited] = useState(book.isFavorited);
   const [isPending, setIsPending] = useState(false);
 
   const handleFavorite = async (event) => {
     event.preventDefault();
+    if (!onRequireAuth()) return;
     if (isPending) return;
 
     const nextFavorited = !isFavorited;
@@ -210,7 +211,7 @@ function BookResultCard({ book }) {
   );
 }
 
-function AnnotationResultCard({ annotation }) {
+function AnnotationResultCard({ annotation, onRequireAuth }) {
   const [isRevealed, setIsRevealed] = useState(!annotation.isSpoiler);
   const [isFavorited, setIsFavorited] = useState(annotation.isFavorited);
   const [isPending, setIsPending] = useState(false);
@@ -218,6 +219,7 @@ function AnnotationResultCard({ annotation }) {
 
   const handleFavorite = async (event) => {
     event.preventDefault();
+    if (!onRequireAuth()) return;
     if (isPending) return;
 
     const nextFavorited = !isFavorited;
@@ -311,12 +313,13 @@ function EmptyState({ children }) {
   );
 }
 
-function PopularBookCard({ book }) {
+function PopularBookCard({ book, onRequireAuth }) {
   const [isFavorited, setIsFavorited] = useState(book.isFavorited);
   const [isPending, setIsPending] = useState(false);
 
   const handleFavorite = async (event) => {
     event.preventDefault();
+    if (!onRequireAuth()) return;
     if (isPending) return;
 
     const nextFavorited = !isFavorited;
@@ -359,12 +362,13 @@ function PopularBookCard({ book }) {
   );
 }
 
-function BrowseAnnotationCard({ annotation }) {
+function BrowseAnnotationCard({ annotation, onRequireAuth }) {
   const [isFavorited, setIsFavorited] = useState(annotation.isFavorited);
   const [isPending, setIsPending] = useState(false);
 
   const handleFavorite = async (event) => {
     event.preventDefault();
+    if (!onRequireAuth()) return;
     if (isPending) return;
 
     const nextFavorited = !isFavorited;
@@ -439,6 +443,22 @@ export default function SearchPage() {
   const [addBookResults, setAddBookResults] = useState([]);
   const [isSearchingAddBooks, setIsSearchingAddBooks] = useState(false);
   const [addBookError, setAddBookError] = useState('');
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState('success');
+
+  const showToast = (message, type = 'success') => {
+    setToastMessage(message);
+    setToastType(type);
+    setTimeout(() => setToastMessage(''), 3000);
+  };
+
+  const requireAuth = () => {
+    if (!isAuthenticated) {
+      showToast('로그인이 필요한 기능입니다.', 'error');
+      return false;
+    }
+    return true;
+  };
 
   const activeCategory = useMemo(
     () => (searchCategories.some((item) => item.value === categoryParam) ? categoryParam : 'all'),
@@ -643,7 +663,7 @@ export default function SearchPage() {
                     ) : (
                       <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
                         {visiblePopularBooks.map((book) => (
-                          <PopularBookCard key={book.id} book={book} />
+                          <PopularBookCard key={book.id} book={book} onRequireAuth={requireAuth} />
                         ))}
                       </div>
                     )}
@@ -683,7 +703,7 @@ export default function SearchPage() {
                     ) : (
                       <div className="grid gap-4">
                         {browseAnnotations.map((annotation) => (
-                          <BrowseAnnotationCard key={annotation.id} annotation={annotation} />
+                          <BrowseAnnotationCard key={annotation.id} annotation={annotation} onRequireAuth={requireAuth} />
                         ))}
                       </div>
                     )}
@@ -705,7 +725,7 @@ export default function SearchPage() {
               )}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {books.map((book) => (
-                  <BookResultCard key={book.id} book={book} />
+                  <BookResultCard key={book.id} book={book} onRequireAuth={requireAuth} />
                 ))}
                 <AddBookCard onClick={openAddBookModal} />
               </div>
@@ -720,7 +740,7 @@ export default function SearchPage() {
               ) : (
                 <div className="grid gap-4">
                   {annotations.map((annotation) => (
-                    <AnnotationResultCard key={annotation.id} annotation={annotation} />
+                    <AnnotationResultCard key={annotation.id} annotation={annotation} onRequireAuth={requireAuth} />
                   ))}
                 </div>
               )}
@@ -779,6 +799,14 @@ export default function SearchPage() {
               </button>
             </div>
           </section>
+        </div>
+      )}
+
+      {toastMessage && (
+        <div className={`fixed bottom-6 right-6 z-50 rounded-sm px-4 py-3 text-sm font-semibold shadow-card transition-all duration-300 ${
+          toastType === 'error' ? 'bg-danger-soft text-danger' : 'bg-white text-primary border border-line'
+        }`}>
+          {toastMessage}
         </div>
       )}
     </div>

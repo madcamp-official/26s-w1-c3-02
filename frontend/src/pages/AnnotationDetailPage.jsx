@@ -6,6 +6,7 @@ import { like, unlike } from '../api/likes';
 import { getPageData } from '../api/client';
 import { getMe } from '../api/users';
 import SiteHeader from '../components/SiteHeader';
+import { useAuth } from '../context/AuthContext';
 
 const sortOptions = [
   { label: '인기순', value: 'popular' },
@@ -93,7 +94,7 @@ function formatDate(value) {
   return new Intl.DateTimeFormat('ko-KR', { month: 'short', day: 'numeric' }).format(date);
 }
 
-function AnnotationCard({ annotation, isMine, onDelete }) {
+function AnnotationCard({ annotation, isMine, onDelete, onRequireAuth }) {
   const [isRevealed, setIsRevealed] = useState(!annotation.isSpoiler);
   const [isLiked, setIsLiked] = useState(annotation.isLiked);
   const [isFavorited, setIsFavorited] = useState(annotation.isFavorited);
@@ -102,6 +103,7 @@ function AnnotationCard({ annotation, isMine, onDelete }) {
   const shouldHideContent = annotation.isSpoiler && !isRevealed;
 
   const handleLike = async () => {
+    if (!onRequireAuth()) return;
     const nextLiked = !isLiked;
     setIsLiked(nextLiked);
     setLikeCount((count) => Math.max(count + (nextLiked ? 1 : -1), 0));
@@ -119,6 +121,7 @@ function AnnotationCard({ annotation, isMine, onDelete }) {
   };
 
   const handleFavorite = async () => {
+    if (!onRequireAuth()) return;
     if (isFavoritePending) return;
 
     const nextFavorited = !isFavorited;
@@ -197,11 +200,12 @@ function AnnotationCard({ annotation, isMine, onDelete }) {
   );
 }
 
-function CommentCard({ comment, isMine, onDelete }) {
+function CommentCard({ comment, isMine, onDelete, onRequireAuth }) {
   const [isLiked, setIsLiked] = useState(comment.isLiked);
   const [likeCount, setLikeCount] = useState(comment.likeCount);
 
   const handleLike = async () => {
+    if (!onRequireAuth()) return;
     const nextLiked = !isLiked;
     setIsLiked(nextLiked);
     setLikeCount((count) => Math.max(count + (nextLiked ? 1 : -1), 0));
@@ -242,6 +246,7 @@ function CommentCard({ comment, isMine, onDelete }) {
 export default function AnnotationDetailPage() {
   const { annotationId } = useParams();
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
   const [annotation, setAnnotation] = useState(null);
   const [comments, setComments] = useState([]);
   const [me, setMe] = useState(null);
@@ -251,6 +256,22 @@ export default function AnnotationDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState('success');
+
+  const showToast = (message, type = 'success') => {
+    setToastMessage(message);
+    setToastType(type);
+    setTimeout(() => setToastMessage(''), 3000);
+  };
+
+  const requireAuth = () => {
+    if (!isAuthenticated) {
+      showToast('로그인이 필요한 기능입니다.', 'error');
+      return false;
+    }
+    return true;
+  };
 
   const visibleComments = comments.slice(0, visibleCount);
 
@@ -303,6 +324,7 @@ export default function AnnotationDetailPage() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    if (!requireAuth()) return;
     const trimmedContent = draftContent.trim();
     if (!trimmedContent) return;
 
@@ -323,6 +345,7 @@ export default function AnnotationDetailPage() {
   };
 
   const handleDeleteAnnotation = async () => {
+    if (!requireAuth()) return;
     if (!window.confirm('이 구절 노트를 삭제할까요?')) return;
 
     try {
@@ -368,6 +391,7 @@ export default function AnnotationDetailPage() {
                 annotation={annotation}
                 isMine={me?.id === annotation.authorId}
                 onDelete={handleDeleteAnnotation}
+                onRequireAuth={requireAuth}
               />
 
               <section className="grid gap-4">
@@ -395,6 +419,7 @@ export default function AnnotationDetailPage() {
                         comment={comment}
                         isMine={me?.id === comment.authorId}
                         onDelete={() => handleDeleteComment(comment.id)}
+                        onRequireAuth={requireAuth}
                       />
                     ))
                   )}
@@ -424,6 +449,14 @@ export default function AnnotationDetailPage() {
           )}
         </div>
       </main>
+
+      {toastMessage && (
+        <div className={`fixed bottom-6 right-6 z-50 rounded-sm px-4 py-3 text-sm font-semibold shadow-card transition-all duration-300 ${
+          toastType === 'error' ? 'bg-danger-soft text-danger' : 'bg-white text-primary border border-line'
+        }`}>
+          {toastMessage}
+        </div>
+      )}
     </div>
   );
 }

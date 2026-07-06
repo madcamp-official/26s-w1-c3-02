@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const searchCategories = [
   { label: '통합검색', value: 'all' },
@@ -26,6 +27,7 @@ function NavLink({ to, active, children }) {
 }
 
 export default function SiteHeader({ active = 'auto', showSearch = true }) {
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -47,7 +49,9 @@ export default function SiteHeader({ active = 'auto', showSearch = true }) {
             ? 'lounge'
             : location.pathname.startsWith('/mypage')
               ? 'mypage'
-              : ''
+              : location.pathname.startsWith('/login')
+                ? 'login'
+                : ''
       : active;
 
   const handleSearch = (event) => {
@@ -109,9 +113,15 @@ export default function SiteHeader({ active = 'auto', showSearch = true }) {
           <NavLink to="/groups" active={activeKey === 'lounge'}>
             라운지
           </NavLink>
-          <NavLink to="/mypage" active={activeKey === 'mypage'}>
-            마이페이지
-          </NavLink>
+          {isAuthenticated ? (
+            <NavLink to="/mypage" active={activeKey === 'mypage'}>
+              마이페이지
+            </NavLink>
+          ) : (
+            <NavLink to="/login" active={activeKey === 'login'}>
+              로그인
+            </NavLink>
+          )}
         </nav>
       </div>
     </header>

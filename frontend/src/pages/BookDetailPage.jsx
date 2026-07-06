@@ -6,6 +6,7 @@ import { getGroupAnnotations } from '../api/groups';
 import { getPageData } from '../api/client';
 import { like, unlike } from '../api/likes';
 import SiteHeader from '../components/SiteHeader';
+import { useAuth } from '../context/AuthContext';
 
 const sortOptions = [
   { label: '최신순', value: 'recent,desc' },
@@ -205,7 +206,7 @@ function BookHero({ book, isLoading, onToggleFavorite, isFavoritePending }) {
   );
 }
 
-function AnnotationCard({ annotation }) {
+function AnnotationCard({ annotation, onRequireAuth }) {
   const [isRevealed, setIsRevealed] = useState(!annotation.isSpoiler);
   const [isLiked, setIsLiked] = useState(annotation.isLiked);
   const [isFavorited, setIsFavorited] = useState(annotation.isFavorited);
@@ -216,6 +217,7 @@ function AnnotationCard({ annotation }) {
 
   const handleLike = async (event) => {
     event.preventDefault();
+    if (!onRequireAuth()) return;
     if (isLikePending) return;
 
     setIsLikePending(true);
@@ -239,6 +241,7 @@ function AnnotationCard({ annotation }) {
 
   const handleFavorite = async (event) => {
     event.preventDefault();
+    if (!onRequireAuth()) return;
     if (isFavoritePending) return;
 
     setIsFavoritePending(true);
@@ -377,6 +380,7 @@ export default function BookDetailPage() {
   const { bookId } = useParams();
   const [searchParams] = useSearchParams();
   const groupId = searchParams.get('groupId');
+  const { isAuthenticated } = useAuth();
   const [book, setBook] = useState(null);
   const [annotations, setAnnotations] = useState([]);
   const [sort, setSort] = useState('recent,desc');
@@ -387,6 +391,22 @@ export default function BookDetailPage() {
   const [isAnnotationsLoading, setIsAnnotationsLoading] = useState(true);
   const [isBookFavoritePending, setIsBookFavoritePending] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState('success');
+
+  const showToast = (message, type = 'success') => {
+    setToastMessage(message);
+    setToastType(type);
+    setTimeout(() => setToastMessage(''), 3000);
+  };
+
+  const requireAuth = () => {
+    if (!isAuthenticated) {
+      showToast('로그인이 필요한 기능입니다.', 'error');
+      return false;
+    }
+    return true;
+  };
 
   const visibleBook = useMemo(
     () =>
@@ -498,6 +518,7 @@ export default function BookDetailPage() {
   };
 
   const handleToggleBookFavorite = async () => {
+    if (!requireAuth()) return;
     if (!book || isBookFavoritePending) return;
 
     const nextFavorited = !book.isFavorited;
@@ -589,7 +610,9 @@ export default function BookDetailPage() {
               <div className="grid gap-4">
                 {isAnnotationsLoading
                   ? Array.from({ length: 2 }).map((_, index) => <AnnotationSkeleton key={index} />)
-                  : annotations.map((annotation) => <AnnotationCard key={annotation.id} annotation={annotation} />)}
+                  : annotations.map((annotation) => (
+                      <AnnotationCard key={annotation.id} annotation={annotation} onRequireAuth={requireAuth} />
+                    ))}
               </div>
             )}
 
@@ -603,6 +626,14 @@ export default function BookDetailPage() {
           </section>
         </div>
       </main>
+
+      {toastMessage && (
+        <div className={`fixed bottom-6 right-6 z-50 rounded-sm px-4 py-3 text-sm font-semibold shadow-card transition-all duration-300 ${
+          toastType === 'error' ? 'bg-danger-soft text-danger' : 'bg-white text-primary border border-line'
+        }`}>
+          {toastMessage}
+        </div>
+      )}
     </div>
   );
 }

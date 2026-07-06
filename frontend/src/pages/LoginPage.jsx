@@ -121,6 +121,12 @@ export default function LoginPage() {
               회원가입
             </Link>
           </p>
+
+          <p className="text-center text-sm text-text-muted">
+            <Link to="/" className="font-bold text-primary hover:underline">
+              로그인 없이 둘러보기 →
+            </Link>
+          </p>
         </form>
       </div>
     </main>
