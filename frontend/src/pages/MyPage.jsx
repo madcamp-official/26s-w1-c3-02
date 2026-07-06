@@ -1119,7 +1119,7 @@ export default function MyPage() {
           {/* 4. 내 서재(즐겨찾기 책) 탭 */}
           {activeTab === 'favoriteBooks' && (
             isLoadingTab ? (
-              <div className="grid grid-cols-[repeat(auto-fit,minmax(210px,320px))]">
+              <div className="grid grid-cols-3 gap-4">
                 <BookCardSkeleton />
                 <BookCardSkeleton />
                 <BookCardSkeleton />
@@ -1131,7 +1131,7 @@ export default function MyPage() {
             ) : tabData.length === 0 ? (
               <EmptyState message="즐겨찾기한 항목이 없습니다" />
             ) : (
-              <div className="grid grid-cols-[repeat(auto-fit,minmax(210px,320px))]">
+              <div className="grid grid-cols-3 gap-4">
                 {tabData.map((book) => (
                   <Link to={`/books/${book.bookId}`} key={book.bookId} className="block">
                     <article className="card book-card bg-white transition hover:-translate-y-1 hover:shadow-card">
