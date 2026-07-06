@@ -4,8 +4,8 @@ export const getMe = async () => {
   return client.get('/users/me');
 };
 
-export const updateMe = async ({ nickname, password }) => {
-  return client.patch('/users/me', { nickname, password });
+export const updateMe = async ({ nickname, password, bio, avatarIcon }) => {
+  return client.patch('/users/me', { nickname, password, bio, avatarIcon });
 };
 
 export const searchUsers = async (nickname) => {

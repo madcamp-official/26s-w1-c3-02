@@ -20,7 +20,7 @@ import {
   sendFriendRequest,
 } from '../api/friends';
 import { unfavoriteBook } from '../api/books';
-import { updateAnnotation, deleteAnnotation } from '../api/annotations';
+import { deleteAnnotation } from '../api/annotations';
 import { acceptGroupInvitation, createGroup, removeGroupMember } from '../api/groups';
 import { getErrorMessage } from '../utils/error';
 
@@ -376,8 +376,9 @@ export default function MyPage() {
   const [isLoadingTab, setIsLoadingTab] = useState(false);
   const [tabError, setTabError] = useState('');
 
-  // 설정 탭 — 프로필(닉네임/아바타 아이콘) 변경 관련 상태
+  // 설정 탭 — 프로필(닉네임/소개글/아바타 아이콘) 변경 관련 상태
   const [newNickname, setNewNickname] = useState(user?.nickname || '');
+  const [newBio, setNewBio] = useState(user?.bio || '');
   // 선택 가능한 프로필 아이콘 프리셋 중 고른 것 — 아직 다른 화면에는 표시하지 않고 저장만 한다.
   const [newAvatarIcon, setNewAvatarIcon] = useState(user?.avatarIcon || '');
   const [isUpdatingNickname, setIsUpdatingNickname] = useState(false);
@@ -399,15 +400,6 @@ export default function MyPage() {
   const [newGroupName, setNewGroupName] = useState('');
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
   const [createGroupError, setCreateGroupError] = useState('');
-
-  // 내 주석 수정 모달 상태
-  const [editingAnnotation, setEditingAnnotation] = useState(null);
-  const [editPassage, setEditPassage] = useState('');
-  const [editReview, setEditReview] = useState('');
-  const [editType, setEditType] = useState('NORMAL');
-  const [editIsSpoiler, setEditIsSpoiler] = useState(false);
-  const [isSavingAnnotation, setIsSavingAnnotation] = useState(false);
-  const [editAnnotationError, setEditAnnotationError] = useState('');
 
   // 토스트 헬퍼
   const showToast = (message, type = 'success') => {
@@ -521,6 +513,7 @@ export default function MyPage() {
     if (activeTab === 'settings') {
       latestRequestIdRef.current += 1; // 진행 중이던 목록 탭 요청 결과를 무효화
       setNewNickname(user?.nickname || '');
+      setNewBio(user?.bio || '');
       setNewAvatarIcon(user?.avatarIcon || '');
       setEditError('');
       return;
@@ -554,6 +547,7 @@ export default function MyPage() {
     try {
       const updatedUser = await updateMe({
         nickname: newNickname,
+        bio: newBio,
         avatarIcon: newAvatarIcon,
       });
       setUser(updatedUser);
@@ -648,45 +642,9 @@ export default function MyPage() {
     }
   };
 
-  // 내 주석 수정 모달 열기
+  // 내 주석 수정 — /annotations/{id}/edit 페이지로 이동
   const handleEditAnnotation = (item) => {
-    setEditingAnnotation(item);
-    setEditPassage(item.passage || '');
-    setEditReview(item.review || '');
-    setEditType(item.type || 'NORMAL');
-    setEditIsSpoiler(!!item.isSpoiler);
-    setEditAnnotationError('');
-  };
-
-  // 내 주석 수정 저장
-  const handleSaveAnnotation = async (e) => {
-    e.preventDefault();
-    setEditAnnotationError('');
-    if (!editPassage.trim()) {
-      setEditAnnotationError('인용 문장을 입력해 주세요.');
-      return;
-    }
-
-    setIsSavingAnnotation(true);
-    try {
-      const payload = {
-        passage: editPassage.trim(),
-        review: editReview.trim(),
-        type: editType,
-        isSpoiler: editIsSpoiler,
-      };
-      await updateAnnotation(editingAnnotation.annotationId, payload);
-      setTabData((prev) =>
-        prev.map((a) => (a.annotationId === editingAnnotation.annotationId ? { ...a, ...payload } : a))
-      );
-      setEditingAnnotation(null);
-      showToast('주석을 수정했습니다.');
-    } catch (err) {
-      console.error(err);
-      setEditAnnotationError(getErrorMessage(err));
-    } finally {
-      setIsSavingAnnotation(false);
-    }
+    navigate(`/annotations/${item.annotationId}/edit`);
   };
 
   // 내 주석 삭제
@@ -1129,7 +1087,7 @@ export default function MyPage() {
           {/* 4. 내 서재(즐겨찾기 책) 탭 */}
           {activeTab === 'favoriteBooks' && (
             isLoadingTab ? (
-              <div className="grid grid--books">
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(210px,320px))]">
                 <BookCardSkeleton />
                 <BookCardSkeleton />
                 <BookCardSkeleton />
@@ -1141,7 +1099,7 @@ export default function MyPage() {
             ) : tabData.length === 0 ? (
               <EmptyState message="즐겨찾기한 항목이 없습니다" />
             ) : (
-              <div className="grid grid--books">
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(210px,320px))]">
                 {tabData.map((book) => (
                   <Link to={`/books/${book.bookId}`} key={book.bookId} className="block">
                     <article className="card book-card bg-white transition hover:-translate-y-1 hover:shadow-card">
@@ -1388,6 +1346,17 @@ export default function MyPage() {
                       disabled={isUpdatingNickname}
                     />
                   </label>
+                  <label className="form-field">
+                    <span className="form-label">소개글</span>
+                    <textarea
+                      className="textarea"
+                      rows={3}
+                      placeholder="나를 소개하는 한마디를 남겨보세요."
+                      value={newBio}
+                      onChange={(e) => setNewBio(e.target.value)}
+                      disabled={isUpdatingNickname}
+                    />
+                  </label>
                   <div className="form-field">
                     <span className="form-label">프로필 아이콘</span>
                     <div className="grid grid-cols-5 gap-2">
@@ -1539,71 +1508,6 @@ export default function MyPage() {
                 </button>
                 <button type="submit" className="button button--primary" disabled={isCreatingGroup}>
                   {isCreatingGroup ? '만드는 중...' : '만들기'}
-                </button>
-              </div>
-            </form>
-          </section>
-        </div>
-      )}
-
-      {/* 내 주석 수정 모달 */}
-      {editingAnnotation && (
-        <div className="modal-overlay">
-          <section className="modal card card--padded">
-            <h2 className="section-title mb-4">주석 수정</h2>
-            <form onSubmit={handleSaveAnnotation} className="grid gap-3">
-              <div>
-                <label className="mb-1.5 block text-xs font-bold text-text-muted">인용 문장</label>
-                <textarea
-                  className="textarea"
-                  rows={2}
-                  value={editPassage}
-                  onChange={(e) => setEditPassage(e.target.value)}
-                  autoFocus
-                />
-              </div>
-              <div>
-                <label className="mb-1.5 block text-xs font-bold text-text-muted">감상/설명</label>
-                <textarea
-                  className="textarea"
-                  rows={3}
-                  value={editReview}
-                  onChange={(e) => setEditReview(e.target.value)}
-                />
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="flex-1">
-                  <label className="mb-1.5 block text-xs font-bold text-text-muted">유형</label>
-                  <select className="select" value={editType} onChange={(e) => setEditType(e.target.value)}>
-                    {DONUT_TYPE_ORDER.map((t) => (
-                      <option key={t.key} value={t.key}>
-                        {t.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <label className="flex items-center gap-2 text-sm font-semibold text-text-muted mt-5">
-                  <input
-                    type="checkbox"
-                    checked={editIsSpoiler}
-                    onChange={(e) => setEditIsSpoiler(e.target.checked)}
-                  />
-                  스포일러
-                </label>
-              </div>
-
-              {editAnnotationError && <p className="text-xs text-danger">{editAnnotationError}</p>}
-
-              <div className="flex justify-end gap-2 mt-3">
-                <button
-                  type="button"
-                  onClick={() => setEditingAnnotation(null)}
-                  className="button button--secondary"
-                >
-                  취소
-                </button>
-                <button type="submit" className="button button--primary" disabled={isSavingAnnotation}>
-                  {isSavingAnnotation ? '저장 중...' : '저장'}
                 </button>
               </div>
             </form>

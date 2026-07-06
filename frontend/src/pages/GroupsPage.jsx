@@ -49,6 +49,36 @@ function GroupCardSkeleton() {
   return <div className="card card--padded h-[168px] animate-pulse bg-surfaceMuted" />;
 }
 
+function GroupBookStack({ books = [] }) {
+  if (books.length === 0) return null;
+
+  const visibleBooks = books.slice(0, 5);
+
+  return (
+    <div
+      className="relative hidden h-[116px] shrink-0 sm:block"
+      style={{ width: `${80 + (visibleBooks.length - 1) * 20}px` }}
+    >
+      {visibleBooks.map((book, index) => (
+        <div
+          key={book.bookId}
+          className="absolute top-0 h-[116px] w-20 overflow-hidden rounded-xs shadow-soft ring-2 ring-white transition-transform group-hover:-translate-y-0.5"
+          style={{ left: `${index * 20}px`, zIndex: visibleBooks.length - index }}
+          title={book.title}
+        >
+          {book.coverImageUrl ? (
+            <img className="h-full w-full object-cover" src={book.coverImageUrl} alt={book.title} />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-primary-soft p-1 text-center text-[10px] font-bold text-primary/60">
+              {book.title}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function GroupsPage() {
   const { user } = useAuth();
   const [groups, setGroups] = useState([]);
@@ -222,25 +252,28 @@ export default function GroupsPage() {
                 <Link
                   to={`/groups/${group.groupId}`}
                   key={group.groupId}
-                  className="card card--padded min-h-[168px] flex flex-col justify-between bg-white block transition hover:-translate-y-1 hover:shadow-card"
+                  className="card card--padded group min-h-[168px] flex items-center gap-4 bg-white block transition hover:-translate-y-1 hover:shadow-card"
                 >
-                  <div>
-                    <h3 className="text-lg font-bold text-text">{group.groupName}</h3>
-                    <p className="text-xs text-text-muted mt-1.5">
-                      방장: {group.owner?.nickname || '알 수 없음'}
-                    </p>
+                  <div className="min-w-0 flex flex-1 h-full flex-col justify-between">
+                    <div>
+                      <h3 className="text-lg font-bold text-text">{group.groupName}</h3>
+                      <p className="text-xs text-text-muted mt-1.5">
+                        방장: {group.owner?.nickname || '알 수 없음'}
+                      </p>
+                    </div>
+                    <div className="mt-6 flex items-center gap-5 border-t border-line pt-4 text-sm text-text-muted">
+                      <span className="flex items-center gap-1.5">
+                        <UsersIcon className="h-4 w-4" /> 멤버 {group.memberCount ?? 0}명
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <BookIcon className="h-4 w-4" /> 책 {group.bookCount ?? 0}권
+                      </span>
+                    </div>
+                    {group.createdAt && (
+                      <p className="mt-3 text-xs text-text-subtle">{formatDate(group.createdAt)} 생성</p>
+                    )}
                   </div>
-                  <div className="mt-6 flex items-center gap-5 border-t border-line pt-4 text-sm text-text-muted">
-                    <span className="flex items-center gap-1.5">
-                      <UsersIcon className="h-4 w-4" /> 멤버 {group.memberCount ?? 0}명
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <BookIcon className="h-4 w-4" /> 책 {group.bookCount ?? 0}권
-                    </span>
-                  </div>
-                  {group.createdAt && (
-                    <p className="mt-3 text-xs text-text-subtle">{formatDate(group.createdAt)} 생성</p>
-                  )}
+                  <GroupBookStack books={group.books} />
                 </Link>
               ))}
             </div>

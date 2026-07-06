@@ -25,6 +25,7 @@ class GroupListSerializer(serializers.ModelSerializer):
     memberCount = serializers.SerializerMethodField()
     bookCount = serializers.SerializerMethodField()
     coverImageUrl = serializers.SerializerMethodField()
+    books = serializers.SerializerMethodField()
     lastActivityAt = serializers.SerializerMethodField()
     createdAt = serializers.DateTimeField(source='created_at', read_only=True)
 
@@ -32,7 +33,7 @@ class GroupListSerializer(serializers.ModelSerializer):
         model = Group
         fields = [
             'groupId', 'groupName', 'owner', 'memberIds', 'bookIds',
-            'memberCount', 'bookCount', 'coverImageUrl', 'lastActivityAt', 'createdAt',
+            'memberCount', 'bookCount', 'coverImageUrl', 'books', 'lastActivityAt', 'createdAt',
         ]
 
     def get_memberIds(self, obj):
@@ -50,6 +51,15 @@ class GroupListSerializer(serializers.ModelSerializer):
     def get_coverImageUrl(self, obj):
         group_books = obj.group_books.all()
         return group_books[0].book.cover_image_url if group_books else ''
+
+    def get_books(self, obj):
+        """카드에 표지를 겹쳐 보여주기 위한 소량 미리보기(최대 5권). obj.group_books는 view에서
+        이미 Prefetch(order_by id)되어 있으므로 추가 쿼리 없이 슬라이싱만 한다."""
+        group_books = list(obj.group_books.all())[:5]
+        return [
+            {'bookId': gb.book_id, 'title': gb.book.title, 'coverImageUrl': gb.book.cover_image_url}
+            for gb in group_books
+        ]
 
     def get_lastActivityAt(self, obj):
         annotations = obj.annotations.all()
