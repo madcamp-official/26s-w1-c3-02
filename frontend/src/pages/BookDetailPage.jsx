@@ -207,8 +207,8 @@ function BookHero({ book, isLoading, onToggleFavorite, isFavoritePending }) {
   );
 }
 
-function AnnotationCard({ annotation }) {
-  const [isRevealed, setIsRevealed] = useState(!annotation.isSpoiler);
+function AnnotationCard({ annotation, isMine, onRequireAuth }) {
+  const [isRevealed, setIsRevealed] = useState(!annotation.isSpoiler || isMine);
   const [isLiked, setIsLiked] = useState(annotation.isLiked);
   const [isFavorited, setIsFavorited] = useState(annotation.isFavorited);
   const [likeCount, setLikeCount] = useState(annotation.likeCount);
@@ -379,10 +379,9 @@ function SearchAndAction({ bookId, value, onChange, onSearch, onReset }) {
 
 export default function BookDetailPage() {
   const { bookId } = useParams();
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [searchParams] = useSearchParams();
   const groupId = searchParams.get('groupId');
-  const { isAuthenticated } = useAuth();
   const [book, setBook] = useState(null);
   const [annotations, setAnnotations] = useState([]);
   const [sort, setSort] = useState('recent,desc');
@@ -612,7 +611,14 @@ export default function BookDetailPage() {
               <div className="grid gap-4">
                 {isAnnotationsLoading
                   ? Array.from({ length: 2 }).map((_, index) => <AnnotationSkeleton key={index} />)
-                  : annotations.map((annotation) => <AnnotationCard key={annotation.id} annotation={annotation} />)}
+                  : annotations.map((annotation) => (
+                      <AnnotationCard
+                        key={annotation.id}
+                        annotation={annotation}
+                        isMine={user?.id === annotation.authorId}
+                        onRequireAuth={requireAuth}
+                      />
+                    ))}
               </div>
             )}
 

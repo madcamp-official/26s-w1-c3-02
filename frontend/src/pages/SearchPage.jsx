@@ -212,13 +212,8 @@ function BookResultCard({ book, onRequireAuth }) {
   );
 }
 
-<<<<<<< HEAD
-function AnnotationResultCard({ annotation, onRequireAuth }) {
-  const [isRevealed, setIsRevealed] = useState(!annotation.isSpoiler);
-=======
-function AnnotationResultCard({ annotation, isMine }) {
+function AnnotationResultCard({ annotation, isMine, onRequireAuth }) {
   const [isRevealed, setIsRevealed] = useState(!annotation.isSpoiler || isMine);
->>>>>>> 3e4c2522f77b8935b23460fae9607b7d0f7d1e21
   const [isFavorited, setIsFavorited] = useState(annotation.isFavorited);
   const [isPending, setIsPending] = useState(false);
   const shouldHideContent = annotation.isSpoiler && !isMine && !isRevealed;
@@ -746,11 +741,12 @@ export default function SearchPage() {
               ) : (
                 <div className="grid gap-4">
                   {annotations.map((annotation) => (
-<<<<<<< HEAD
-                    <AnnotationResultCard key={annotation.id} annotation={annotation} onRequireAuth={requireAuth} />
-=======
-                    <AnnotationResultCard key={annotation.id} annotation={annotation} isMine={user?.id === annotation.authorId} />
->>>>>>> 3e4c2522f77b8935b23460fae9607b7d0f7d1e21
+                    <AnnotationResultCard
+                      key={annotation.id}
+                      annotation={annotation}
+                      isMine={user?.id === annotation.authorId}
+                      onRequireAuth={requireAuth}
+                    />
                   ))}
                 </div>
               )}
