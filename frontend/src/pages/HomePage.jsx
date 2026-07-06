@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getBooks } from '../api/books';
 import { favoriteAnnotation, getAnnotationFeed, unfavoriteAnnotation } from '../api/annotations';
@@ -414,11 +414,6 @@ export default function HomePage() {
   const [errorMessage, setErrorMessage] = useState('');
   const [feedErrorMessage, setFeedErrorMessage] = useState('');
 
-  const selectedGenreLabel = useMemo(
-    () => genreFilters.find((filter) => filter.value === genreCode)?.label ?? '전체',
-    [genreCode],
-  );
-
   useEffect(() => {
     let ignore = false;
 
@@ -524,10 +519,6 @@ export default function HomePage() {
                   {filter.label}
                 </button>
               ))}
-            </div>
-
-            <div className="flex items-center justify-between gap-4 text-sm font-semibold text-text-muted">
-              <span>{selectedGenreLabel} 책</span>
             </div>
 
             {errorMessage && (

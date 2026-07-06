@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from annotations.models import Annotation
+from .aladin import search_aladin_books
 from .models import Book, BookFavorite
 
 
@@ -113,6 +114,26 @@ class BookApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['data'][0]['isbn'], '9790000000001')
         mock_search.assert_called_once()
+
+    @patch('books.aladin.call_aladin')
+    def test_aladin_search_only_uses_domestic_and_foreign_book_targets(self, mock_call):
+        def fake_call(path, params):
+            target = params['SearchTarget']
+            return {
+                'item': [{
+                    'title': f'{target} book',
+                    'author': '작가',
+                    'isbn13': f'979000000000{1 if target == "Book" else 2}',
+                    'categoryName': target,
+                }],
+            }
+
+        mock_call.side_effect = fake_call
+
+        results = search_aladin_books('book', size=10)
+
+        self.assertEqual([call.args[1]['SearchTarget'] for call in mock_call.call_args_list], ['Book', 'Foreign'])
+        self.assertEqual([item['isbn'] for item in results], ['9790000000001', '9790000000002'])
 
     @patch('books.views.lookup_aladin_book')
     def test_aladin_import_creates_or_reuses_book_by_isbn(self, mock_lookup):
