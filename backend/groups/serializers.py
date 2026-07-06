@@ -36,13 +36,13 @@ class GroupListSerializer(serializers.ModelSerializer):
         ]
 
     def get_memberIds(self, obj):
-        return [m.user_id for m in obj.members.all()]
+        return [m.user_id for m in obj.members.all() if m.status == GroupMember.Status.ACCEPTED]
 
     def get_bookIds(self, obj):
         return [gb.book_id for gb in obj.group_books.all()]
 
     def get_memberCount(self, obj):
-        return len(obj.members.all())
+        return len([m for m in obj.members.all() if m.status == GroupMember.Status.ACCEPTED])
 
     def get_bookCount(self, obj):
         return len(obj.group_books.all())
@@ -71,7 +71,7 @@ class GroupDetailSerializer(serializers.ModelSerializer):
         fields = ['groupId', 'groupName', 'owner', 'members', 'books', 'createdAt']
 
     def get_members(self, obj):
-        memberships = obj.members.select_related('user').order_by('joined_at')
+        memberships = obj.members.filter(status=GroupMember.Status.ACCEPTED).select_related('user').order_by('joined_at')
         return UserPublicSerializer([m.user for m in memberships], many=True).data
 
     def get_books(self, obj):
@@ -133,7 +133,33 @@ class GroupMemberCreateSerializer(serializers.Serializer):
         return value
 
     def create(self, validated_data):
-        return GroupMember.objects.create(group=self.context['group'], user_id=validated_data['userId'])
+        return GroupMember.objects.create(
+            group=self.context['group'], user_id=validated_data['userId'], status=GroupMember.Status.PENDING,
+        )
+
+
+class GroupInvitationSerializer(serializers.Serializer):
+    """GET /users/me/group-invitations 응답 — 내가 받은 대기 중(PENDING) 그룹 초대 목록. obj=GroupMember."""
+
+    groupId = serializers.IntegerField(source='group_id')
+    groupName = serializers.CharField(source='group.group_name')
+    owner = serializers.SerializerMethodField()
+    memberCount = serializers.SerializerMethodField()
+    invitedAt = serializers.DateTimeField(source='joined_at')
+
+    def get_owner(self, obj):
+        return UserPublicSerializer(obj.group.owner).data
+
+    def get_memberCount(self, obj):
+        return obj.group.members.filter(status=GroupMember.Status.ACCEPTED).count()
+
+
+class GroupPendingMemberSerializer(serializers.Serializer):
+    """GET /groups/{groupId}/invitations 응답 — owner가 보는 대기 중(PENDING) 초대 대상자 목록. obj=GroupMember."""
+
+    userId = serializers.IntegerField(source='user_id')
+    nickname = serializers.CharField(source='user.nickname')
+    invitedAt = serializers.DateTimeField(source='joined_at')
 
 
 class GroupBookCreateSerializer(serializers.Serializer):

@@ -3,9 +3,10 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   addGroupBook,
-  addGroupMember,
   deleteGroup,
   getGroup,
+  getGroupPendingInvites,
+  inviteGroupMember,
   removeGroupBook,
   removeGroupMember,
   updateGroup,
@@ -92,6 +93,7 @@ export default function GroupDetailPage() {
   const [inviteResults, setInviteResults] = useState([]);
   const [isSearchingInvite, setIsSearchingInvite] = useState(false);
   const [inviteError, setInviteError] = useState('');
+  const [pendingInvites, setPendingInvites] = useState([]);
   const [showAddBookModal, setShowAddBookModal] = useState(false);
   const [bookKeyword, setBookKeyword] = useState('');
   const [bookResults, setBookResults] = useState([]);
@@ -103,6 +105,7 @@ export default function GroupDetailPage() {
 
   const isOwner = group?.owner?.id === user?.id;
   const existingMemberIds = new Set((group?.members || []).map((member) => member.id));
+  const existingPendingIds = new Set(pendingInvites.map((invite) => invite.userId));
   const existingBookIds = new Set((group?.books || []).map((book) => book.bookId));
 
   const showToast = (message, type = 'success') => {
@@ -119,12 +122,24 @@ export default function GroupDetailPage() {
       const res = await getGroup(groupId);
       if (requestId !== latestGroupRequestId.current) return;
       setGroup(res);
+      if (res.owner?.id === user?.id) {
+        loadPendingInvites();
+      }
     } catch (err) {
       if (requestId !== latestGroupRequestId.current) return;
       console.error(err);
       setGroupError(getErrorMessage(err));
     } finally {
       if (requestId === latestGroupRequestId.current) setIsLoadingGroup(false);
+    }
+  };
+
+  const loadPendingInvites = async () => {
+    try {
+      const res = await getGroupPendingInvites(groupId);
+      setPendingInvites(res || []);
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -190,10 +205,22 @@ export default function GroupDetailPage() {
 
   const handleInvite = async (memberUser) => {
     try {
-      await addGroupMember(groupId, memberUser.id);
+      await inviteGroupMember(groupId, memberUser.id);
       showToast(`${memberUser.nickname}님을 초대했습니다.`);
       setInviteResults((prev) => prev.filter((item) => item.id !== memberUser.id));
-      loadGroup();
+      loadPendingInvites();
+    } catch (err) {
+      console.error(err);
+      showToast(getErrorMessage(err), 'error');
+    }
+  };
+
+  const handleCancelInvite = async (invitee) => {
+    if (!window.confirm(`${invitee.nickname}님에게 보낸 초대를 취소하시겠습니까?`)) return;
+    try {
+      await removeGroupMember(groupId, invitee.userId);
+      setPendingInvites((prev) => prev.filter((item) => item.userId !== invitee.userId));
+      showToast(`${invitee.nickname}님에 대한 초대를 취소했습니다.`);
     } catch (err) {
       console.error(err);
       showToast(getErrorMessage(err), 'error');
@@ -445,6 +472,33 @@ export default function GroupDetailPage() {
                   ))}
                 </ul>
               </section>
+
+              {isOwner && pendingInvites.length > 0 && (
+                <section className="card card--padded bg-white">
+                  <h2 className="section-title !text-base mb-3">초대 대기 중 ({pendingInvites.length})</h2>
+                  <ul className="grid gap-2 sm:grid-cols-2">
+                    {pendingInvites.map((invite) => (
+                      <li key={invite.userId} className="flex items-center justify-between gap-2 rounded bg-pageSoft p-2">
+                        <div className="flex min-w-0 items-center gap-2">
+                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-soft text-xs font-bold text-primary">
+                            {invite.nickname?.charAt(0).toUpperCase()}
+                          </span>
+                          <span className="truncate text-sm font-semibold text-text">{invite.nickname}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleCancelInvite(invite)}
+                          className="shrink-0 text-text-subtle transition hover:text-danger"
+                          aria-label={`${invite.nickname} 초대 취소`}
+                          title="초대 취소"
+                        >
+                          <CloseIcon className="h-4 w-4" />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
             </>
           )}
         </div>
@@ -465,11 +519,14 @@ export default function GroupDetailPage() {
                   {inviteResults.map((result) => {
                     if (result.id === user?.id) return null;
                     const alreadyMember = existingMemberIds.has(result.id);
+                    const alreadyPending = existingPendingIds.has(result.id);
                     return (
                       <li key={result.id} className="flex items-center justify-between rounded bg-pageSoft p-2">
                         <span className="max-w-[150px] truncate text-xs font-semibold text-text">{result.nickname}</span>
                         {alreadyMember ? (
                           <span className="text-[11px] font-bold text-text-subtle">이미 멤버</span>
+                        ) : alreadyPending ? (
+                          <span className="text-[11px] font-bold text-text-subtle">초대 대기 중</span>
                         ) : (
                           <button type="button" onClick={() => handleInvite(result)} className="button button--primary button--sm !min-h-7 !px-2.5 text-xs">
                             초대
