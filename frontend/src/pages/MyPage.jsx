@@ -9,6 +9,7 @@ import {
   getFavoriteBooks,
   getFavoriteAnnotations,
   getMyGroups,
+  getGroupInvitations,
   getMyFriends,
   getFriendRequests,
   searchUsers,
@@ -20,7 +21,7 @@ import {
 } from '../api/friends';
 import { unfavoriteBook } from '../api/books';
 import { updateAnnotation, deleteAnnotation } from '../api/annotations';
-import { createGroup } from '../api/groups';
+import { acceptGroupInvitation, createGroup, removeGroupMember } from '../api/groups';
 import { getErrorMessage } from '../utils/error';
 
 // 사이드바 아이콘 (lucide-react 미설치 상태라 최소 인라인 SVG로 대체)
@@ -359,6 +360,7 @@ export default function MyPage() {
 
   const [activeTab, setActiveTab] = useState('dashboard'); // dashboard, annotations, favoriteAnnotations, favoriteBooks, groups, friends, settings
   const [tabData, setTabData] = useState([]);
+  const [groupInvitations, setGroupInvitations] = useState([]);
   const [dashboardStats, setDashboardStats] = useState({
     annotations: 0,
     favoriteBooks: 0,
@@ -488,10 +490,11 @@ export default function MyPage() {
         if (isStale()) return;
         setTabData(res.data || []);
       } else if (tabName === 'groups') {
-        const res = await getMyGroups();
+        const [res, invitationsRes] = await Promise.all([getMyGroups(), getGroupInvitations()]);
         if (isStale()) return;
         // groups는 api-spec상 배열 형태 통째 응답이거나 {data}일 수 있으므로 유연하게 처리
         setTabData(Array.isArray(res) ? res : res.data || []);
+        setGroupInvitations(Array.isArray(invitationsRes) ? invitationsRes : invitationsRes.data || []);
       } else if (tabName === 'friends') {
         const [friendsRes, receivedRes, sentRes] = await Promise.all([
           getMyFriends(),
@@ -722,6 +725,31 @@ export default function MyPage() {
       setCreateGroupError(getErrorMessage(err));
     } finally {
       setIsCreatingGroup(false);
+    }
+  };
+
+  // 받은 그룹 초대 수락
+  const handleAcceptGroupInvitation = async (invitation) => {
+    try {
+      await acceptGroupInvitation(invitation.groupId, user.id);
+      setGroupInvitations((prev) => prev.filter((item) => item.groupId !== invitation.groupId));
+      showToast(`${invitation.groupName}에 가입했습니다.`);
+      fetchTabData('groups');
+    } catch (err) {
+      console.error(err);
+      showToast(getErrorMessage(err), 'error');
+    }
+  };
+
+  // 받은 그룹 초대 거절
+  const handleRejectGroupInvitation = async (invitation) => {
+    try {
+      await removeGroupMember(invitation.groupId, user.id);
+      setGroupInvitations((prev) => prev.filter((item) => item.groupId !== invitation.groupId));
+      showToast(`${invitation.groupName} 초대를 거절했습니다.`);
+    } catch (err) {
+      console.error(err);
+      showToast(getErrorMessage(err), 'error');
     }
   };
 
@@ -1166,6 +1194,40 @@ export default function MyPage() {
                   라운지 만들기
                 </button>
               </div>
+
+              {groupInvitations.length > 0 && (
+                <div className="card card--padded bg-white">
+                  <h3 className="text-sm font-bold text-text mb-3">받은 그룹 초대 ({groupInvitations.length})</h3>
+                  <ul className="grid gap-2 sm:grid-cols-2">
+                    {groupInvitations.map((invitation) => (
+                      <li key={invitation.groupId} className="flex items-center justify-between gap-3 rounded bg-pageSoft p-3">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-bold text-text">{invitation.groupName}</p>
+                          <p className="truncate text-xs text-text-muted">
+                            방장: {invitation.owner?.nickname || '알 수 없음'}
+                          </p>
+                        </div>
+                        <div className="flex shrink-0 gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleAcceptGroupInvitation(invitation)}
+                            className="button button--primary button--sm !min-h-8"
+                          >
+                            수락
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleRejectGroupInvitation(invitation)}
+                            className="button button--secondary button--sm !min-h-8"
+                          >
+                            거절
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
 
               {isLoadingTab ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

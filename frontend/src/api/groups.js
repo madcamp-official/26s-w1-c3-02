@@ -17,12 +17,20 @@ export const deleteGroup = (groupId) => {
   return client.delete(`/groups/${groupId}`);
 };
 
-export const addGroupMember = (groupId, userId) => {
+export const inviteGroupMember = (groupId, userId) => {
   return client.post(`/groups/${groupId}/members`, { userId });
 };
 
 export const removeGroupMember = (groupId, userId) => {
   return client.delete(`/groups/${groupId}/members/${userId}`);
+};
+
+export const acceptGroupInvitation = (groupId, userId) => {
+  return client.post(`/groups/${groupId}/members/${userId}/accept`);
+};
+
+export const getGroupPendingInvites = (groupId) => {
+  return client.get(`/groups/${groupId}/invitations`);
 };
 
 export const addGroupBook = (groupId, bookId) => {

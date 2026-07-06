@@ -16,17 +16,23 @@ from .views import (
     GroupBooksView,
     GroupCreateView,
     GroupDetailView,
+    GroupInvitationAcceptView,
+    GroupInvitationListView,
     GroupMemberDeleteView,
     GroupMembersView,
+    GroupPendingInvitesView,
     MyGroupsView,
 )
 
 urlpatterns = [
     path('users/me/groups', MyGroupsView.as_view(), name='my-groups'),
+    path('users/me/group-invitations', GroupInvitationListView.as_view(), name='my-group-invitations'),
     path('groups', GroupCreateView.as_view(), name='groups-create'),
     path('groups/<int:group_id>', GroupDetailView.as_view(), name='group-detail'),
     path('groups/<int:group_id>/members', GroupMembersView.as_view(), name='group-members'),
     path('groups/<int:group_id>/members/<int:user_id>', GroupMemberDeleteView.as_view(), name='group-member-delete'),
+    path('groups/<int:group_id>/members/<int:user_id>/accept', GroupInvitationAcceptView.as_view(), name='group-member-accept'),
+    path('groups/<int:group_id>/invitations', GroupPendingInvitesView.as_view(), name='group-pending-invites'),
     path('groups/<int:group_id>/books', GroupBooksView.as_view(), name='group-books'),
     path('groups/<int:group_id>/books/<int:book_id>', GroupBookDeleteView.as_view(), name='group-book-delete'),
     path('groups/<int:group_id>/annotations', GroupAnnotationFeedView.as_view(), name='group-annotation-feed'),

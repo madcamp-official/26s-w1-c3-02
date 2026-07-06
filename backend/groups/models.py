@@ -17,8 +17,13 @@ class Group(models.Model):
 
 
 class GroupMember(models.Model):
+    class Status(models.TextChoices):
+        PENDING = 'PENDING'
+        ACCEPTED = 'ACCEPTED'
+
     group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='members')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='group_memberships')
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.ACCEPTED)
     joined_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -28,12 +33,12 @@ class GroupMember(models.Model):
         ]
 
     def __str__(self):
-        return f'group={self.group_id} user={self.user_id}'
+        return f'group={self.group_id} user={self.user_id} ({self.status})'
 
     @classmethod
     def group_ids_of(cls, user):
-        """내가 속한 그룹 id 목록. (인터페이스 계약 — A의 visibility=group 필터에서 사용)"""
-        return cls.objects.filter(user=user).values_list('group_id', flat=True)
+        """내가 속한(ACCEPTED) 그룹 id 목록. (인터페이스 계약 — A의 visibility=group 필터에서 사용)"""
+        return cls.objects.filter(user=user, status=cls.Status.ACCEPTED).values_list('group_id', flat=True)
 
 
 class GroupBook(models.Model):

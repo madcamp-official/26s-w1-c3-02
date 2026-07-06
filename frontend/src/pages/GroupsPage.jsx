@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import SiteHeader from '../components/SiteHeader';
-import { getMyGroups } from '../api/users';
-import { createGroup } from '../api/groups';
+import { useAuth } from '../context/AuthContext';
+import { getGroupInvitations, getMyGroups } from '../api/users';
+import { acceptGroupInvitation, createGroup, removeGroupMember } from '../api/groups';
 import { getErrorMessage } from '../utils/error';
 
 const iconProps = {
@@ -49,14 +50,26 @@ function GroupCardSkeleton() {
 }
 
 export default function GroupsPage() {
+  const { user } = useAuth();
   const [groups, setGroups] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
+
+  const [invitations, setInvitations] = useState([]);
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [createError, setCreateError] = useState('');
+
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState('success');
+
+  const showToast = (message, type = 'success') => {
+    setToastMessage(message);
+    setToastType(type);
+    setTimeout(() => setToastMessage(''), 3000);
+  };
 
   const formatDate = (isoString) => {
     if (!isoString) return '';
@@ -78,9 +91,42 @@ export default function GroupsPage() {
     }
   };
 
+  const fetchInvitations = async () => {
+    try {
+      const res = await getGroupInvitations();
+      setInvitations(Array.isArray(res) ? res : res.data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     fetchGroups();
+    fetchInvitations();
   }, []);
+
+  const handleAcceptInvitation = async (invitation) => {
+    try {
+      await acceptGroupInvitation(invitation.groupId, user.id);
+      setInvitations((prev) => prev.filter((item) => item.groupId !== invitation.groupId));
+      showToast(`${invitation.groupName}에 가입했습니다.`);
+      fetchGroups();
+    } catch (err) {
+      console.error(err);
+      showToast(getErrorMessage(err), 'error');
+    }
+  };
+
+  const handleRejectInvitation = async (invitation) => {
+    try {
+      await removeGroupMember(invitation.groupId, user.id);
+      setInvitations((prev) => prev.filter((item) => item.groupId !== invitation.groupId));
+      showToast(`${invitation.groupName} 초대를 거절했습니다.`);
+    } catch (err) {
+      console.error(err);
+      showToast(getErrorMessage(err), 'error');
+    }
+  };
 
   const handleCreateGroup = async (e) => {
     e.preventDefault();
@@ -124,6 +170,40 @@ export default function GroupsPage() {
               라운지 만들기
             </button>
           </div>
+
+          {invitations.length > 0 && (
+            <section className="card card--padded bg-white">
+              <h2 className="section-title !text-base mb-3">받은 그룹 초대 ({invitations.length})</h2>
+              <ul className="grid gap-2 sm:grid-cols-2">
+                {invitations.map((invitation) => (
+                  <li key={invitation.groupId} className="flex items-center justify-between gap-3 rounded bg-pageSoft p-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold text-text">{invitation.groupName}</p>
+                      <p className="truncate text-xs text-text-muted">
+                        방장: {invitation.owner?.nickname || '알 수 없음'}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => handleAcceptInvitation(invitation)}
+                        className="button button--primary button--sm !min-h-8"
+                      >
+                        수락
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRejectInvitation(invitation)}
+                        className="button button--secondary button--sm !min-h-8"
+                      >
+                        거절
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -208,6 +288,14 @@ export default function GroupsPage() {
               </div>
             </form>
           </section>
+        </div>
+      )}
+
+      {toastMessage && (
+        <div className={`fixed bottom-6 right-6 z-50 rounded-sm px-4 py-3 text-sm font-semibold shadow-card transition-all duration-300 ${
+          toastType === 'error' ? 'bg-danger-soft text-danger' : 'bg-white text-primary border border-line'
+        }`}>
+          {toastMessage}
         </div>
       )}
     </div>

@@ -28,6 +28,10 @@ export const getMyGroups = async () => {
   return client.get('/users/me/groups');
 };
 
+export const getGroupInvitations = async () => {
+  return client.get('/users/me/group-invitations');
+};
+
 export const getMyFriends = async () => {
   return client.get('/users/me/friends');
 };
