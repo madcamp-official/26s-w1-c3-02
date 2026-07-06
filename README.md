@@ -19,6 +19,7 @@
 
 - 이메일/비밀번호 기반 회원가입 및 로그인
 - JWT Bearer 토큰 기반 API 인증
+- 로그인 없이도 홈/검색/책·주석 열람 가능, 작성·참여·마이페이지는 로그인 필요
 - 마이페이지에서 내 정보, 작성한 주석, 즐겨찾기한 책/주석, 친구, 그룹 확인
 - 닉네임 기반 사용자 검색 및 친구 요청/수락/삭제
 
@@ -26,6 +27,7 @@
 
 - 홈 화면에서 책 목록과 장르 필터 제공
 - 검색 화면에서 책 제목/저자/주석 통합 검색
+- 알라딘 API 연동으로 새로운 책 검색 및 등록
 - 책 상세 화면에서 주석 피드, 페이지/키워드 검색, 정렬 제공
 - 책 북마크 추가/해제
 - 북마크한 책은 마이페이지 내 서재에서 확인 및 해제 가능
@@ -47,12 +49,13 @@
 
 ### 그룹 주석방
 
-- 마이페이지에서 그룹 생성
+- 라운지(그룹 목록) 및 마이페이지에서 그룹 생성
 - 그룹 상세에서 그룹 이름 수정, 그룹 삭제/나가기
-- 멤버 초대/내보내기
+- 멤버 초대 → 상대방 수락/거절 흐름, 멤버 내보내기
+- 받은 초대는 라운지와 마이페이지에서 확인 및 수락/거절
 - 그룹 도서 추가/제거
-- 그룹 도서를 클릭하면 해당 책 상세로 이동
-- 그룹 주석 피드는 `groupId`, `bookId`, `type` 기반 필터를 지원하는 API로 확장 가능
+- 그룹 도서를 클릭하면 그룹원 주석만 모아 보는 책 상세로 이동
+- 그룹 주석 피드는 `groupId`, `bookId`, `type` 기반 필터를 지원
 
 ## 화면 구조
 
@@ -67,7 +70,8 @@
 | `/login` | 로그인 | 로그인 및 토큰 저장 |
 | `/register` | 회원가입 | 계정 생성 |
 | `/mypage` | 마이페이지 | 대시보드, 내 주석, 즐겨찾기, 내 서재, 그룹, 친구, 설정 |
-| `/groups/:groupId` | 그룹 상세 | 그룹 정보, 멤버 관리, 도서 관리 |
+| `/groups` | 라운지 | 참여 중인 그룹 목록, 그룹 생성, 받은 초대 수락/거절 |
+| `/groups/:groupId` | 그룹 상세 | 그룹 정보, 멤버 초대/관리, 도서 관리 |
 
 ## 기술 스택
 
@@ -76,61 +80,61 @@
 | Frontend | Vite, React, React Router |
 | HTTP Client | axios |
 | Styling | Tailwind CSS + 전역 컴포넌트 클래스 |
-| Mock API | json-server 기반 Express 스타일 mock server |
 | Auth State | React Context |
+| Backend | Django, Django REST Framework |
+| Database | MySQL |
+| Auth | JWT Bearer (djangorestframework-simplejwt) |
+| 배포 | Docker Compose (nginx + gunicorn + MySQL), KAIST VM |
 
 ## 폴더 구조
 
 ```text
-frontend/
-├── mock-server.js
-├── src/
-│   ├── api/
-│   │   ├── auth.js
-│   │   ├── books.js
-│   │   ├── annotations.js
-│   │   ├── comments.js
-│   │   ├── likes.js
-│   │   ├── users.js
-│   │   ├── friends.js
-│   │   └── groups.js
-│   ├── components/
-│   │   └── SiteHeader.jsx
-│   ├── context/
-│   │   └── AuthContext.jsx
-│   ├── pages/
-│   │   ├── HomePage.jsx
-│   │   ├── SearchPage.jsx
-│   │   ├── BookDetailPage.jsx
-│   │   ├── AnnotationFormPage.jsx
-│   │   ├── AnnotationDetailPage.jsx
-│   │   ├── LoginPage.jsx
-│   │   ├── RegisterPage.jsx
-│   │   ├── MyPage.jsx
-│   │   └── GroupDetailPage.jsx
-│   └── styles/
-│       └── global.css
-└── package.json
+26s-w1-c3-02/
+├── docker-compose.yml       # db(MySQL) + backend(gunicorn) + frontend(nginx) 통합 실행
+├── backend/
+│   ├── Dockerfile
+│   ├── manage.py
+│   ├── requirements.txt
+│   ├── config/              # 설정·루트 URL (settings, urls, wsgi)
+│   ├── common/              # 공통 인프라 (pagination, exceptions, permissions)
+│   ├── accounts/            # User, Friend — 인증·사용자·친구
+│   ├── groups/              # Group, GroupMember, GroupBook — 그룹 주석방
+│   ├── books/               # Book, BookFavorite — 도서·북마크·알라딘 연동
+│   ├── annotations/         # Annotation, Comment, Like, AnnotationFavorite
+│   └── fixtures/            # seed.json (데모 데이터)
+└── frontend/
+    ├── Dockerfile
+    ├── nginx.conf           # 정적 서빙 + /api·/admin 프록시
+    ├── src/
+    │   ├── api/             # axios 클라이언트 및 도메인별 API 모듈
+    │   ├── components/
+    │   ├── context/         # AuthContext
+    │   ├── pages/           # 화면 컴포넌트 (위 화면 구조 참고)
+    │   ├── utils/
+    │   └── styles/
+    └── package.json
 ```
 
 ## 실행 방법
 
-```bash
-cd frontend
-npm install
-npm run mock
-```
-
-다른 터미널에서:
+저장소 루트의 `.env`를 준비한 뒤(`.env.example` 참고), Docker Compose로 전체 스택을 한 번에 실행합니다.
 
 ```bash
-cd frontend
-npm run dev
+docker compose up --build -d
 ```
 
-- Frontend: `http://localhost:5173`
-- Mock API: `http://localhost:4000`
-- 테스트 로그인: mock 서버에서는 기본 사용자로 로그인 가능하도록 완화되어 있습니다.
+최초 1회, 데이터베이스 마이그레이션과 데모 데이터를 적재합니다.
+
+```bash
+docker compose exec backend python manage.py migrate
+docker compose exec backend python manage.py loaddata seed
+```
+
+- 서비스: `http://<배포-호스트>` (로컬 실행 시 `http://localhost`)
+- 관리자 페이지: `http://<배포-호스트>/admin`
+- 데모 계정 비밀번호: `pw1234!!`
+
+환경 변수(DB 접속 정보, `DJANGO_SECRET_KEY`, `DJANGO_ALLOWED_HOSTS`, 알라딘 API 키 등)는 모두 루트 `.env`로 주입합니다. 배포 시에는 `DJANGO_DEBUG=False`, `DJANGO_ALLOWED_HOSTS`에 배포 호스트를 지정합니다.
 
 ## API 문서
 
@@ -145,15 +149,18 @@ npm run dev
 - 좋아요: `/api/likes`
 - 친구: `/api/friends`, `/api/users/me/friend-requests`
 - 그룹: `/api/groups`, `/api/groups/{groupId}/members`, `/api/groups/{groupId}/books`
+- 그룹 초대: `/api/groups/{groupId}/members/{userId}/accept`, `/api/users/me/group-invitations`
 
 ## 구현 상태
 
 - 홈/검색/책 상세/주석 상세/작성/수정 플로우 구현
-- 책 북마크 및 주석 즐겨찾기 UI 구현
+- 책 북마크 및 주석 즐겨찾기 구현
 - 주석/댓글 좋아요 구현
 - 마이페이지 대시보드, 내 주석, 즐겨찾기, 내 서재, 친구, 그룹 탭 구현
-- 그룹 생성/상세/멤버 초대/도서 추가 구현
-- mock server에 한국어 데모 데이터와 전체 API 응답 구현
+- 그룹 생성/상세/멤버 초대·수락/도서 추가 구현
+- Django REST Framework 기반 전체 API 및 MySQL 연동 구현
+- 알라딘 API 연동 도서 검색·등록 구현
+- Docker Compose 기반 통합 실행 및 KAIST VM 배포
 
 ## 참고 문서
 

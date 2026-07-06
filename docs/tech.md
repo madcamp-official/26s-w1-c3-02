@@ -6,14 +6,15 @@ inclusion: always
 
 ## 현재 상태
 
-기술 스택 및 API 설계 방식 **확정**. DB 스키마(ERD)·API 상세 스펙(`api-spec.md`) 문서화까지 완료됐으나, 아직 실제 소스 코드는 없는 설계 단계다. 아래 스택과 규약을 기준으로 구현을 시작한다.
+기획·설계(ERD, `api-spec.md`)를 기반으로 프론트엔드·백엔드 구현과 배포까지 완료된 상태다. 아래 스택과 규약을 기준으로 유지·보수한다.
 
 ## 기술 스택
 
-- **프론트엔드:** React
-- **백엔드:** Django
+- **프론트엔드:** React (Vite, React Router), axios, Tailwind CSS
+- **백엔드:** Django, Django REST Framework
 - **데이터베이스:** MySQL
-- **인프라/배포:** KAIST VM
+- **인증:** JWT Bearer (djangorestframework-simplejwt)
+- **컨테이너/배포:** Docker Compose (nginx + gunicorn + MySQL), KAIST VM
 - **API 설계 방식:** REST API
 
 ## API 설계 규약 (확정, `api-spec.md` 기준)
@@ -25,13 +26,11 @@ inclusion: always
 - **좋아요 집계:** polymorphic 단일 `likes` 테이블(`targetType` + `targetId`)에서 `COUNT`로 파생, 별도 카운트 컬럼 없음.
 - 엔드포인트별 요청/응답 예시와 ENUM(`annotations.type`, `visibility`, `friends.status` 등) 전체 목록은 `api-spec.md` 참고.
 
-## 세부 사항 (추후 결정 필요)
+## 세부 사항 (결정됨)
 
-- **프론트엔드:** 상태 관리, 스타일링 방식
-- **인프라/배포:** CI/CD 여부, 배포 절차, KAIST VM 접속·배포 스크립트
-- **백엔드:** JWT 토큰 만료/갱신(refresh token) 정책, 비밀번호 해싱 방식
-
-결정되는 대로 이 문서와 README.md의 "배포 결과물" 섹션을 함께 갱신할 것.
+- **프론트엔드:** 상태 관리는 React Context(`AuthContext`), 스타일링은 Tailwind CSS + 전역 컴포넌트 클래스.
+- **인프라/배포:** Docker Compose로 db·backend·frontend 통합 실행, KAIST VM에 배포. 별도 CI/CD 없이 VM에서 `git pull` 후 재빌드.
+- **백엔드:** JWT access 토큰(장기 만료, refresh 미사용), 비밀번호 해싱은 Django 기본(pbkdf2_sha256).
 
 ## 참고 자료
 
@@ -42,4 +41,25 @@ inclusion: always
 
 ## 공통 명령어
 
-아직 정의되지 않음. 프로젝트 스캐폴딩 후 빌드/테스트/실행 명령어를 이 섹션에 기록할 것.
+**전체 스택 (Docker Compose, 저장소 루트):**
+
+```bash
+docker compose up --build -d                                  # 빌드 및 실행
+docker compose exec backend python manage.py migrate          # 마이그레이션
+docker compose exec backend python manage.py loaddata seed    # 데모 데이터 적재
+```
+
+**백엔드 (로컬 개발, `backend/`):**
+
+```bash
+python manage.py runserver 0.0.0.0:8000
+python manage.py test
+```
+
+**프론트엔드 (`frontend/`):**
+
+```bash
+npm install
+npm run dev      # 개발 서버 (http://localhost:5173, /api 는 :8000 프록시)
+npm run build    # 프로덕션 빌드
+```
