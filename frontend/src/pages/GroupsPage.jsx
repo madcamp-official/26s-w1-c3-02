@@ -186,7 +186,7 @@ export default function GroupsPage() {
 
       <main className="page flex-1">
         <div className="container grid gap-6">
-          <div className="card card--padded bg-white flex items-center justify-between gap-4">
+          <div className="card card--padded bg-white flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="section-title !text-lg">라운지</h1>
               <p className="mt-1.5 text-sm text-text-muted">내가 속한 그룹 라운지를 한눈에 확인해 보세요.</p>
@@ -325,7 +325,7 @@ export default function GroupsPage() {
       )}
 
       {toastMessage && (
-        <div className={`fixed bottom-6 right-6 z-50 rounded-sm px-4 py-3 text-sm font-semibold shadow-card transition-all duration-300 ${
+        <div className={`fixed bottom-6 left-6 right-6 z-50 max-w-[calc(100vw-3rem)] sm:left-auto sm:max-w-sm rounded-sm px-4 py-3 text-sm font-semibold shadow-card transition-all duration-300 ${
           toastType === 'error' ? 'bg-danger-soft text-danger' : 'bg-white text-primary border border-line'
         }`}>
           {toastMessage}

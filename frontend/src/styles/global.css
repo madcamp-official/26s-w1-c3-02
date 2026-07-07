@@ -87,20 +87,12 @@
     @apply sticky top-0 z-20 h-[72px] border-b border-line bg-white/90 backdrop-blur;
   }
 
-  .site-header__inner {
-    @apply flex h-full items-center justify-between gap-6;
-  }
-
   .brand {
     @apply inline-flex items-center gap-3 whitespace-nowrap text-[22px] font-extrabold text-primary;
   }
 
   .brand__subtitle {
     @apply text-xs font-medium text-text-subtle;
-  }
-
-  .nav {
-    @apply flex items-center gap-6;
   }
 
   .nav__link {
@@ -155,6 +147,10 @@
 
   .button--danger {
     @apply bg-danger text-white;
+  }
+
+  .button--kakao {
+    @apply bg-[#FEE500] text-[#191919] hover:bg-[#F7DC00];
   }
 
   .button--sm {
@@ -355,14 +351,6 @@
 
     .site-header {
       @apply h-auto;
-    }
-
-    .site-header__inner {
-      @apply flex-wrap py-4;
-    }
-
-    .nav {
-      @apply w-full gap-4 overflow-x-auto;
     }
 
     .nav__link {

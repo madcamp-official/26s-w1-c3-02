@@ -20,6 +20,7 @@ from .views import (
     FriendDeleteView,
     FriendListView,
     FriendRequestListView,
+    KakaoLoginView,
     LoginView,
     LogoutView,
     MeView,
@@ -31,6 +32,7 @@ from .views import (
 urlpatterns = [
     path('auth/register', RegisterView.as_view(), name='auth-register'),
     path('auth/login', LoginView.as_view(), name='auth-login'),
+    path('auth/kakao', KakaoLoginView.as_view(), name='auth-kakao'),
     path('auth/logout', LogoutView.as_view(), name='auth-logout'),
     path('users/me', MeView.as_view(), name='users-me'),
     path('users', UserSearchView.as_view(), name='users-search'),

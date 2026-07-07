@@ -549,14 +549,14 @@ export default function BookDetailPage() {
       <SiteHeader />
 
       <div className="border-b border-line bg-white/40">
-        <div className="container flex min-h-[58px] items-center gap-2 text-sm font-semibold text-text-muted">
+        <div className="container flex min-h-[58px] min-w-0 items-center gap-2 text-sm font-semibold text-text-muted">
           {groupId ? (
-            <Link to={`/groups/${groupId}`}>그룹 라운지</Link>
+            <Link className="shrink-0" to={`/groups/${groupId}`}>그룹 라운지</Link>
           ) : (
-            <Link to="/">홈</Link>
+            <Link className="shrink-0" to="/">홈</Link>
           )}
-          <span>/</span>
-          <span className="text-text">{visibleBook.title}</span>
+          <span className="shrink-0">/</span>
+          <span className="min-w-0 truncate text-text">{visibleBook.title}</span>
           <span className="sr-only">현재 책 ID {bookId}</span>
         </div>
       </div>
@@ -638,7 +638,7 @@ export default function BookDetailPage() {
       </main>
 
       {toastMessage && (
-        <div className={`fixed bottom-6 right-6 z-50 rounded-sm px-4 py-3 text-sm font-semibold shadow-card transition-all duration-300 ${
+        <div className={`fixed bottom-6 left-6 right-6 z-50 max-w-[calc(100vw-3rem)] sm:left-auto sm:max-w-sm rounded-sm px-4 py-3 text-sm font-semibold shadow-card transition-all duration-300 ${
           toastType === 'error' ? 'bg-danger-soft text-danger' : 'bg-white text-primary border border-line'
         }`}>
           {toastMessage}

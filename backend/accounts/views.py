@@ -8,9 +8,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 
+from django.db import transaction
+
 from annotations.models import Annotation, Like
 from annotations.views import visible_to
 
+from .kakao import fetch_kakao_profile, unique_nickname
 from .models import Friend
 from .serializers import (
     FriendActionSerializer,
@@ -49,6 +52,40 @@ class LoginView(APIView):
         )
         if user is None:
             raise AuthenticationFailed('이메일 또는 비밀번호가 올바르지 않습니다.')
+        access = AccessToken.for_user(user)
+        return Response({
+            'accessToken': str(access),
+            'user': UserSerializer(user).data,
+        })
+
+
+class KakaoLoginView(APIView):
+    """POST /api/auth/kakao — 인증 불필요. 카카오 액세스 토큰을 검증해 로그인/가입 처리."""
+
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        kakao_access_token = request.data.get('accessToken')
+        if not kakao_access_token:
+            raise ValidationError('accessToken은 필수입니다.')
+
+        profile = fetch_kakao_profile(kakao_access_token)
+
+        with transaction.atomic():
+            user = User.objects.filter(kakao_id=profile['kakao_id']).first()
+
+            if user is None:
+                email = profile['email'] or f"kakao_{profile['kakao_id']}@kakao.local"
+                if profile['email'] and User.objects.filter(email=email).exists():
+                    raise ValidationError('이미 가입된 이메일입니다. 이메일 로그인을 이용해주세요.')
+
+                base_nickname = profile['nickname'] or f"카카오사용자{profile['kakao_id'][-4:]}"
+                nickname = unique_nickname(User, base_nickname)
+
+                user = User(email=email, nickname=nickname, kakao_id=profile['kakao_id'])
+                user.set_unusable_password()
+                user.save()
+
         access = AccessToken.for_user(user)
         return Response({
             'accessToken': str(access),

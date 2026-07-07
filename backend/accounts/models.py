@@ -16,6 +16,7 @@ class User(AbstractUser):
     bio = models.TextField(blank=True, default='')
     avatar_url = models.CharField(max_length=500, blank=True, default='')
     avatar_icon = models.CharField(max_length=50, blank=True, default='')
+    kakao_id = models.CharField(max_length=64, unique=True, null=True, blank=True, default=None)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['nickname']

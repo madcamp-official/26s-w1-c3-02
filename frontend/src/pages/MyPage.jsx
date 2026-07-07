@@ -927,7 +927,7 @@ export default function MyPage() {
           {/* 4. 내 서재(즐겨찾기 책) 탭 */}
           {activeTab === 'favoriteBooks' && (
             isLoadingTab ? (
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 <BookCardSkeleton />
                 <BookCardSkeleton />
                 <BookCardSkeleton />
@@ -939,7 +939,7 @@ export default function MyPage() {
             ) : tabData.length === 0 ? (
               <EmptyState message="즐겨찾기한 항목이 없습니다" />
             ) : (
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 {tabData.map((book) => (
                   <Link to={`/books/${book.bookId}`} key={book.bookId} className="block">
                     <article className="card book-card bg-white transition hover:-translate-y-1 hover:shadow-card">
@@ -1363,7 +1363,7 @@ export default function MyPage() {
 
       {/* 성공/실패 토스트 */}
       {toastMessage && (
-        <div className={`fixed bottom-6 right-6 z-50 rounded-sm px-4 py-3 text-sm font-semibold shadow-card transition-all duration-300 ${
+        <div className={`fixed bottom-6 left-6 right-6 z-50 max-w-[calc(100vw-3rem)] sm:left-auto sm:max-w-sm rounded-sm px-4 py-3 text-sm font-semibold shadow-card transition-all duration-300 ${
           toastType === 'error'
             ? 'bg-danger-soft text-danger'
             : 'bg-white text-primary border border-line'
