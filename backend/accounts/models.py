@@ -3,6 +3,11 @@ from django.db import models
 
 from .managers import UserManager
 
+# avatar_icon에 저장 가능한 값 — frontend/src/utils/avatarIcons.js의 AVATAR_ICON_OPTIONS와 반드시 동기화할 것.
+AVATAR_ICON_KEYS = frozenset({
+    'reader', 'cat', 'fox', 'bear', 'rabbit', 'owl', 'star', 'plant', 'coffee', 'moon',
+})
+
 
 class User(AbstractUser):
     """로그인 필드는 email, 표시 이름은 nickname (api-spec User 객체 기준)."""

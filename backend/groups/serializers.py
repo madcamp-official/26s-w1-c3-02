@@ -200,6 +200,8 @@ class GroupPendingMemberSerializer(serializers.Serializer):
 
     userId = serializers.IntegerField(source='user_id')
     nickname = serializers.CharField(source='user.nickname')
+    avatarUrl = serializers.CharField(source='user.avatar_url')
+    avatarIcon = serializers.CharField(source='user.avatar_icon')
     invitedAt = serializers.DateTimeField(source='joined_at')
 
 

@@ -4,7 +4,7 @@ from rest_framework.exceptions import NotFound
 
 from common.exceptions import DuplicateError
 
-from .models import Friend
+from .models import AVATAR_ICON_KEYS, Friend
 
 User = get_user_model()
 
@@ -78,6 +78,11 @@ class UserUpdateSerializer(serializers.ModelSerializer):
             raise DuplicateError('이미 사용 중인 닉네임입니다.')
         return value
 
+    def validate_avatarIcon(self, value):
+        if value and value not in AVATAR_ICON_KEYS:
+            raise serializers.ValidationError('허용되지 않은 아이콘입니다.')
+        return value
+
     def update(self, instance, validated_data):
         password = validated_data.pop('password', None)
         for attr, value in validated_data.items():
@@ -89,11 +94,14 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
 
 class UserPublicSerializer(serializers.ModelSerializer):
-    """GET /users?nickname= 검색 결과 — id/nickname만."""
+    """다른 사용자 요약 표현 — 검색 결과, 그룹 방장/멤버/공지 작성자 등에서 재사용."""
+
+    avatarUrl = serializers.CharField(source='avatar_url', read_only=True)
+    avatarIcon = serializers.CharField(source='avatar_icon', read_only=True)
 
     class Meta:
         model = User
-        fields = ['id', 'nickname']
+        fields = ['id', 'nickname', 'avatarUrl', 'avatarIcon']
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -113,6 +121,8 @@ class FriendSerializer(serializers.Serializer):
 
     userId = serializers.SerializerMethodField()
     nickname = serializers.SerializerMethodField()
+    avatarUrl = serializers.SerializerMethodField()
+    avatarIcon = serializers.SerializerMethodField()
     status = serializers.CharField(read_only=True)
     createdAt = serializers.DateTimeField(source='created_at', read_only=True)
 
@@ -125,6 +135,12 @@ class FriendSerializer(serializers.Serializer):
 
     def get_nickname(self, obj):
         return self._other(obj).nickname
+
+    def get_avatarUrl(self, obj):
+        return self._other(obj).avatar_url
+
+    def get_avatarIcon(self, obj):
+        return self._other(obj).avatar_icon
 
 
 class FriendActionSerializer(serializers.ModelSerializer):
