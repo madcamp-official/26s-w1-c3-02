@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getBookCategories, getBooks } from '../api/books';
+import { getBookCategories, getBooks, getDailyQuote } from '../api/books';
 import { favoriteAnnotation, getAnnotationFeed, unfavoriteAnnotation } from '../api/annotations';
 import { getPageData } from '../api/client';
 import BookShelfFrame from '../components/BookShelfFrame';
@@ -205,49 +205,6 @@ function Header({ keyword, onKeywordChange, onSearch, searchCategory, onSearchCa
   );
 }
 
-function HeroScene() {
-  return (
-    <div className="pointer-events-none absolute inset-y-0 right-0 hidden w-[48%] overflow-hidden rounded-r-lg md:block">
-      <div className="absolute inset-0 bg-gradient-to-l from-stone-200/70 via-white/35 to-transparent" />
-      <div className="absolute bottom-0 right-0 h-28 w-full bg-gradient-to-r from-stone-100 to-stone-300" />
-      <div className="absolute bottom-24 right-12 h-4 w-32 rounded-sm bg-slate-800 shadow-card" />
-      <div className="absolute bottom-28 right-10 h-4 w-36 rounded-sm bg-stone-100 shadow-card" />
-      <div className="absolute bottom-32 right-14 h-4 w-32 rounded-sm bg-slate-700 shadow-card" />
-      <div className="absolute bottom-20 right-56 h-12 w-7 rounded-sm bg-primary shadow-card" />
-      <div className="absolute bottom-16 right-36 h-1.5 w-44 -rotate-12 rounded-full bg-slate-700" />
-      <div className="absolute right-20 top-10 h-32 w-32 rounded-full bg-white/60 blur-2xl" />
-    </div>
-  );
-}
-
-function HomeHero() {
-  const todayLabel = formatTodayLabel();
-
-  return (
-    <section className="hero-card relative min-h-[260px] p-8 md:p-10">
-      <HeroScene />
-      <div className="relative z-10 max-w-[620px]">
-        <div className="flex flex-wrap items-center gap-4">
-          <p className="text-2xl font-bold text-text">오늘의 문장</p>
-          <p className="text-sm font-semibold text-text-muted">{todayLabel}</p>
-        </div>
-
-        <div className="mt-9 flex gap-5">
-          <span className="text-5xl font-bold leading-none text-primary-soft">“</span>
-          <div>
-            <h1 className="text-2xl font-semibold leading-[1.8] text-text md:text-[28px]">
-              자기 자신으로 있기 위해서는
-              <br />
-              끊임없이 자신을 갱신해야 한다.
-            </h1>
-            <p className="mt-5 text-base font-medium text-text-muted">- 헤르만 헤세, 데미안</p>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function BookCoverFallback({ title }) {
   return (
     <div className="book-cover bg-gradient-to-br from-sky-100 via-blue-100 to-slate-200">
@@ -255,6 +212,77 @@ function BookCoverFallback({ title }) {
         <span className="line-clamp-3 text-[10px] font-bold leading-tight text-text/80">{title}</span>
       </div>
     </div>
+  );
+}
+
+function HeroBookCover({ quote }) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const showImage = Boolean(quote.coverImageUrl) && !imageFailed;
+  const searchParams = new URLSearchParams({ category: 'book', q: quote.book_title || '' });
+
+  return (
+    <Link to={`/search?${searchParams.toString()}`} className="group block">
+      {showImage ? (
+        <img
+          className="book-cover transition group-hover:-translate-y-1 group-hover:shadow-card"
+          src={quote.coverImageUrl}
+          alt={`${quote.book_title} 표지`}
+          onError={() => setImageFailed(true)}
+        />
+      ) : (
+        <BookCoverFallback title={quote.book_title} />
+      )}
+      <p className="mt-2 line-clamp-2 text-xs font-bold leading-snug text-text group-hover:text-primary">{quote.book_title}</p>
+      <p className="text-xs font-medium text-text-muted">{quote.author}</p>
+    </Link>
+  );
+}
+
+function HeroSkeleton() {
+  return (
+    <div className="mt-4 grid grid-cols-[115px_1fr] gap-8 animate-pulse">
+      <div className="book-cover bg-surfaceMuted" />
+      <div className="grid gap-2">
+        <div className="h-6 w-1/2 rounded bg-surfaceMuted" />
+        <div className="h-4 w-full rounded bg-surfaceMuted" />
+        <div className="h-4 w-5/6 rounded bg-surfaceMuted" />
+        <div className="h-4 w-2/3 rounded bg-surfaceMuted" />
+      </div>
+    </div>
+  );
+}
+
+function HomeHero({ quote, isLoading, errorMessage }) {
+  const todayLabel = formatTodayLabel();
+
+  return (
+    <section className="hero-card relative min-h-[260px] px-8 pb-[32px] pt-5 md:px-10 md:pb-[40px] md:pt-7">
+      <div className="flex flex-wrap items-center gap-4">
+        <p className="section-title">{todayLabel}</p>
+      </div>
+
+      {isLoading && <HeroSkeleton />}
+
+      {!isLoading && errorMessage && (
+        <div className="mt-4 py-4">
+          <p className="text-sm font-semibold text-text-muted">{errorMessage}</p>
+        </div>
+      )}
+
+      {!isLoading && !errorMessage && quote && (
+        <div className="mt-4 grid grid-cols-[115px_1fr] gap-8">
+          <HeroBookCover quote={quote} />
+          <div>
+            <h1 className="text-2xl font-semibold leading-[1.6] text-text md:text-[28px]">{quote.topic}</h1>
+            <div className="mt-4 grid gap-1.5 text-base font-medium leading-relaxed text-text-muted">
+              {(quote.content || []).map((sentence, index) => (
+                <p key={index}>{sentence}</p>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -400,6 +428,36 @@ export default function HomePage() {
   const [isFeedLoading, setIsFeedLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [feedErrorMessage, setFeedErrorMessage] = useState('');
+  const [dailyQuote, setDailyQuote] = useState(null);
+  const [isQuoteLoading, setIsQuoteLoading] = useState(true);
+  const [quoteErrorMessage, setQuoteErrorMessage] = useState('');
+
+  useEffect(() => {
+    let ignore = false;
+
+    async function loadDailyQuote() {
+      setIsQuoteLoading(true);
+      setQuoteErrorMessage('');
+
+      try {
+        const quote = await getDailyQuote();
+        if (!ignore) setDailyQuote(quote);
+      } catch (error) {
+        if (!ignore) {
+          setDailyQuote(null);
+          setQuoteErrorMessage(error.message || '오늘의 문장을 불러오지 못했습니다.');
+        }
+      } finally {
+        if (!ignore) setIsQuoteLoading(false);
+      }
+    }
+
+    loadDailyQuote();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   useEffect(() => {
     let ignore = false;
@@ -505,7 +563,7 @@ export default function HomePage() {
 
       <main className="page">
         <div className="container grid gap-8">
-          <HomeHero />
+          <HomeHero quote={dailyQuote} isLoading={isQuoteLoading} errorMessage={quoteErrorMessage} />
 
           <section className="grid gap-4">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">

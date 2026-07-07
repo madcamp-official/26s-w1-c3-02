@@ -126,7 +126,7 @@
 
   .hero-card {
     @apply overflow-hidden rounded-lg shadow-float;
-    background: linear-gradient(105deg, #ffffff 0%, #fffdf8 54%, #ebe7de 100%);
+    background: linear-gradient(90deg, #ffffff 0%, #fffdf8 54%, #ebe7de 100%);
   }
 
   .button {

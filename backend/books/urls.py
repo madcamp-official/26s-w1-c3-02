@@ -18,11 +18,13 @@ from .views import (
     FavoriteBookListView,
     AladinBookImportView,
     AladinBookSearchView,
+    DailyQuoteView,
 )
 
 urlpatterns = [
     path('books', BookListCreateView.as_view(), name='book-list-create'),
     path('books/categories', BookCategoryListView.as_view(), name='book-category-list'),
+    path('books/daily-quote', DailyQuoteView.as_view(), name='daily-quote'),
     path('books/external-search', AladinBookSearchView.as_view(), name='aladin-book-search'),
     path('books/import-from-aladin', AladinBookImportView.as_view(), name='aladin-book-import'),
     path('books/recommendations', BookRecommendationView.as_view(), name='book-recommendations'),
