@@ -256,7 +256,7 @@ function HomeHero({ quote, isLoading, errorMessage }) {
   const todayLabel = formatTodayLabel();
 
   return (
-    <section className="hero-card relative min-h-[260px] px-8 pb-[42px] pt-5 md:px-10 md:pb-[50px] md:pt-7">
+    <section className="hero-card relative min-h-[260px] px-8 pb-[32px] pt-5 md:px-10 md:pb-[40px] md:pt-7">
       <div className="flex flex-wrap items-center gap-4">
         <p className="section-title">{todayLabel}</p>
       </div>
