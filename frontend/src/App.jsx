@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import KakaoCallbackPage from './pages/KakaoCallbackPage';
+import KakaoNicknameSetupPage from './pages/KakaoNicknameSetupPage';
 import RegisterPage from './pages/RegisterPage';
 import MyPage from './pages/MyPage';
 import BookDetailPage from './pages/BookDetailPage.jsx';
@@ -69,6 +70,14 @@ export default function App() {
         }
       />
       <Route path="/auth/kakao/callback" element={<KakaoCallbackPage />} />
+      <Route
+        path="/onboarding/nickname"
+        element={
+          <ProtectedRoute>
+            <KakaoNicknameSetupPage />
+          </ProtectedRoute>
+        }
+      />
 
       <Route
         path="/mypage"

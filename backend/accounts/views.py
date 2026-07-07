@@ -103,13 +103,16 @@ class KakaoLoginView(APIView):
 
         with transaction.atomic():
             user = User.objects.filter(kakao_id=profile['kakao_id']).first()
+            is_new_user = user is None
 
             if user is None:
                 email = profile['email'] or f"kakao_{profile['kakao_id']}@kakao.local"
                 if profile['email'] and User.objects.filter(email=email).exists():
                     raise ValidationError('이미 가입된 이메일입니다. 이메일 로그인을 이용해주세요.')
 
-                base_nickname = profile['nickname'] or f"카카오사용자{profile['kakao_id'][-4:]}"
+                # 카카오 프로필의 닉네임은 쓰지 않고 임시 닉네임을 부여한다.
+                # 사용자는 로그인 직후 온보딩 화면에서 직접 닉네임을 설정한다.
+                base_nickname = f"카카오사용자{profile['kakao_id'][-4:]}"
                 nickname = unique_nickname(User, base_nickname)
 
                 user = User(email=email, nickname=nickname, kakao_id=profile['kakao_id'])
@@ -120,6 +123,7 @@ class KakaoLoginView(APIView):
         return Response({
             'accessToken': str(access),
             'user': UserSerializer(user).data,
+            'isNewUser': is_new_user,
         })
 
 
