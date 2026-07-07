@@ -584,12 +584,25 @@ export default function SearchPage() {
                   <section className="grid gap-4">
                     <div className="flex items-center justify-between gap-4">
                       <h2 className="section-title">인기 책</h2>
+                      {popularBooks.length > POPULAR_BOOKS_PER_WINDOW && (
+                        <button
+                          className="button button--secondary browse-book-next-button"
+                          type="button"
+                          onClick={() => {
+                            const totalWindows = Math.max(Math.ceil(popularBooks.length / POPULAR_BOOKS_PER_WINDOW), 1);
+                            setBookWindow((value) => (value + 1) % totalWindows);
+                          }}
+                          aria-label="다음 인기 책"
+                        >
+                          →
+                        </button>
+                      )}
                     </div>
 
                     {isBrowseLoading ? (
-                      <div className="book-shelf-list">
+                      <div className="book-shelf-list justify-between">
                         {Array.from({ length: POPULAR_BOOKS_PER_WINDOW }).map((_, index) => (
-                          <article key={index} className="grid h-full w-full max-w-[165px] justify-self-center gap-3 animate-pulse">
+                          <article key={index} className="book-shelf-card grid h-full w-full justify-self-center gap-3 animate-pulse">
                             <div className="book-shelf-cover">
                               <div className="aspect-[3/4] h-full rounded-sm bg-surfaceMuted" />
                             </div>
@@ -599,23 +612,15 @@ export default function SearchPage() {
                     ) : visiblePopularBooks.length === 0 ? (
                       <EmptyState>인기 책이 없습니다.</EmptyState>
                     ) : (
-                      <div className="book-shelf-list">
+                      <div className="book-shelf-list justify-between">
                         {visiblePopularBooks.map((book) => (
                           <PopularBookCard key={book.id} book={book} />
                         ))}
-                        {popularBooks.length > POPULAR_BOOKS_PER_WINDOW && (
-                          <button
-                            className="button button--secondary button--sm browse-book-next-button"
-                            type="button"
-                            onClick={() => {
-                              const totalWindows = Math.max(Math.ceil(popularBooks.length / POPULAR_BOOKS_PER_WINDOW), 1);
-                              setBookWindow((value) => (value + 1) % totalWindows);
-                            }}
-                            aria-label="다음 인기 책"
-                          >
-                            →
-                          </button>
-                        )}
+                        {visiblePopularBooks.length < POPULAR_BOOKS_PER_WINDOW &&
+                          Array.from({ length: POPULAR_BOOKS_PER_WINDOW - visiblePopularBooks.length }).map((_, index) => (
+                            <div key={`pad-${index}`} className="w-[165px] shrink-0" aria-hidden="true" />
+                          ))
+                        }
                       </div>
                     )}
                   </section>
