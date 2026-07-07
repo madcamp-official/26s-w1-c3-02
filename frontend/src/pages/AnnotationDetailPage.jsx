@@ -459,7 +459,7 @@ export default function AnnotationDetailPage() {
       </main>
 
       {toastMessage && (
-        <div className={`fixed bottom-6 right-6 z-50 rounded-sm px-4 py-3 text-sm font-semibold shadow-card transition-all duration-300 ${
+        <div className={`fixed bottom-6 left-6 right-6 z-50 max-w-[calc(100vw-3rem)] sm:left-auto sm:max-w-sm rounded-sm px-4 py-3 text-sm font-semibold shadow-card transition-all duration-300 ${
           toastType === 'error' ? 'bg-danger-soft text-danger' : 'bg-white text-primary border border-line'
         }`}>
           {toastMessage}

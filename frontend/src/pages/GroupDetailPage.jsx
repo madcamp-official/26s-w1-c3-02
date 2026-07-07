@@ -391,7 +391,7 @@ export default function GroupDetailPage() {
                 {(group.books || []).length === 0 ? (
                   <p className="py-6 text-center text-sm text-text-muted">등록된 책이 없습니다.</p>
                 ) : (
-                  <div className="grid grid-cols-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-3">
                     {group.books.map((book) => (
                       <article key={book.bookId} className="card book-card !justify-self-start relative bg-white transition hover:-translate-y-1 hover:shadow-card">
                         <Link to={`/books/${book.bookId}?groupId=${groupId}`} className="contents">
@@ -603,7 +603,7 @@ export default function GroupDetailPage() {
 
         {toastMessage && (
           <div
-            className={`fixed bottom-6 right-6 z-50 rounded-sm px-4 py-3 text-sm font-semibold shadow-card transition-all duration-300 ${
+            className={`fixed bottom-6 left-6 right-6 z-50 max-w-[calc(100vw-3rem)] sm:left-auto sm:max-w-sm rounded-sm px-4 py-3 text-sm font-semibold shadow-card transition-all duration-300 ${
               toastType === 'error' ? 'bg-danger-soft text-danger' : 'border border-line bg-white text-primary'
             }`}
           >

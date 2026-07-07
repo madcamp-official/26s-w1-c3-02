@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { login as loginApi } from '../api/auth';
+import { login as loginApi, kakaoLogin as kakaoLoginApi } from '../api/auth';
+import { kakaoAuthLogin } from '../lib/kakao';
 import { getErrorMessage } from '../utils/error';
 
 export default function LoginPage() {
@@ -13,6 +14,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isKakaoLoading, setIsKakaoLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
   const [formError, setFormError] = useState('');
 
@@ -54,6 +56,26 @@ export default function LoginPage() {
       setFormError(errMsg);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleKakaoLogin = async () => {
+    setFormError('');
+    setIsKakaoLoading(true);
+
+    try {
+      const authObj = await kakaoAuthLogin();
+      const response = await kakaoLoginApi({ accessToken: authObj.access_token });
+      login({ accessToken: response.accessToken, user: response.user });
+      navigate('/', { replace: true });
+    } catch (err) {
+      const isCancelled = err?.error === 'access_denied' || err?.type === 'cancel' || err?.error === 'popup_closed_by_user';
+      if (!isCancelled) {
+        console.error(err);
+        setFormError(getErrorMessage(err) || '카카오 로그인에 실패했습니다.');
+      }
+    } finally {
+      setIsKakaoLoading(false);
     }
   };
 
@@ -113,6 +135,19 @@ export default function LoginPage() {
             ) : (
               '로그인'
             )}
+          </button>
+
+          <div className="flex items-center gap-2 text-xs text-text-muted">
+            <span className="h-px flex-1 bg-line" />또는<span className="h-px flex-1 bg-line" />
+          </div>
+
+          <button
+            type="button"
+            className="button button--kakao button--lg"
+            onClick={handleKakaoLogin}
+            disabled={isKakaoLoading}
+          >
+            {isKakaoLoading ? '카카오 로그인 중' : '카카오로 로그인하기'}
           </button>
 
           <p className="mt-4 text-center text-sm text-text-muted">

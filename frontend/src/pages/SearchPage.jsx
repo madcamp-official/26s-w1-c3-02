@@ -257,15 +257,13 @@ function AnnotationResultCard({ annotation, isMine, onRequireAuth }) {
 
 function AddBookCard({ onClick }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="card w-full max-w-[320px] justify-self-center flex flex-col items-center justify-center gap-3 border-2 border-dashed border-line bg-transparent p-4 text-center transition hover:border-primary hover:bg-primary-soft/40"
-    >
-      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-primary-soft text-2xl font-bold text-primary">+</span>
-      <div>
-        <p className="text-sm font-bold text-text">찾는 책이 없나요?</p>
-        <p className="mt-1 text-xs text-text-muted">책 추가하기</p>
+    <button type="button" onClick={onClick} className="book-shelf-card group w-[165px] text-left">
+      <div className="flex h-[232px] w-[165px] flex-col items-center justify-center gap-3 rounded-sm border-2 border-dashed border-line bg-transparent p-4 text-center transition group-hover:border-primary group-hover:bg-primary-soft/40">
+        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-primary-soft text-2xl font-bold text-primary">+</span>
+        <div>
+          <p className="text-sm font-bold text-text">찾는 책이 없나요?</p>
+          <p className="mt-1 text-xs text-text-muted">책 추가하기</p>
+        </div>
       </div>
     </button>
   );
@@ -766,7 +764,7 @@ export default function SearchPage() {
       )}
 
       {toastMessage && (
-        <div className={`fixed bottom-6 right-6 z-50 rounded-sm px-4 py-3 text-sm font-semibold shadow-card transition-all duration-300 ${
+        <div className={`fixed bottom-6 left-6 right-6 z-50 max-w-[calc(100vw-3rem)] sm:left-auto sm:max-w-sm rounded-sm px-4 py-3 text-sm font-semibold shadow-card transition-all duration-300 ${
           toastType === 'error' ? 'bg-danger-soft text-danger' : 'bg-white text-primary border border-line'
         }`}>
           {toastMessage}

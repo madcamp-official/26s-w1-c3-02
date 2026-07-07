@@ -240,7 +240,7 @@ function HeroBookCover({ quote }) {
 
 function HeroSkeleton() {
   return (
-    <div className="mt-4 grid grid-cols-[115px_1fr] gap-8 animate-pulse">
+    <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-[115px_1fr] sm:gap-8 animate-pulse">
       <div className="book-cover bg-surfaceMuted" />
       <div className="grid gap-2">
         <div className="h-6 w-1/2 rounded bg-surfaceMuted" />
@@ -270,7 +270,7 @@ function HomeHero({ quote, isLoading, errorMessage }) {
       )}
 
       {!isLoading && !errorMessage && quote && (
-        <div className="mt-4 grid grid-cols-[115px_1fr] gap-8">
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-[115px_1fr] sm:gap-8">
           <HeroBookCover quote={quote} />
           <div>
             <h1 className="text-2xl font-semibold leading-[1.6] text-text md:text-[28px]">{quote.topic}</h1>
@@ -377,10 +377,13 @@ function AnnotationCard({ item }) {
       </header>
 
       <div>
-        <p className="annotation-quote">
+        <p className="annotation-quote line-clamp-2 font-bold">
           <span className="mr-2 text-3xl font-bold text-primary-soft">“</span>
           {item.quote}
         </p>
+        {item.review && (
+          <p className="line-clamp-2 text-sm font-normal leading-[1.6] text-text-muted">{item.review}</p>
+        )}
       </div>
 
       <footer className="card-actions">
@@ -531,7 +534,7 @@ export default function HomePage() {
       } catch (error) {
         if (!ignore) {
           setTodayFeed([]);
-          setFeedErrorMessage(error.message || '오늘의 문장피드를 불러오지 못했습니다.');
+          setFeedErrorMessage(error.message || '오늘의 주석을 불러오지 못했습니다.');
         }
       } finally {
         if (!ignore) setIsFeedLoading(false);
@@ -621,7 +624,7 @@ export default function HomePage() {
 
           <section className="grid gap-4 border-t border-line pt-7">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <h2 className="section-title mr-2">오늘의 문장피드</h2>
+              <h2 className="section-title mr-2">오늘의 주석</h2>
               <Link className="text-sm font-bold text-primary hover:underline" to="/search?category=annotation">
                 더보기
               </Link>

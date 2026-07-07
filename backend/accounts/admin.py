@@ -11,7 +11,7 @@ class CustomUserAdmin(UserAdmin):
     search_fields = ['nickname', 'email']
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
-        ('Profile', {'fields': ('nickname', 'bio', 'avatar_url', 'avatar_icon')}),
+        ('Profile', {'fields': ('nickname', 'bio', 'avatar_url', 'avatar_icon', 'kakao_id')}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser')}),
         ('Dates', {'fields': ('last_login', 'date_joined')}),
     )
