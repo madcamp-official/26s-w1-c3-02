@@ -322,7 +322,7 @@ export default function GroupDetailPage() {
     <>
       <SiteHeader active="lounge" />
       <main className="page min-h-[calc(100vh-72px)]">
-        <div className="container grid max-w-[980px] gap-6">
+        <div className="container grid max-w-[980px] gap-4 md:gap-6">
           {isLoadingGroup ? (
             <div className="card card--padded h-[140px] animate-pulse bg-surfaceMuted" />
           ) : groupError ? (
@@ -338,24 +338,24 @@ export default function GroupDetailPage() {
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                   <div className="min-w-0">
                     {isEditingName ? (
-                      <div className="flex flex-wrap items-center gap-2">
+                      <div className="grid gap-2 sm:flex sm:flex-wrap sm:items-center">
                         <input
-                          className="input !h-10 max-w-[280px]"
+                          className="input !h-10 w-full sm:max-w-[280px]"
                           value={editedName}
                           onChange={(event) => setEditedName(event.target.value)}
                           disabled={isSavingName}
                           autoFocus
                         />
-                        <button type="button" onClick={handleSaveName} className="button button--primary button--sm" disabled={isSavingName}>
+                        <button type="button" onClick={handleSaveName} className="button button--primary button--sm w-full sm:w-auto" disabled={isSavingName}>
                           저장
                         </button>
-                        <button type="button" onClick={() => setIsEditingName(false)} className="button button--secondary button--sm" disabled={isSavingName}>
+                        <button type="button" onClick={() => setIsEditingName(false)} className="button button--secondary button--sm w-full sm:w-auto" disabled={isSavingName}>
                           취소
                         </button>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2">
-                        <h1 className="truncate text-2xl font-extrabold text-text">{group.groupName}</h1>
+                      <div className="flex min-w-0 items-start gap-2">
+                        <h1 className="min-w-0 flex-1 break-words text-[22px] font-extrabold leading-tight text-text md:text-2xl">{group.groupName}</h1>
                         {isOwner && (
                           <button
                             type="button"
@@ -373,7 +373,7 @@ export default function GroupDetailPage() {
                       </div>
                     )}
                     <p className="mt-1.5 text-sm text-text-muted">방장: {group.owner?.nickname}</p>
-                    <div className="mt-3 flex items-center gap-5 text-sm text-text-muted">
+                    <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-text-muted">
                       <span className="flex items-center gap-1.5">
                         <UsersIcon className="h-4 w-4" /> 멤버 {group.members?.length ?? 0}명
                       </span>
@@ -384,11 +384,11 @@ export default function GroupDetailPage() {
                   </div>
 
                   {isOwner ? (
-                    <button type="button" onClick={handleDeleteGroup} className="button button--secondary text-danger hover:border-danger/30 hover:bg-danger-soft">
+                    <button type="button" onClick={handleDeleteGroup} className="button button--secondary w-full text-danger hover:border-danger/30 hover:bg-danger-soft md:w-auto">
                       그룹 삭제
                     </button>
                   ) : (
-                    <button type="button" onClick={handleLeaveGroup} className="button button--secondary">
+                    <button type="button" onClick={handleLeaveGroup} className="button button--secondary w-full md:w-auto">
                       그룹 나가기
                     </button>
                   )}
@@ -396,7 +396,7 @@ export default function GroupDetailPage() {
               </section>
 
               <section className="card card--padded bg-white">
-                <div className="mb-4 flex items-center justify-between gap-3">
+                <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <h2 className="section-title !text-lg">공지</h2>
                   {group.notice?.createdAt && (
                     <span className="text-xs font-semibold text-text-subtle">
@@ -423,7 +423,7 @@ export default function GroupDetailPage() {
                       disabled={isSavingNotice}
                     />
                     <div className="flex justify-end">
-                      <button type="submit" className="button button--primary button--sm" disabled={isSavingNotice || !noticeContent.trim()}>
+                      <button type="submit" className="button button--primary button--sm w-full sm:w-auto" disabled={isSavingNotice || !noticeContent.trim()}>
                         {isSavingNotice ? '등록 중' : '공지 등록'}
                       </button>
                     </div>
@@ -442,7 +442,7 @@ export default function GroupDetailPage() {
                       setAddBookError('');
                       setShowAddBookModal(true);
                     }}
-                    className="button button--primary button--sm !min-h-8 !px-3 text-xs"
+                    className="button button--primary button--sm !min-h-8 w-full !px-3 text-xs sm:w-auto"
                   >
                     <PlusIcon className="h-3.5 w-3.5" /> 책 추가
                   </button>
@@ -450,9 +450,9 @@ export default function GroupDetailPage() {
                 {(group.books || []).length === 0 ? (
                   <p className="py-6 text-center text-sm text-text-muted">등록된 책이 없습니다.</p>
                 ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-3">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     {group.books.map((book) => (
-                      <article key={book.bookId} className="card book-card !justify-self-start relative bg-white transition hover:-translate-y-1 hover:shadow-card">
+                      <article key={book.bookId} className="card book-card relative !max-w-none !justify-self-stretch bg-white transition hover:-translate-y-1 hover:shadow-card">
                         <Link to={`/books/${book.bookId}?groupId=${groupId}`} className="contents">
                           <ExactBookCover
                             coverImageUrl={book.coverImageUrl}
@@ -488,7 +488,7 @@ export default function GroupDetailPage() {
               </section>
 
               <section className="card card--padded bg-white">
-                <div className="mb-3 flex items-center justify-between gap-3">
+                <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <h2 className="section-title !text-base">멤버 ({group.members?.length ?? 0})</h2>
                   {isOwner && (
                     <button
@@ -499,7 +499,7 @@ export default function GroupDetailPage() {
                         setInviteError('');
                         setShowInviteModal(true);
                       }}
-                      className="button button--primary button--sm !min-h-8 !px-3 text-xs"
+                      className="button button--primary button--sm !min-h-8 w-full !px-3 text-xs sm:w-auto"
                     >
                       <PlusIcon className="h-3.5 w-3.5" /> 멤버 초대
                     </button>

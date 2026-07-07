@@ -652,7 +652,7 @@ export default function HomePage() {
             )}
 
             {!errorMessage && (
-              <div className="book-shelf-list mt-8">
+              <div className="book-shelf-list book-shelf-list--mobile-scroll mt-8">
                 {isLoading ? (
                   Array.from({ length: 7 }).map((_, index) => <BookCardSkeleton key={index} />)
                 ) : (

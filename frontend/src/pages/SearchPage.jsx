@@ -586,7 +586,7 @@ export default function SearchPage() {
                       <h2 className="section-title">인기 책</h2>
                       {popularBooks.length > POPULAR_BOOKS_PER_WINDOW && (
                         <button
-                          className="button button--secondary browse-book-next-button"
+                          className="hidden"
                           type="button"
                           onClick={() => {
                             const totalWindows = Math.max(Math.ceil(popularBooks.length / POPULAR_BOOKS_PER_WINDOW), 1);
@@ -600,7 +600,7 @@ export default function SearchPage() {
                     </div>
 
                     {isBrowseLoading ? (
-                      <div className="book-shelf-list justify-between">
+                      <div className="book-shelf-list book-shelf-list--scroll">
                         {Array.from({ length: POPULAR_BOOKS_PER_WINDOW }).map((_, index) => (
                           <article key={index} className="book-shelf-card grid h-full w-full justify-self-center gap-3 animate-pulse">
                             <div className="book-shelf-cover">
@@ -612,11 +612,11 @@ export default function SearchPage() {
                     ) : visiblePopularBooks.length === 0 ? (
                       <EmptyState>인기 책이 없습니다.</EmptyState>
                     ) : (
-                      <div className="book-shelf-list justify-between">
-                        {visiblePopularBooks.map((book) => (
+                      <div className="book-shelf-list book-shelf-list--scroll">
+                        {popularBooks.map((book) => (
                           <PopularBookCard key={book.id} book={book} />
                         ))}
-                        {visiblePopularBooks.length < POPULAR_BOOKS_PER_WINDOW &&
+                        {false && visiblePopularBooks.length < POPULAR_BOOKS_PER_WINDOW &&
                           Array.from({ length: POPULAR_BOOKS_PER_WINDOW - visiblePopularBooks.length }).map((_, index) => (
                             <div key={`pad-${index}`} className="w-[165px] shrink-0" aria-hidden="true" />
                           ))
@@ -679,7 +679,7 @@ export default function SearchPage() {
               {books.length === 0 && (
                 <p className="text-sm font-semibold text-text-muted">일치하는 책을 찾지 못했습니다</p>
               )}
-              <div className="book-shelf-list">
+              <div className="book-shelf-list book-shelf-list--scroll">
                 {books.map((book) => (
                   <BookResultCard key={book.id} book={book} />
                 ))}
