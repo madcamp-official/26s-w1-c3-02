@@ -1,4 +1,5 @@
 import jsonServer from 'json-server';
+import { AVATAR_ICON_OPTIONS } from './src/utils/avatarIcons.js';
 
 const server = jsonServer.create();
 const router = jsonServer.router({});
@@ -28,17 +29,17 @@ const users = [
     avatarIcon: '',
     createdAt: '2026-07-03T12:00:00Z',
   },
-  { id: 2, nickname: 'seo_reader', email: 'seo@example.com', password: 'pw1234!!', createdAt: '2026-07-03T12:30:00Z' },
-  { id: 3, nickname: 'book_mate', email: 'mate@example.com', password: 'pw1234!!', createdAt: '2026-07-03T13:00:00Z' },
-  { id: 4, nickname: 'note_keeper', email: 'note@example.com', password: 'pw1234!!', createdAt: '2026-07-03T13:30:00Z' },
-  { id: 5, nickname: 'quiet_reader', email: 'quiet@example.com', password: 'pw1234!!', createdAt: '2026-07-03T14:00:00Z' },
+  { id: 2, nickname: 'seo_reader', email: 'seo@example.com', password: 'pw1234!!', avatarIcon: AVATAR_ICON_OPTIONS[1].key, createdAt: '2026-07-03T12:30:00Z' },
+  { id: 3, nickname: 'book_mate', email: 'mate@example.com', password: 'pw1234!!', avatarIcon: AVATAR_ICON_OPTIONS[2].key, createdAt: '2026-07-03T13:00:00Z' },
+  { id: 4, nickname: 'note_keeper', email: 'note@example.com', password: 'pw1234!!', avatarIcon: AVATAR_ICON_OPTIONS[3].key, createdAt: '2026-07-03T13:30:00Z' },
+  { id: 5, nickname: 'quiet_reader', email: 'quiet@example.com', password: 'pw1234!!', avatarIcon: AVATAR_ICON_OPTIONS[4].key, createdAt: '2026-07-03T14:00:00Z' },
   { id: 6, nickname: 'easy0131', email: 'easy@example.com', password: 'pw1234!!', createdAt: '2026-07-03T15:00:00Z' },
-  { id: 7, nickname: '지나가던독서가', email: 'passerby@example.com', password: 'pw1234!!', createdAt: '2026-07-03T15:30:00Z' },
-  { id: 8, nickname: '정의구현빌런', email: 'justice@example.com', password: 'pw1234!!', createdAt: '2026-07-03T16:00:00Z' },
-  { id: 9, nickname: '헤세매니아', email: 'hesse@example.com', password: 'pw1234!!', createdAt: '2026-07-03T16:30:00Z' },
+  { id: 7, nickname: '지나가던독서가', email: 'passerby@example.com', password: 'pw1234!!', avatarIcon: AVATAR_ICON_OPTIONS[5].key, createdAt: '2026-07-03T15:30:00Z' },
+  { id: 8, nickname: '정의구현빌런', email: 'justice@example.com', password: 'pw1234!!', avatarIcon: AVATAR_ICON_OPTIONS[6].key, createdAt: '2026-07-03T16:00:00Z' },
+  { id: 9, nickname: '헤세매니아', email: 'hesse@example.com', password: 'pw1234!!', avatarIcon: AVATAR_ICON_OPTIONS[7].key, createdAt: '2026-07-03T16:30:00Z' },
   { id: 10, nickname: '책벌레A', email: 'bookworm@example.com', password: 'pw1234!!', createdAt: '2026-07-03T17:00:00Z' },
-  { id: 11, nickname: '소설조아', email: 'novel@example.com', password: 'pw1234!!', createdAt: '2026-07-03T17:30:00Z' },
-  { id: 12, nickname: '개발하는독자', email: 'devreader@example.com', password: 'pw1234!!', createdAt: '2026-07-03T18:00:00Z' },
+  { id: 11, nickname: '소설조아', email: 'novel@example.com', password: 'pw1234!!', avatarIcon: AVATAR_ICON_OPTIONS[8].key, createdAt: '2026-07-03T17:30:00Z' },
+  { id: 12, nickname: '개발하는독자', email: 'devreader@example.com', password: 'pw1234!!', avatarIcon: AVATAR_ICON_OPTIONS[9].key, createdAt: '2026-07-03T18:00:00Z' },
 ];
 
 const books = [
@@ -233,7 +234,9 @@ function now() {
 
 function publicUser(id) {
   const user = users.find((item) => item.id === Number(id));
-  return user ? { id: user.id, nickname: user.nickname } : { id: Number(id), nickname: 'unknown' };
+  return user
+    ? { id: user.id, nickname: user.nickname, avatarUrl: user.avatarUrl || '', avatarIcon: user.avatarIcon || '' }
+    : { id: Number(id), nickname: 'unknown', avatarUrl: '', avatarIcon: '' };
 }
 
 function fullUser(user) {
@@ -425,9 +428,12 @@ server.get('/api/users/me/friend-requests', (req, res) => {
     .filter((item) => (direction === 'sent' ? item.requesterId === currentUserId : item.addresseeId === currentUserId))
     .map((item) => {
       const otherId = direction === 'sent' ? item.addresseeId : item.requesterId;
+      const other = publicUser(otherId);
       return {
         userId: otherId,
-        nickname: publicUser(otherId).nickname,
+        nickname: other.nickname,
+        avatarUrl: other.avatarUrl,
+        avatarIcon: other.avatarIcon,
         status: item.status,
         createdAt: item.createdAt,
       };

@@ -5,6 +5,7 @@ import { favoriteAnnotation, getAnnotationFeed, searchAnnotations, unfavoriteAnn
 import { getPageData } from '../api/client';
 import BookShelfFrame from '../components/BookShelfFrame';
 import SiteHeader from '../components/SiteHeader';
+import UserAvatar from '../components/common/UserAvatar';
 import { useAuth } from '../context/AuthContext';
 import { getErrorMessage } from '../utils/error';
 
@@ -69,6 +70,8 @@ function normalizeAnnotation(annotation) {
     review: annotation.review ?? annotation.content ?? '',
     authorId: annotation.author?.id ?? annotation.authorId,
     author: annotation.author?.nickname ?? annotation.authorName ?? '익명',
+    authorAvatarIcon: annotation.author?.avatarIcon ?? '',
+    authorAvatarUrl: annotation.author?.avatarUrl ?? '',
     visibility: visibilityLabels[annotation.visibility] ?? annotation.visibility ?? '공개',
     likeCount: annotation.likeCount ?? 0,
     commentCount: annotation.commentCount ?? 0,
@@ -229,13 +232,16 @@ function AnnotationResultCard({ annotation, isMine, onRequireAuth }) {
           </blockquote>
           <p className="mt-3 leading-[1.7] text-text-muted">{annotation.review}</p>
           <footer className="mt-5 flex items-center justify-between text-sm text-text-muted">
-            {annotation.authorId ? (
-              <Link to={`/users/${annotation.authorId}`} className="font-semibold transition hover:text-primary">
-                {annotation.author}
-              </Link>
-            ) : (
-              <span>{annotation.author}</span>
-            )}
+            <span className="flex items-center gap-2">
+              <UserAvatar avatarIcon={annotation.authorAvatarIcon} avatarUrl={annotation.authorAvatarUrl} nickname={annotation.author} size="sm" />
+              {annotation.authorId ? (
+                <Link to={`/users/${annotation.authorId}`} className="font-semibold transition hover:text-primary">
+                  {annotation.author}
+                </Link>
+              ) : (
+                <span>{annotation.author}</span>
+              )}
+            </span>
             <span>♡ {annotation.likeCount} · 댓글 {annotation.commentCount}</span>
           </footer>
           <div className="mt-4 flex justify-end">
@@ -330,13 +336,16 @@ function BrowseAnnotationCard({ annotation, onRequireAuth }) {
       </blockquote>
       <p className="mt-3 line-clamp-2 leading-[1.7] text-text-muted">{annotation.review}</p>
       <footer className="mt-5 flex items-center justify-between text-sm text-text-muted">
-        {annotation.authorId ? (
-          <Link to={`/users/${annotation.authorId}`} className="font-semibold transition hover:text-primary">
-            {annotation.author}
-          </Link>
-        ) : (
-          <span>{annotation.author}</span>
-        )}
+        <span className="flex items-center gap-2">
+          <UserAvatar avatarIcon={annotation.authorAvatarIcon} avatarUrl={annotation.authorAvatarUrl} nickname={annotation.author} size="sm" />
+          {annotation.authorId ? (
+            <Link to={`/users/${annotation.authorId}`} className="font-semibold transition hover:text-primary">
+              {annotation.author}
+            </Link>
+          ) : (
+            <span>{annotation.author}</span>
+          )}
+        </span>
         <div className="flex flex-wrap items-center justify-end gap-2">
           <span>♡ {annotation.likeCount} · 댓글 {annotation.commentCount}</span>
           <button

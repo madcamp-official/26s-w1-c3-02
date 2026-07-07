@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { getGroupInvitations, getMyGroups } from '../api/users';
 import { acceptGroupInvitation, createGroup, removeGroupMember } from '../api/groups';
 import { getErrorMessage } from '../utils/error';
+import UserAvatar from '../components/common/UserAvatar';
 
 const iconProps = {
   viewBox: '0 0 20 20',
@@ -209,7 +210,13 @@ export default function GroupsPage() {
                   <li key={invitation.groupId} className="flex items-center justify-between gap-3 rounded bg-pageSoft p-3">
                     <div className="min-w-0">
                       <p className="truncate text-sm font-bold text-text">{invitation.groupName}</p>
-                      <p className="truncate text-xs text-text-muted">
+                      <p className="flex items-center gap-1.5 truncate text-xs text-text-muted">
+                        <UserAvatar
+                          avatarIcon={invitation.owner?.avatarIcon}
+                          avatarUrl={invitation.owner?.avatarUrl}
+                          nickname={invitation.owner?.nickname}
+                          size="xs"
+                        />
                         방장: {invitation.owner?.nickname || '알 수 없음'}
                       </p>
                     </div>
@@ -257,7 +264,13 @@ export default function GroupsPage() {
                   <div className="min-w-0 flex flex-1 h-full flex-col justify-between">
                     <div>
                       <h3 className="text-lg font-bold text-text">{group.groupName}</h3>
-                      <p className="text-xs text-text-muted mt-1.5">
+                      <p className="flex items-center gap-1.5 text-xs text-text-muted mt-1.5">
+                        <UserAvatar
+                          avatarIcon={group.owner?.avatarIcon}
+                          avatarUrl={group.owner?.avatarUrl}
+                          nickname={group.owner?.nickname}
+                          size="xs"
+                        />
                         방장: {group.owner?.nickname || '알 수 없음'}
                       </p>
                     </div>

@@ -307,10 +307,6 @@
     @apply flex items-center justify-between gap-3 text-[13px] text-text-muted;
   }
 
-  .avatar {
-    @apply h-9 w-9 rounded-full bg-primary-soft object-cover;
-  }
-
   .pagination {
     @apply flex items-center justify-center gap-2;
   }

@@ -5,6 +5,7 @@ import { favoriteAnnotation, getAnnotationFeed, unfavoriteAnnotation } from '../
 import { getPageData } from '../api/client';
 import BookShelfFrame from '../components/BookShelfFrame';
 import SiteHeader from '../components/SiteHeader';
+import UserAvatar from '../components/common/UserAvatar';
 
 
 const genreFilters = [
@@ -41,6 +42,8 @@ function normalizeFeedItem(annotation) {
     id: annotation.annotationId ?? annotation.id,
     authorId: annotation.author?.id ?? annotation.authorId,
     author: annotation.author?.nickname ?? annotation.authorName ?? annotation.author ?? '익명',
+    authorAvatarIcon: annotation.author?.avatarIcon ?? '',
+    authorAvatarUrl: annotation.author?.avatarUrl ?? '',
     time: formatRelativeTime(annotation.createdAt),
     book: annotation.book?.title ?? annotation.bookTitle ?? '책 정보 없음',
     quote: annotation.passage ?? annotation.quote ?? '',
@@ -48,7 +51,6 @@ function normalizeFeedItem(annotation) {
     likes: annotation.likeCount ?? 0,
     comments: annotation.commentCount ?? annotation.comments ?? 0,
     isFavorited: Boolean(annotation.isFavorited),
-    avatar: 'bg-primary-soft',
   };
 }
 
@@ -405,7 +407,7 @@ function AnnotationCard({ item }) {
       <article className="card annotation-card h-full transition hover:-translate-y-1 hover:shadow-card">
       <header className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <span className={`avatar ${item.avatar}`} />
+          <UserAvatar avatarIcon={item.authorAvatarIcon} avatarUrl={item.authorAvatarUrl} nickname={item.author} size="lg" />
           <div className="min-w-0">
             <div className="flex items-center gap-3">
               {item.authorId ? (

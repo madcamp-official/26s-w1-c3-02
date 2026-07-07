@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { updateMe } from '../api/users';
 import { getErrorMessage } from '../utils/error';
 import { AVATAR_ICON_OPTIONS } from '../utils/avatarIcons';
+import AvatarIconGlyph from '../components/common/AvatarIconGlyph';
 
 export default function KakaoNicknameSetupPage() {
   const { user, setUser } = useAuth();
@@ -89,7 +90,7 @@ export default function KakaoNicknameSetupPage() {
                     aria-pressed={isSelected}
                     title={icon.key}
                   >
-                    {icon.emoji}
+                    <AvatarIconGlyph iconKey={icon.key} emoji={icon.emoji} />
                   </button>
                 );
               })}

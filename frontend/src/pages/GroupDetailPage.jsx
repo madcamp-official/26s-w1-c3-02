@@ -18,6 +18,7 @@ import { getErrorMessage } from '../utils/error';
 import { getBookCardCategory } from '../utils/bookCategory';
 import SiteHeader from '../components/SiteHeader';
 import ExactBookCover from '../components/ExactBookCover';
+import UserAvatar from '../components/common/UserAvatar';
 
 const iconProps = {
   viewBox: '0 0 20 20',
@@ -372,7 +373,15 @@ export default function GroupDetailPage() {
                         )}
                       </div>
                     )}
-                    <p className="mt-1.5 text-sm text-text-muted">방장: {group.owner?.nickname}</p>
+                    <p className="mt-1.5 flex items-center gap-1.5 text-sm text-text-muted">
+                      <UserAvatar
+                        avatarIcon={group.owner?.avatarIcon}
+                        avatarUrl={group.owner?.avatarUrl}
+                        nickname={group.owner?.nickname}
+                        size="xs"
+                      />
+                      방장: {group.owner?.nickname}
+                    </p>
                     <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-text-muted">
                       <span className="flex items-center gap-1.5">
                         <UsersIcon className="h-4 w-4" /> 멤버 {group.members?.length ?? 0}명
@@ -509,9 +518,7 @@ export default function GroupDetailPage() {
                   {(group.members || []).map((member) => (
                     <li key={member.id} className="flex items-center justify-between gap-2 rounded bg-pageSoft p-2">
                       <div className="flex min-w-0 items-center gap-2">
-                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-soft text-xs font-bold text-primary">
-                          {member.nickname?.charAt(0).toUpperCase()}
-                        </span>
+                        <UserAvatar avatarIcon={member.avatarIcon} avatarUrl={member.avatarUrl} nickname={member.nickname} size="sm" />
                         {member.id ? (
                           <Link to={`/users/${member.id}`} className="truncate text-sm font-semibold text-text transition hover:text-primary">
                             {member.nickname}
@@ -544,9 +551,7 @@ export default function GroupDetailPage() {
                     {pendingInvites.map((invite) => (
                       <li key={invite.userId} className="flex items-center justify-between gap-2 rounded bg-pageSoft p-2">
                         <div className="flex min-w-0 items-center gap-2">
-                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-soft text-xs font-bold text-primary">
-                            {invite.nickname?.charAt(0).toUpperCase()}
-                          </span>
+                          <UserAvatar avatarIcon={invite.avatarIcon} avatarUrl={invite.avatarUrl} nickname={invite.nickname} size="sm" />
                           <span className="truncate text-sm font-semibold text-text">{invite.nickname}</span>
                         </div>
                         <button
@@ -586,7 +591,10 @@ export default function GroupDetailPage() {
                     const alreadyPending = existingPendingIds.has(result.id);
                     return (
                       <li key={result.id} className="flex items-center justify-between rounded bg-pageSoft p-2">
-                        <span className="max-w-[150px] truncate text-xs font-semibold text-text">{result.nickname}</span>
+                        <div className="flex min-w-0 items-center gap-2">
+                          <UserAvatar avatarIcon={result.avatarIcon} avatarUrl={result.avatarUrl} nickname={result.nickname} size="sm" />
+                          <span className="max-w-[150px] truncate text-xs font-semibold text-text">{result.nickname}</span>
+                        </div>
                         {alreadyMember ? (
                           <span className="text-[11px] font-bold text-text-subtle">이미 멤버</span>
                         ) : alreadyPending ? (

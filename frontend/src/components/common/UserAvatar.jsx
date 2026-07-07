@@ -1,4 +1,5 @@
 import { AVATAR_ICON_OPTIONS } from '../../utils/avatarIcons';
+import AvatarIconGlyph from './AvatarIconGlyph';
 
 const SIZE_CLASSES = {
   xs: { box: 'h-6 w-6', emoji: 'text-xs', initial: 'text-[10px]' },
@@ -20,7 +21,9 @@ export default function UserAvatar({ avatarIcon, avatarUrl, nickname, size = 'md
         role="img"
         aria-label={nickname ? `${nickname}님의 프로필 아이콘` : '프로필 아이콘'}
       >
-        <span className={s.emoji} aria-hidden="true">{iconOption.emoji}</span>
+        <span className={s.emoji} aria-hidden="true">
+          <AvatarIconGlyph iconKey={iconOption.key} emoji={iconOption.emoji} />
+        </span>
       </span>
     );
   }

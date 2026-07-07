@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { getUserProfile } from '../api/users';
 import { getUserAnnotations } from '../api/annotations';
 import DonutChart from '../components/DonutChart';
+import UserAvatar from '../components/common/UserAvatar';
 import { buildGenreSummary } from '../utils/genre';
 import { getTypeMeta, formatCount, formatRelativeTime } from '../utils/format';
 import { MessageIcon, HeartIcon, BookIcon, CalendarIcon } from '../components/icons';
@@ -95,17 +96,13 @@ export default function UserProfilePage() {
                 <section className="card card--padded flex flex-wrap items-center justify-between gap-6 bg-white">
                   <div className="flex items-center gap-4">
                     <div className="shrink-0">
-                      {profile.avatarUrl ? (
-                        <img
-                          src={profile.avatarUrl}
-                          alt={profile.nickname}
-                          className="h-16 w-16 rounded-full object-cover shadow-soft"
-                        />
-                      ) : (
-                        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary-soft text-2xl font-bold text-primary shadow-soft">
-                          {profile.nickname ? profile.nickname.charAt(0).toUpperCase() : 'U'}
-                        </div>
-                      )}
+                      <UserAvatar
+                        avatarIcon={profile.avatarIcon}
+                        avatarUrl={profile.avatarUrl}
+                        nickname={profile.nickname}
+                        size="xl"
+                        className="shadow-soft"
+                      />
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">

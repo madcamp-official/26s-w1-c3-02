@@ -6,6 +6,7 @@ import { like, unlike } from '../api/likes';
 import { getPageData } from '../api/client';
 import { getMe } from '../api/users';
 import SiteHeader from '../components/SiteHeader';
+import UserAvatar from '../components/common/UserAvatar';
 import { useAuth } from '../context/AuthContext';
 
 const sortOptions = [
@@ -57,6 +58,8 @@ function normalizeAnnotation(annotation) {
     bookTitle: annotation.book?.title ?? annotation.bookTitle ?? '책 정보 없음',
     authorId: annotation.author?.id ?? annotation.authorId,
     author: annotation.author?.nickname ?? annotation.authorName ?? '익명',
+    authorAvatarIcon: annotation.author?.avatarIcon ?? '',
+    authorAvatarUrl: annotation.author?.avatarUrl ?? '',
     type: annotation.type ?? 'NORMAL',
     typeLabel: annotationTypeLabels[annotation.type] ?? '일반',
     page: annotation.page ?? '-',
@@ -76,6 +79,8 @@ function normalizeComment(comment) {
     id: comment.commentId ?? comment.id,
     authorId: comment.author?.id ?? comment.authorId,
     author: comment.author?.nickname ?? comment.authorName ?? '익명',
+    authorAvatarIcon: comment.author?.avatarIcon ?? '',
+    authorAvatarUrl: comment.author?.avatarUrl ?? '',
     content: comment.content ?? '',
     likeCount: comment.likeCount ?? 0,
     isLiked: Boolean(comment.isLiked),
@@ -164,13 +169,16 @@ function AnnotationCard({ annotation, isMine, onDelete, onRequireAuth }) {
           </blockquote>
           <p className="mt-4 text-base leading-[1.8] text-text-muted">{annotation.review}</p>
           <footer className="mt-7 flex flex-wrap items-center justify-between gap-4 text-sm text-text-muted">
-            {annotation.authorId ? (
-              <Link to={`/users/${annotation.authorId}`} className="font-semibold transition hover:text-primary">
-                {annotation.author}
-              </Link>
-            ) : (
-              <span>{annotation.author}</span>
-            )}
+            <span className="flex items-center gap-2">
+              <UserAvatar avatarIcon={annotation.authorAvatarIcon} avatarUrl={annotation.authorAvatarUrl} nickname={annotation.author} size="sm" />
+              {annotation.authorId ? (
+                <Link to={`/users/${annotation.authorId}`} className="font-semibold transition hover:text-primary">
+                  {annotation.author}
+                </Link>
+              ) : (
+                <span>{annotation.author}</span>
+              )}
+            </span>
             <div className="flex flex-wrap gap-2">
               {isMine && (
                 <>
@@ -227,6 +235,7 @@ function CommentCard({ comment, isMine, onDelete, onRequireAuth }) {
   return (
     <article className="border-l-4 border-primary-soft py-1 pl-5">
       <header className="flex flex-wrap items-center gap-3">
+        <UserAvatar avatarIcon={comment.authorAvatarIcon} avatarUrl={comment.authorAvatarUrl} nickname={comment.author} size="xs" />
         {comment.authorId ? (
           <Link to={`/users/${comment.authorId}`} className="text-sm font-bold text-text transition hover:text-primary">
             {comment.author}

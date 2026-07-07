@@ -42,6 +42,8 @@ import {
 } from '../components/icons';
 import DonutChart from '../components/DonutChart';
 import ExactBookCover from '../components/ExactBookCover';
+import UserAvatar from '../components/common/UserAvatar';
+import AvatarIconGlyph from '../components/common/AvatarIconGlyph';
 import { buildGenreSummary } from '../utils/genre';
 import { getTypeMeta, formatCount, formatRelativeTime } from '../utils/format';
 import { AVATAR_ICON_OPTIONS } from '../utils/avatarIcons';
@@ -598,17 +600,13 @@ export default function MyPage() {
                 <section className="card card--padded flex flex-wrap items-center justify-between gap-6 bg-white">
                   <div className="flex items-center gap-4">
                     <div className="relative shrink-0">
-                      {user?.avatarUrl ? (
-                        <img
-                          src={user.avatarUrl}
-                          alt={user.nickname}
-                          className="h-16 w-16 rounded-full object-cover shadow-soft"
-                        />
-                      ) : (
-                        <div className="h-16 w-16 rounded-full bg-primary-soft flex items-center justify-center text-primary font-bold text-2xl shadow-soft">
-                          {user?.nickname ? user.nickname.charAt(0).toUpperCase() : 'U'}
-                        </div>
-                      )}
+                      <UserAvatar
+                        avatarIcon={user?.avatarIcon}
+                        avatarUrl={user?.avatarUrl}
+                        nickname={user?.nickname}
+                        size="xl"
+                        className="shadow-soft"
+                      />
                       <button
                         onClick={() => handleTabClick('settings')}
                         className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border border-line bg-white text-text-muted shadow-soft hover:text-primary"
@@ -900,9 +898,12 @@ export default function MyPage() {
                     item={item}
                     meta={
                       <>
-                        <div className="h-6 w-6 rounded-full bg-primary-soft flex items-center justify-center text-[10px] font-bold text-primary shrink-0">
-                          {item.author?.nickname?.charAt(0).toUpperCase()}
-                        </div>
+                        <UserAvatar
+                          avatarIcon={item.author?.avatarIcon}
+                          avatarUrl={item.author?.avatarUrl}
+                          nickname={item.author?.nickname}
+                          size="xs"
+                        />
                         <strong className="min-w-0 truncate text-xs text-text">{item.author?.nickname}</strong>
                       </>
                     }
@@ -989,7 +990,13 @@ export default function MyPage() {
                       <li key={invitation.groupId} className="flex items-center justify-between gap-3 rounded bg-pageSoft p-3">
                         <div className="min-w-0">
                           <p className="truncate text-sm font-bold text-text">{invitation.groupName}</p>
-                          <p className="truncate text-xs text-text-muted">
+                          <p className="flex items-center gap-1.5 truncate text-xs text-text-muted">
+                            <UserAvatar
+                              avatarIcon={invitation.owner?.avatarIcon}
+                              avatarUrl={invitation.owner?.avatarUrl}
+                              nickname={invitation.owner?.nickname}
+                              size="xs"
+                            />
                             방장: {invitation.owner?.nickname || '알 수 없음'}
                           </p>
                         </div>
@@ -1072,7 +1079,10 @@ export default function MyPage() {
                     <ul className="grid gap-2">
                       {receivedRequests.map((req) => (
                         <li key={req.userId} className="flex justify-between items-center p-2 rounded bg-pageSoft border border-line">
-                          <span className="text-sm font-semibold text-text">{req.nickname}</span>
+                          <div className="flex items-center gap-2">
+                            <UserAvatar avatarIcon={req.avatarIcon} avatarUrl={req.avatarUrl} nickname={req.nickname} size="sm" />
+                            <span className="text-sm font-semibold text-text">{req.nickname}</span>
+                          </div>
                           <div className="flex gap-1.5">
                             <button
                               onClick={() => handleAcceptRequest(req.userId, req.nickname)}
@@ -1115,7 +1125,10 @@ export default function MyPage() {
                     <ul className="grid gap-2">
                       {sentRequests.map((req) => (
                         <li key={req.userId} className="flex justify-between items-center p-2 rounded bg-pageSoft border border-line">
-                          <span className="text-sm font-semibold text-text">{req.nickname}</span>
+                          <div className="flex items-center gap-2">
+                            <UserAvatar avatarIcon={req.avatarIcon} avatarUrl={req.avatarUrl} nickname={req.nickname} size="sm" />
+                            <span className="text-sm font-semibold text-text">{req.nickname}</span>
+                          </div>
                           <button
                             onClick={() => handleDeleteRelationship(req.userId, req.nickname, '요청 취소가')}
                             className="button button--secondary button--sm !min-h-8"
@@ -1139,9 +1152,12 @@ export default function MyPage() {
                     {tabData.map((friend) => (
                       <li key={friend.id} className="flex justify-between items-center p-3 rounded-sm border border-line bg-pageSoft/50 hover:bg-pageSoft transition-colors">
                         <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 rounded-full bg-primary-soft flex items-center justify-center text-xs font-bold text-primary">
-                            {friend.nickname?.charAt(0).toUpperCase()}
-                          </div>
+                          <UserAvatar
+                            avatarIcon={friend.avatarIcon}
+                            avatarUrl={friend.avatarUrl}
+                            nickname={friend.nickname}
+                            size="md"
+                          />
                           {friend.userId ? (
                             <Link to={`/users/${friend.userId}`} className="text-sm font-semibold text-text transition hover:text-primary">
                               {friend.nickname}
@@ -1209,13 +1225,13 @@ export default function MyPage() {
                             aria-pressed={isSelected}
                             title={icon.key}
                           >
-                            {icon.emoji}
+                            <AvatarIconGlyph iconKey={icon.key} emoji={icon.emoji} />
                           </button>
                         );
                       })}
                     </div>
                     <span className="form-help">
-                      선택한 아이콘은 지금은 저장만 되고, 다른 화면에는 아직 표시되지 않습니다(추후 적용 예정).
+                      선택한 아이콘은 프로필, 친구/그룹 목록, 작성한 주석과 댓글에 함께 표시됩니다.
                     </span>
                   </div>
                   {editError && <p className="form-error">{editError}</p>}
@@ -1269,7 +1285,10 @@ export default function MyPage() {
 
                   return (
                     <li key={result.id} className="flex justify-between items-center p-2 rounded bg-pageSoft">
-                      <span className="text-xs font-semibold text-text truncate max-w-[150px]">{result.nickname}</span>
+                      <div className="flex items-center gap-2 min-w-0">
+                        <UserAvatar avatarIcon={result.avatarIcon} avatarUrl={result.avatarUrl} nickname={result.nickname} size="sm" />
+                        <span className="text-xs font-semibold text-text truncate max-w-[150px]">{result.nickname}</span>
+                      </div>
                       {isFriend ? (
                         <span className="text-[11px] text-text-subtle font-bold">친구 상태</span>
                       ) : isSent ? (

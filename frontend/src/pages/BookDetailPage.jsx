@@ -6,6 +6,7 @@ import { getGroupAnnotations } from '../api/groups';
 import { getPageData } from '../api/client';
 import { like, unlike } from '../api/likes';
 import SiteHeader from '../components/SiteHeader';
+import UserAvatar from '../components/common/UserAvatar';
 import { useAuth } from '../context/AuthContext';
 import { splitBookCategory } from '../utils/bookCategory';
 
@@ -60,6 +61,8 @@ function normalizeAnnotation(annotation) {
     review: annotation.review ?? annotation.content ?? '',
     authorId: annotation.author?.id ?? annotation.authorId,
     author: annotation.author?.nickname ?? annotation.authorName ?? annotation.author ?? '익명',
+    authorAvatarIcon: annotation.author?.avatarIcon ?? '',
+    authorAvatarUrl: annotation.author?.avatarUrl ?? '',
     time: formatDate(annotation.createdAt),
     comments: annotation.commentCount ?? annotation.comments ?? 0,
     likeCount: annotation.likeCount ?? 0,
@@ -299,16 +302,12 @@ function AnnotationCard({ annotation, isMine, onRequireAuth }) {
         <footer className="mt-7 flex items-center justify-between gap-4 text-sm text-text-muted">
           {annotation.authorId ? (
             <Link to={`/users/${annotation.authorId}`} className="flex items-center gap-2 transition hover:text-primary">
-              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary-soft text-xs font-bold text-primary">
-                {annotation.author.slice(0, 1)}
-              </span>
+              <UserAvatar avatarIcon={annotation.authorAvatarIcon} avatarUrl={annotation.authorAvatarUrl} nickname={annotation.author} size="sm" />
               <span className="font-semibold">{annotation.author}</span>
             </Link>
           ) : (
             <div className="flex items-center gap-2">
-              <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-primary-soft text-xs font-bold text-primary">
-                {annotation.author.slice(0, 1)}
-              </span>
+              <UserAvatar avatarIcon={annotation.authorAvatarIcon} avatarUrl={annotation.authorAvatarUrl} nickname={annotation.author} size="sm" />
               <span>{annotation.author}</span>
             </div>
           )}
