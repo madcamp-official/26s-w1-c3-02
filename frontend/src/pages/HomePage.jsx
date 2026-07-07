@@ -599,7 +599,7 @@ export default function HomePage() {
             )}
 
             {!errorMessage && (
-              <div className="book-shelf-list">
+              <div className="book-shelf-list mt-8">
                 {isLoading
                   ? Array.from({ length: 7 }).map((_, index) => <BookCardSkeleton key={index} />)
                   : books.slice(0, 7).map((book) => <BookCard key={book.id} book={book} />)}

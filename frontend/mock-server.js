@@ -49,7 +49,7 @@ const books = [
     publishDate: '1943-04-06',
     isbn: '9780156012195',
     genreCode: 'NOVEL',
-    coverImageUrl: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=420&q=80',
+    coverImageUrl: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=max&w=420&q=80',
   },
   {
     bookId: 2,
@@ -58,7 +58,7 @@ const books = [
     publishDate: '1919-01-01',
     isbn: '9780143106784',
     genreCode: 'NOVEL',
-    coverImageUrl: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&w=420&q=80',
+    coverImageUrl: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=max&w=420&q=80',
   },
   {
     bookId: 3,
@@ -67,7 +67,7 @@ const books = [
     publishDate: '1942-01-01',
     isbn: '9780679720201',
     genreCode: 'NOVEL',
-    coverImageUrl: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=420&q=80',
+    coverImageUrl: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=max&w=420&q=80',
   },
   {
     bookId: 4,
@@ -76,7 +76,7 @@ const books = [
     publishDate: '2011-01-01',
     isbn: '9780062316097',
     genreCode: 'HUMANITIES',
-    coverImageUrl: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&w=420&q=80',
+    coverImageUrl: 'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=max&w=420&q=80',
   },
   {
     bookId: 5,
@@ -85,7 +85,7 @@ const books = [
     publishDate: '1980-01-01',
     isbn: '9780345539434',
     genreCode: 'SCIENCE',
-    coverImageUrl: 'https://images.unsplash.com/photo-1519682337058-a94d519337bc?auto=format&fit=crop&w=420&q=80',
+    coverImageUrl: 'https://images.unsplash.com/photo-1519682337058-a94d519337bc?auto=format&fit=max&w=420&q=80',
   },
   {
     bookId: 6,

@@ -231,11 +231,15 @@
   }
 
   .book-cover {
-    @apply aspect-[3/4] w-[115px] rounded-xs bg-primary-soft object-cover shadow-soft;
+    @apply aspect-[3/4] w-[115px] rounded-xs bg-primary-soft object-contain shadow-soft;
   }
 
   .book-shelf-list {
     @apply flex flex-wrap items-start gap-4;
+  }
+
+  .browse-book-next-button {
+    @apply h-10 w-10 self-center rounded-full p-0 text-lg;
   }
 
   .book-shelf-card {
@@ -247,11 +251,11 @@
   }
 
   .book-shelf-cover {
-    @apply flex h-[232px] max-w-[165px] items-end justify-center;
+    @apply flex h-[232px] max-w-[165px] items-end justify-center overflow-visible;
   }
 
   .book-shelf-cover__image {
-    @apply max-h-full max-w-[165px] rounded-sm object-contain object-bottom shadow-soft transition group-hover:-translate-y-1 group-hover:shadow-card;
+    @apply block h-auto max-h-full w-auto max-w-[165px] self-end rounded-sm object-contain object-bottom shadow-soft transition group-hover:-translate-y-1 group-hover:shadow-card;
   }
 
   .book-shelf-cover__fallback {

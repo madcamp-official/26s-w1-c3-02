@@ -132,7 +132,7 @@ function BookCover({ book }) {
   if (book?.coverImageUrl) {
     return (
       <img
-        className="aspect-[3/4] w-full max-w-[180px] rounded-md object-cover shadow-float md:max-w-[220px]"
+        className="aspect-[3/4] w-full max-w-[180px] rounded-md bg-primary-soft object-contain shadow-float md:max-w-[220px]"
         src={book.coverImageUrl}
         alt={`${book.title} 표지`}
       />
