@@ -250,11 +250,21 @@
   .book-shelf-list.book-shelf-list--scroll {
     @apply flex-nowrap overflow-x-auto pb-3;
     scroll-snap-type: x proximity;
-    scrollbar-width: none;
+    scrollbar-color: #b9b4aa transparent;
+    scrollbar-width: thin;
   }
 
   .book-shelf-list.book-shelf-list--scroll::-webkit-scrollbar {
-    display: none;
+    height: 8px;
+  }
+
+  .book-shelf-list.book-shelf-list--scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .book-shelf-list.book-shelf-list--scroll::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: #b9b4aa;
   }
 
   .book-shelf-list.book-shelf-list--scroll > * {
@@ -374,11 +384,11 @@
     }
 
     .site-header {
-      @apply h-auto;
+      @apply h-[64px];
     }
 
     .site-header + .page {
-      @apply mt-[128px];
+      @apply mt-[64px];
     }
 
     .nav__link {
@@ -392,11 +402,21 @@
     .book-shelf-list--mobile-scroll {
       @apply -mx-4 flex-nowrap overflow-x-auto px-4 pb-3;
       scroll-snap-type: x proximity;
-      scrollbar-width: none;
+      scrollbar-color: #b9b4aa transparent;
+      scrollbar-width: thin;
     }
 
     .book-shelf-list--mobile-scroll::-webkit-scrollbar {
-      display: none;
+      height: 8px;
+    }
+
+    .book-shelf-list--mobile-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .book-shelf-list--mobile-scroll::-webkit-scrollbar-thumb {
+      border-radius: 999px;
+      background: #b9b4aa;
     }
 
     .book-shelf-list--mobile-scroll > * {
