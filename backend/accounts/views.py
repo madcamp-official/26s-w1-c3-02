@@ -34,6 +34,34 @@ class RegisterView(generics.CreateAPIView):
     permission_classes = [AllowAny]
 
 
+class NicknameAvailabilityView(APIView):
+    """GET /api/auth/nickname-check?nickname=..."""
+
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        nickname = request.query_params.get('nickname', '').strip()
+        if not nickname:
+            raise ValidationError('닉네임을 입력해 주세요.')
+
+        exists = User.objects.filter(nickname__iexact=nickname).exists()
+        return Response({'available': not exists})
+
+
+class EmailAvailabilityView(APIView):
+    """GET /api/auth/email-check?email=..."""
+
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        email = request.query_params.get('email', '').strip()
+        if not email:
+            raise ValidationError('이메일을 입력해 주세요.')
+
+        exists = User.objects.filter(email__iexact=email).exists()
+        return Response({'available': not exists})
+
+
 class LoginView(APIView):
     """POST /api/auth/login — 인증 불필요."""
 

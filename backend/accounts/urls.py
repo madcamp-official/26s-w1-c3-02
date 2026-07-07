@@ -15,6 +15,7 @@
 from django.urls import path
 
 from .views import (
+    EmailAvailabilityView,
     FriendAcceptView,
     FriendCreateView,
     FriendDeleteView,
@@ -23,6 +24,7 @@ from .views import (
     LoginView,
     LogoutView,
     MeView,
+    NicknameAvailabilityView,
     RegisterView,
     UserProfileView,
     UserSearchView,
@@ -30,6 +32,8 @@ from .views import (
 
 urlpatterns = [
     path('auth/register', RegisterView.as_view(), name='auth-register'),
+    path('auth/nickname-check', NicknameAvailabilityView.as_view(), name='auth-nickname-check'),
+    path('auth/email-check', EmailAvailabilityView.as_view(), name='auth-email-check'),
     path('auth/login', LoginView.as_view(), name='auth-login'),
     path('auth/logout', LogoutView.as_view(), name='auth-logout'),
     path('users/me', MeView.as_view(), name='users-me'),

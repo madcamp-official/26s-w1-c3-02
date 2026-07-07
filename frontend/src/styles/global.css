@@ -239,7 +239,7 @@
   }
 
   .browse-book-next-button {
-    @apply h-10 w-10 self-center rounded-full p-0 text-lg;
+    @apply h-10 w-10 self-center rounded-md p-0 text-lg flex items-center justify-center;
   }
 
   .book-shelf-card {
@@ -382,3 +382,5 @@
     }
   }
 }
+
+

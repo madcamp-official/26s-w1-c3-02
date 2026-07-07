@@ -190,10 +190,11 @@ CORS_ALLOW_ALL_ORIGINS = env_bool('CORS_ALLOW_ALL_ORIGINS', DEBUG)
 CORS_ALLOWED_ORIGINS = env_list('CORS_ALLOWED_ORIGINS')
 CORS_ALLOW_CREDENTIALS = env_bool('CORS_ALLOW_CREDENTIALS', False)
 
-# CSRF_TRUSTED_ORIGINS = env_list('CSRF_TRUSTED_ORIGINS')
-CSRF_TRUSTED_ORIGINS = [
-    "https://munjang.madcamp-kaist.org",
-]
+CSRF_TRUSTED_ORIGINS = env_list(
+    'CSRF_TRUSTED_ORIGINS',
+    'http://localhost,http://127.0.0.1,http://localhost:8080,http://127.0.0.1:8080,'
+    'http://localhost:5173,http://127.0.0.1:5173,https://munjang.madcamp-kaist.org',
+)
 
 CACHES = {
     'default': {
