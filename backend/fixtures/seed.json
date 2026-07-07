@@ -204,6 +204,23 @@
     }
   },
   {
+    "model": "accounts.user",
+    "pk": 13,
+    "fields": {
+      "password": "pbkdf2_sha256$1200000$hm8GLPflDTxt91b6M57LOU$yCMpLUSp3I80MZGD1nF0urSCFepYCWmNVnsvNgUnmLM=",
+      "last_login": null,
+      "is_superuser": false,
+      "is_staff": false,
+      "is_active": true,
+      "date_joined": "2026-07-07T06:00:00Z",
+      "email": "easy_o@kaist.ac.kr",
+      "nickname": "easy00",
+      "bio": "",
+      "avatar_url": "",
+      "avatar_icon": ""
+    }
+  },
+  {
     "model": "books.book",
     "pk": 1,
     "fields": {
@@ -842,6 +859,134 @@
       "visibility": "private",
       "is_spoiler": false,
       "created_at": "2026-07-07T05:40:00Z"
+    }
+  },
+  {
+    "model": "annotations.annotation",
+    "pk": 13,
+    "fields": {
+      "user": 13,
+      "book": 9,
+      "group": null,
+      "type": "REVIEW",
+      "passage": "우리는 그곳에 갈 수 없지만, 서로를 향한 문장은 계속 도착한다.",
+      "review": "빛의 속도보다 느린 관계를 다루는 방식이 좋아서 다시 표시해 두었다.",
+      "page": 37,
+      "visibility": "public",
+      "is_spoiler": false,
+      "created_at": "2026-07-07T06:10:00Z"
+    }
+  },
+  {
+    "model": "annotations.annotation",
+    "pk": 14,
+    "fields": {
+      "user": 13,
+      "book": 9,
+      "group": null,
+      "type": "QUESTION",
+      "passage": "멀리 있는 사람을 이해한다는 건 거리 자체를 받아들이는 일일까.",
+      "review": "같은 책에 두 번째로 남기는 메모. SF 장르가 주석 수만큼 집계되는지 보기 좋다.",
+      "page": 88,
+      "visibility": "public",
+      "is_spoiler": false,
+      "created_at": "2026-07-07T06:20:00Z"
+    }
+  },
+  {
+    "model": "annotations.annotation",
+    "pk": 15,
+    "fields": {
+      "user": 13,
+      "book": 9,
+      "group": null,
+      "type": "DISCUSSION",
+      "passage": "불가능한 이동보다 오래 기다리는 마음이 더 선명하게 남는다.",
+      "review": "세 번째 SF 메모. 취향 분석에서 과학소설 쪽이 크게 잡히는지 확인한다.",
+      "page": 132,
+      "visibility": "public",
+      "is_spoiler": false,
+      "created_at": "2026-07-07T06:30:00Z"
+    }
+  },
+  {
+    "model": "annotations.annotation",
+    "pk": 16,
+    "fields": {
+      "user": 13,
+      "book": 4,
+      "group": null,
+      "type": "NORMAL",
+      "passage": "상상 속 질서는 많은 사람을 실제로 움직이게 만든다.",
+      "review": "사피엔스의 핵심 문제의식이 서비스와 커뮤니티 설계에도 닿아 있다.",
+      "page": 44,
+      "visibility": "public",
+      "is_spoiler": false,
+      "created_at": "2026-07-07T06:40:00Z"
+    }
+  },
+  {
+    "model": "annotations.annotation",
+    "pk": 17,
+    "fields": {
+      "user": 13,
+      "book": 4,
+      "group": null,
+      "type": "QUESTION",
+      "passage": "우리가 믿는 이야기는 언제 협력이 되고 언제 폭력이 될까.",
+      "review": "같은 인문학 책에 두 번째 주석. 같은 책 중복 카운트 확인용이다.",
+      "page": 213,
+      "visibility": "public",
+      "is_spoiler": false,
+      "created_at": "2026-07-07T06:50:00Z"
+    }
+  },
+  {
+    "model": "annotations.annotation",
+    "pk": 18,
+    "fields": {
+      "user": 13,
+      "book": 3,
+      "group": null,
+      "type": "DISCUSSION",
+      "passage": "기록을 고치는 사람은 결국 기억을 고치는 사람이다.",
+      "review": "1984를 읽을 때마다 데이터와 권력의 관계를 다시 생각하게 된다.",
+      "page": 76,
+      "visibility": "public",
+      "is_spoiler": false,
+      "created_at": "2026-07-07T07:00:00Z"
+    }
+  },
+  {
+    "model": "annotations.annotation",
+    "pk": 19,
+    "fields": {
+      "user": 13,
+      "book": 1,
+      "group": null,
+      "type": "REVIEW",
+      "passage": "새는 알에서 나오려고 투쟁한다.",
+      "review": "짧은 문장인데 계속 시작점으로 돌아오게 만든다.",
+      "page": 48,
+      "visibility": "public",
+      "is_spoiler": false,
+      "created_at": "2026-07-07T07:10:00Z"
+    }
+  },
+  {
+    "model": "annotations.annotation",
+    "pk": 20,
+    "fields": {
+      "user": 13,
+      "book": 5,
+      "group": null,
+      "type": "NORMAL",
+      "passage": "살아남은 사람의 시간은 종종 멈춘 곳에서 다시 시작된다.",
+      "review": "소년이 온다의 문장들은 읽는 속도를 일부러 늦추게 한다.",
+      "page": 119,
+      "visibility": "public",
+      "is_spoiler": false,
+      "created_at": "2026-07-07T07:20:00Z"
     }
   },
   {
