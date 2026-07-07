@@ -1,9 +1,39 @@
 import uuid
 
 import requests
+from django.conf import settings
 from rest_framework import exceptions
 
+KAKAO_TOKEN_URL = 'https://kauth.kakao.com/oauth/token'
 KAKAO_USER_ME_URL = 'https://kapi.kakao.com/v2/user/me'
+
+
+def exchange_code_for_token(code, redirect_uri):
+    if not settings.KAKAO_REST_API_KEY:
+        raise exceptions.APIException('KAKAO_REST_API_KEY is not configured.')
+
+    body = {
+        'grant_type': 'authorization_code',
+        'client_id': settings.KAKAO_REST_API_KEY,
+        'redirect_uri': redirect_uri,
+        'code': code,
+    }
+    if settings.KAKAO_CLIENT_SECRET:
+        body['client_secret'] = settings.KAKAO_CLIENT_SECRET
+
+    try:
+        response = requests.post(KAKAO_TOKEN_URL, data=body, timeout=5)
+    except requests.RequestException as exc:
+        raise exceptions.AuthenticationFailed('카카오 인증에 실패했습니다.') from exc
+
+    if response.status_code >= 400:
+        raise exceptions.AuthenticationFailed('카카오 인증에 실패했습니다.')
+
+    access_token = response.json().get('access_token')
+    if not access_token:
+        raise exceptions.AuthenticationFailed('카카오 인증에 실패했습니다.')
+
+    return access_token
 
 
 def fetch_kakao_profile(kakao_access_token):

@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
+import KakaoCallbackPage from './pages/KakaoCallbackPage';
 import RegisterPage from './pages/RegisterPage';
 import MyPage from './pages/MyPage';
 import BookDetailPage from './pages/BookDetailPage.jsx';
@@ -67,7 +68,8 @@ export default function App() {
           </GuestRoute>
         }
       />
-      
+      <Route path="/auth/kakao/callback" element={<KakaoCallbackPage />} />
+
       <Route
         path="/mypage"
         element={
