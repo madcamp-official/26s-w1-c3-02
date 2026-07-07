@@ -84,7 +84,7 @@ function formatTodayLabel() {
 
 function LogoMark() {
   return (
-    <img className="w-[132px] shrink-0 object-contain sm:w-[160px] lg:w-[190px]" src="/logo.png" alt="문장서재" />
+    <img className="w-[132px] shrink-0 object-contain sm:w-[160px] lg:w-[190px]" src="/logo-transparent.png" alt="문장서재" />
   );
 }
 

@@ -25,6 +25,8 @@ class AnnotationBookSerializer(serializers.ModelSerializer):
 class AnnotationAuthorSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     nickname = serializers.CharField(read_only=True)
+    avatarUrl = serializers.CharField(source='avatar_url', read_only=True)
+    avatarIcon = serializers.CharField(source='avatar_icon', read_only=True)
 
 
 class AnnotationSerializer(serializers.ModelSerializer):
