@@ -126,6 +126,7 @@ export default function GroupDetailPage() {
       const res = await getGroup(groupId);
       if (requestId !== latestGroupRequestId.current) return;
       setGroup(res);
+      setNoticeContent(res.notice?.content ?? '');
       if (res.owner?.id === user?.id) {
         loadPendingInvites();
       }
@@ -301,15 +302,14 @@ export default function GroupDetailPage() {
 
   const handleCreateNotice = async (event) => {
     event.preventDefault();
-    const content = noticeContent.trim();
-    if (!content || isSavingNotice) return;
+    if (isSavingNotice) return;
 
     setIsSavingNotice(true);
     try {
-      const notice = await createGroupNotice(groupId, content);
+      const notice = await createGroupNotice(groupId, noticeContent);
       setGroup((prev) => ({ ...prev, notice }));
-      setNoticeContent('');
-      showToast('공지를 등록했습니다.');
+      setNoticeContent(notice.content ?? '');
+      showToast('공지를 수정했습니다.');
     } catch (err) {
       console.error(err);
       showToast(getErrorMessage(err), 'error');
@@ -423,8 +423,8 @@ export default function GroupDetailPage() {
                       disabled={isSavingNotice}
                     />
                     <div className="flex justify-end">
-                      <button type="submit" className="button button--primary button--sm w-full sm:w-auto" disabled={isSavingNotice || !noticeContent.trim()}>
-                        {isSavingNotice ? '등록 중' : '공지 등록'}
+                      <button type="submit" className="button button--primary button--sm w-full sm:w-auto" disabled={isSavingNotice}>
+                        {isSavingNotice ? '저장 중' : '공지 수정'}
                       </button>
                     </div>
                   </form>
