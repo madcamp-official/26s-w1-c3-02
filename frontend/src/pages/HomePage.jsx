@@ -602,7 +602,7 @@ export default function HomePage() {
             )}
 
             {!errorMessage && (
-              <div className="book-shelf-list justify-between mt-8">
+              <div className="book-shelf-list mt-8">
                 {isLoading ? (
                   Array.from({ length: 7 }).map((_, index) => <BookCardSkeleton key={index} />)
                 ) : (
@@ -610,11 +610,6 @@ export default function HomePage() {
                     {books.slice(0, 7).map((book) => (
                       <BookCard key={book.id} book={book} />
                     ))}
-                    {books.slice(0, 7).length < 7 &&
-                      Array.from({ length: 7 - books.slice(0, 7).length }).map((_, index) => (
-                        <div key={`pad-${index}`} className="w-[165px] shrink-0" aria-hidden="true" />
-                      ))
-                    }
                   </>
                 )}
               </div>
