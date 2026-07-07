@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from .models import Group, GroupMember
+from .models import Group, GroupMember, GroupNotice
 
 
 class GroupNoticeApiTests(APITestCase):
@@ -22,7 +22,7 @@ class GroupNoticeApiTests(APITestCase):
         GroupMember.objects.create(group=self.group, user=self.owner)
         GroupMember.objects.create(group=self.group, user=self.member)
 
-    def test_owner_can_post_notice_and_group_detail_shows_latest_only(self):
+    def test_owner_can_update_notice_and_group_detail_shows_latest_only(self):
         self.client.force_authenticate(self.owner)
 
         first = self.client.post(
@@ -38,12 +38,25 @@ class GroupNoticeApiTests(APITestCase):
             format='json',
         )
         self.assertEqual(second.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(GroupNotice.objects.filter(group=self.group).count(), 1)
 
         detail = self.client.get(f'/api/groups/{self.group.id}')
 
         self.assertEqual(detail.status_code, status.HTTP_200_OK)
         self.assertEqual(detail.data['notice']['content'], 'Second notice')
         self.assertEqual(detail.data['notice']['author']['id'], self.owner.id)
+
+    def test_owner_can_save_blank_notice(self):
+        self.client.force_authenticate(self.owner)
+
+        response = self.client.post(
+            f'/api/groups/{self.group.id}/notice',
+            {'content': ''},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['content'], '')
 
     def test_member_cannot_post_notice(self):
         self.client.force_authenticate(self.member)

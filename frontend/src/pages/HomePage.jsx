@@ -627,6 +627,12 @@ export default function HomePage() {
               </div>
             </div>
 
+            <div className="flex justify-start lg:hidden -mt-2">
+              <Link className="text-sm font-bold text-primary hover:underline" to="/search">
+                더보기
+              </Link>
+            </div>
+
             <div className="flex flex-wrap gap-2">
               <button
                 className={`button button--sm ${categoryGroup ? 'button--secondary' : 'button--primary'}`}

@@ -105,19 +105,21 @@ class GroupNoticeSerializer(serializers.ModelSerializer):
 
 
 class GroupNoticeCreateSerializer(serializers.Serializer):
-    content = serializers.CharField(trim_whitespace=True, max_length=2000)
-
-    def validate_content(self, value):
-        if not value.strip():
-            raise serializers.ValidationError('notice content is required.')
-        return value.strip()
+    content = serializers.CharField(allow_blank=True, trim_whitespace=False, max_length=2000)
 
     def create(self, validated_data):
-        return GroupNotice.objects.create(
-            group=self.context['group'],
-            author=self.context['request'].user,
-            content=validated_data['content'],
-        )
+        group = self.context['group']
+        request = self.context['request']
+        content = validated_data.get('content', '')
+        notice = group.notices.order_by('-created_at', '-id').first()
+
+        if notice:
+            notice.author = request.user
+            notice.content = content
+            notice.save(update_fields=['author', 'content'])
+            return notice
+
+        return GroupNotice.objects.create(group=group, author=request.user, content=content)
 
 
 class GroupUpdateSerializer(serializers.ModelSerializer):
