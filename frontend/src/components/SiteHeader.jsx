@@ -17,14 +17,12 @@ const navItems = [
 ];
 
 function LogoMark() {
-  return (
-    <img className="w-[132px] shrink-0 object-contain sm:w-[160px] lg:w-[190px]" src="/logo.png" alt="문장서재" />
-  );
+  return <img className="w-[132px] shrink-0 object-contain sm:w-[160px] lg:w-[190px]" src="/logo.png" alt="문장의서재" />;
 }
 
-function NavLink({ to, active, children }) {
+function NavLink({ to, active, children, onClick }) {
   return (
-    <Link className={`nav__link shrink-0 ${active ? 'nav__link--active' : ''}`} to={to}>
+    <Link className={`nav__link shrink-0 ${active ? 'nav__link--active' : ''}`} to={to} onClick={onClick}>
       {children}
     </Link>
   );
@@ -99,15 +97,18 @@ export default function SiteHeader({ active = 'auto', showSearch = true }) {
         onChange={(event) => setKeyword(event.target.value)}
         placeholder="책 제목, 주석, 저자 검색"
       />
-      <button className="flex h-11 w-11 shrink-0 items-center justify-center text-lg font-bold text-primary sm:w-12" type="submit" aria-label="검색">
-        ⌕
+      <button className="flex h-11 w-11 shrink-0 items-center justify-center text-primary sm:w-12" type="submit" aria-label="검색">
+        <svg viewBox="0 0 20 20" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <circle cx="9" cy="9" r="5.5" />
+          <path d="m13.2 13.2 3.3 3.3" />
+        </svg>
       </button>
     </form>
   );
 
   return (
     <header className="site-header">
-      <div className="container grid min-h-[72px] grid-cols-[auto_1fr_auto] items-center gap-3 lg:gap-8">
+      <div className="container grid min-h-[64px] grid-cols-[auto_1fr_auto] items-center gap-3 md:min-h-[72px] lg:gap-8">
         <Link to="/" className="brand justify-self-start">
           <LogoMark />
           <span className="brand__subtitle hidden xl:inline">문장을 수집하고, 생각을 나누는 공간</span>
@@ -134,6 +135,16 @@ export default function SiteHeader({ active = 'auto', showSearch = true }) {
           >
             <UserIcon className="h-6 w-6" strokeWidth={2.1} />
           </Link>
+          <Link
+            to="/search"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-text transition hover:bg-pageSoft hover:text-primary"
+            aria-label="검색"
+          >
+            <svg viewBox="0 0 20 20" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <circle cx="9" cy="9" r="5.5" />
+              <path d="m13.2 13.2 3.3 3.3" />
+            </svg>
+          </Link>
           <button
             type="button"
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-text transition hover:bg-pageSoft hover:text-primary"
@@ -142,27 +153,49 @@ export default function SiteHeader({ active = 'auto', showSearch = true }) {
             onClick={() => setIsMenuOpen((prev) => !prev)}
           >
             <svg viewBox="0 0 20 20" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <circle cx="9" cy="9" r="5.5" />
-              <path d="m13.2 13.2 3.3 3.3" />
+              <path d="M3 5h14" />
+              <path d="M3 10h14" />
+              <path d="M3 15h14" />
             </svg>
           </button>
         </div>
       </div>
 
-      <nav className="mobile-tab-nav md:hidden" aria-label="모바일 주요 메뉴">
-        {navItems.map((item) => (
-          <NavLink key={item.key} to={item.to} active={activeKey === item.key}>
-            {item.label}
-          </NavLink>
-        ))}
-        <NavLink to={myPagePath} active={activeKey === myPageActiveKey}>
-          {isAuthenticated ? '마이페이지' : '로그인'}
-        </NavLink>
-      </nav>
-
-      {isMenuOpen && showSearch && (
-        <div className="absolute inset-x-0 top-full border-b border-line bg-white p-4 shadow-card md:hidden">
-          {searchForm('flex w-full')}
+      {isMenuOpen && (
+        <div className="fixed inset-0 z-[60] md:hidden" role="presentation">
+          <button
+            type="button"
+            className="absolute inset-0 bg-slate-950/35"
+            aria-label="메뉴 닫기"
+            onClick={() => setIsMenuOpen(false)}
+          />
+          <aside className="absolute right-0 top-0 flex h-full w-[min(82vw,320px)] flex-col bg-white p-5 shadow-float">
+            <div className="mb-6 flex items-center justify-between gap-3">
+              <LogoMark />
+              <button
+                type="button"
+                className="flex h-10 w-10 items-center justify-center rounded-full text-text transition hover:bg-pageSoft hover:text-primary"
+                aria-label="메뉴 닫기"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <svg viewBox="0 0 20 20" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M5 5l10 10" />
+                  <path d="M15 5L5 15" />
+                </svg>
+              </button>
+            </div>
+            <nav className="grid gap-1" aria-label="모바일 주요 메뉴">
+              {navItems.map((item) => (
+                <NavLink key={item.key} to={item.to} active={activeKey === item.key} onClick={() => setIsMenuOpen(false)}>
+                  {item.label}
+                </NavLink>
+              ))}
+              <NavLink to={myPagePath} active={activeKey === myPageActiveKey} onClick={() => setIsMenuOpen(false)}>
+                {isAuthenticated ? '마이페이지' : '로그인'}
+              </NavLink>
+            </nav>
+            {showSearch && <div className="mt-6">{searchForm('flex w-full')}</div>}
+          </aside>
         </div>
       )}
     </header>
