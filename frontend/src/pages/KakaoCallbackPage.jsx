@@ -27,7 +27,7 @@ export default function KakaoCallbackPage() {
       try {
         const response = await kakaoLogin({ code, redirectUri: KAKAO_REDIRECT_URI });
         login({ accessToken: response.accessToken, user: response.user });
-        navigate('/', { replace: true });
+        navigate(response.isNewUser ? '/onboarding/nickname' : '/', { replace: true });
       } catch (err) {
         navigate('/login', {
           replace: true,

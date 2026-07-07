@@ -44,6 +44,7 @@ import DonutChart from '../components/DonutChart';
 import ExactBookCover from '../components/ExactBookCover';
 import { buildGenreSummary } from '../utils/genre';
 import { getTypeMeta, formatCount, formatRelativeTime } from '../utils/format';
+import { AVATAR_ICON_OPTIONS } from '../utils/avatarIcons';
 
 const NAV_ITEMS = [
   { key: 'dashboard', label: '대시보드', Icon: HomeIcon },
@@ -53,22 +54,6 @@ const NAV_ITEMS = [
   { key: 'groups', label: '그룹 라운지', Icon: UsersIcon },
   { key: 'friends', label: '친구', Icon: UserIcon },
   { key: 'settings', label: '설정', Icon: SettingsIcon },
-];
-
-// 선택 가능한 프로필 아이콘 프리셋 — 사용자가 이미지를 업로드하는 대신 이 중 하나를 고른다.
-// 다른 화면(헤더, 그룹 멤버 목록 등)에 실제로 노출하는 작업은 아직 하지 않는다(팀원 작업과의 충돌 방지를 위해
-// 선택/저장 기능만 먼저 구현 — design.md 참고).
-const AVATAR_ICON_OPTIONS = [
-  { key: 'reader', emoji: '📖', bg: 'bg-accent-blue' },
-  { key: 'cat', emoji: '🐱', bg: 'bg-accent-rose' },
-  { key: 'fox', emoji: '🦊', bg: 'bg-accent-cream' },
-  { key: 'bear', emoji: '🐻', bg: 'bg-accent-green' },
-  { key: 'rabbit', emoji: '🐰', bg: 'bg-primary-soft' },
-  { key: 'owl', emoji: '🦉', bg: 'bg-accent-cream' },
-  { key: 'star', emoji: '⭐', bg: 'bg-accent-blue' },
-  { key: 'plant', emoji: '🌿', bg: 'bg-accent-green' },
-  { key: 'coffee', emoji: '☕', bg: 'bg-accent-rose' },
-  { key: 'moon', emoji: '🌙', bg: 'bg-primary-soft' },
 ];
 
 // 공통 EmptyState 컴포넌트
