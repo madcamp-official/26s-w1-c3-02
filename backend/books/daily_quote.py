@@ -44,7 +44,9 @@ def get_daily_quote(date_str):
         return cached
 
     payload = call_openai(date_str)
-    payload['coverImageUrl'] = resolve_cover_image(payload)
+    cover_book = resolve_cover_book(payload)
+    payload['coverImageUrl'] = cover_book.get('coverImageUrl', '')
+    payload['isbn'] = cover_book.get('isbn', '')
     payload['book_title'] = strip_parenthetical(payload.get('book_title'))
     payload['author'] = strip_parenthetical(payload.get('author'))
 
@@ -103,20 +105,20 @@ def parse_openai_json(text):
         raise exceptions.APIException('Failed to parse OpenAI response.') from exc
 
 
-def resolve_cover_image(payload):
-    return search_cover_by_title(payload.get('book_title') or '')
+def resolve_cover_book(payload):
+    return search_book_by_title(payload.get('book_title') or '')
 
 
-def search_cover_by_title(book_title):
+def search_book_by_title(book_title):
     for keyword in title_search_candidates(book_title):
         try:
             results = search_aladin_books(keyword=keyword, field='title', size=1)
         except exceptions.APIException:
             continue
         if results:
-            return results[0]['coverImageUrl']
+            return results[0]
 
-    return ''
+    return {}
 
 
 def title_search_candidates(book_title):

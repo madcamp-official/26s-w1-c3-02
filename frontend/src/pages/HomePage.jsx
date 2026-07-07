@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { getBookCategories, getBooks, getDailyQuote } from '../api/books';
+import { getBookCategories, getBooks, getDailyQuote, importBookFromAladin, searchExternalBooks } from '../api/books';
 import { favoriteAnnotation, getAnnotationFeed, unfavoriteAnnotation } from '../api/annotations';
 import { getPageData } from '../api/client';
 import BookShelfFrame from '../components/BookShelfFrame';
@@ -215,16 +215,65 @@ function BookCoverFallback({ title }) {
   );
 }
 
+function normalizeText(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function getBookId(book) {
+  return book?.bookId ?? book?.id;
+}
+
 function HeroBookCover({ quote }) {
+  const navigate = useNavigate();
   const [imageFailed, setImageFailed] = useState(false);
+  const [isOpening, setIsOpening] = useState(false);
   const showImage = Boolean(quote.coverImageUrl) && !imageFailed;
-  const searchParams = new URLSearchParams({ category: 'book', q: quote.book_title || '' });
+  const title = quote.book_title || '';
+
+  const openBookDetail = async () => {
+    if (isOpening) return;
+
+    setIsOpening(true);
+    try {
+      const localResponse = await getBooks({ keyword: title, field: 'title', size: 10 });
+      const localBooks = localResponse.data || [];
+      const localBook =
+        localBooks.find((book) => quote.isbn && book.isbn === quote.isbn) ||
+        localBooks.find((book) => normalizeText(book.title) === normalizeText(title));
+
+      if (localBook && getBookId(localBook)) {
+        navigate(`/books/${getBookId(localBook)}`);
+        return;
+      }
+
+      let isbn = quote.isbn;
+      if (!isbn) {
+        const externalResponse = await searchExternalBooks({ keyword: title, field: 'title', size: 1 });
+        isbn = externalResponse.data?.[0]?.isbn;
+      }
+
+      if (isbn) {
+        const importedBook = await importBookFromAladin(isbn);
+        if (getBookId(importedBook)) {
+          navigate(`/books/${getBookId(importedBook)}`);
+          return;
+        }
+      }
+
+      navigate(`/search?${new URLSearchParams({ category: 'book', q: title }).toString()}`);
+    } catch {
+      navigate(`/search?${new URLSearchParams({ category: 'book', q: title }).toString()}`);
+    } finally {
+      setIsOpening(false);
+    }
+  };
 
   return (
-    <Link to={`/search?${searchParams.toString()}`} className="group block">
+    <button type="button" onClick={openBookDetail} disabled={isOpening} className="group block w-fit max-w-[115px] min-w-0 text-left disabled:cursor-wait">
+      <span className="inline-flex h-[154px] max-w-[115px] items-end align-top">
       {showImage ? (
         <img
-          className="book-cover transition group-hover:-translate-y-1 group-hover:shadow-card"
+          className="block h-auto max-h-full w-auto max-w-[115px] rounded-xs object-contain object-bottom shadow-soft transition group-hover:-translate-y-1 group-hover:shadow-card"
           src={quote.coverImageUrl}
           alt={`${quote.book_title} 표지`}
           onError={() => setImageFailed(true)}
@@ -232,9 +281,10 @@ function HeroBookCover({ quote }) {
       ) : (
         <BookCoverFallback title={quote.book_title} />
       )}
+      </span>
       <p className="mt-2 line-clamp-2 text-xs font-bold leading-snug text-text group-hover:text-primary">{quote.book_title}</p>
       <p className="text-xs font-medium text-text-muted">{quote.author}</p>
-    </Link>
+    </button>
   );
 }
 
@@ -270,7 +320,7 @@ function HomeHero({ quote, isLoading, errorMessage }) {
       )}
 
       {!isLoading && !errorMessage && quote && (
-        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-[115px_1fr] sm:gap-8">
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-[max-content_1fr] sm:gap-8">
           <HeroBookCover quote={quote} />
           <div>
             <h1 className="text-2xl font-semibold leading-[1.6] text-text md:text-[28px]">{quote.topic}</h1>

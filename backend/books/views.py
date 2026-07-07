@@ -195,7 +195,7 @@ class FavoriteBookListView(generics.ListAPIView):
 
 
 class AladinBookSearchView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     def get(self, request):
         keyword = request.query_params.get('keyword') or request.query_params.get('q')
@@ -212,7 +212,7 @@ class AladinBookSearchView(APIView):
 
 
 class AladinBookImportView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     def post(self, request):
         isbn = request.data.get('isbn')

@@ -171,7 +171,7 @@ class BookApiTests(APITestCase):
         self.assertFalse(BookFavorite.objects.filter(user=self.user, book=self.book).exists())
 
     @patch('books.views.search_aladin_books')
-    def test_aladin_search_requires_auth_and_returns_candidates(self, mock_search):
+    def test_aladin_search_returns_candidates(self, mock_search):
         mock_search.return_value = [{
             'title': '알라딘 책',
             'author': '작가',
@@ -182,13 +182,11 @@ class BookApiTests(APITestCase):
         }]
 
         response = self.client.get('/api/books/external-search', {'keyword': '알라딘'})
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-        self.client.force_authenticate(self.user)
         response = self.client.get('/api/books/external-search', {'keyword': '알라딘', 'field': 'title'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['data'][0]['isbn'], '9790000000001')
-        mock_search.assert_called_once()
+        self.assertEqual(mock_search.call_count, 2)
 
     @patch('books.aladin.call_aladin')
     def test_aladin_search_only_uses_domestic_and_foreign_book_targets(self, mock_call):
