@@ -121,21 +121,6 @@
     display: none;
   }
 
-  .book-shelf-list--scroll {
-    @apply flex-nowrap overflow-x-auto pb-3;
-    scroll-snap-type: x proximity;
-    scrollbar-width: none;
-  }
-
-  .book-shelf-list--scroll::-webkit-scrollbar {
-    display: none;
-  }
-
-  .book-shelf-list--scroll > * {
-    @apply shrink-0;
-    scroll-snap-align: start;
-  }
-
   .card {
     @apply rounded-md border border-line bg-surface shadow-soft;
   }
@@ -262,8 +247,19 @@
     @apply flex flex-wrap items-start gap-4;
   }
 
-  .browse-book-next-button {
-    @apply h-10 w-10 self-center rounded-md p-0 text-lg flex items-center justify-center;
+  .book-shelf-list.book-shelf-list--scroll {
+    @apply flex-nowrap overflow-x-auto pb-3;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .book-shelf-list.book-shelf-list--scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .book-shelf-list.book-shelf-list--scroll > * {
+    @apply shrink-0;
+    scroll-snap-align: start;
   }
 
   .book-shelf-card {

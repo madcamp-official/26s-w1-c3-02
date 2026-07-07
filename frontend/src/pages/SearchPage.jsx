@@ -367,7 +367,6 @@ export default function SearchPage() {
   const [annotations, setAnnotations] = useState([]);
   const [popularBooks, setPopularBooks] = useState([]);
   const [browseAnnotations, setBrowseAnnotations] = useState([]);
-  const [bookWindow, setBookWindow] = useState(0);
   const [annotationFilter, setAnnotationFilter] = useState('all');
   const [isLoading, setIsLoading] = useState(true);
   const [isBrowseLoading, setIsBrowseLoading] = useState(true);
@@ -401,11 +400,6 @@ export default function SearchPage() {
     [categoryParam],
   );
   const isBrowseMode = !keywordParam.trim();
-  const visiblePopularBooks = popularBooks.slice(
-    bookWindow * POPULAR_BOOKS_PER_WINDOW,
-    bookWindow * POPULAR_BOOKS_PER_WINDOW + POPULAR_BOOKS_PER_WINDOW,
-  );
-
   useEffect(() => {
     setCategory(activeCategory);
     setKeyword(keywordParam);
@@ -584,19 +578,6 @@ export default function SearchPage() {
                   <section className="grid gap-4">
                     <div className="flex items-center justify-between gap-4">
                       <h2 className="section-title">인기 책</h2>
-                      {popularBooks.length > POPULAR_BOOKS_PER_WINDOW && (
-                        <button
-                          className="hidden"
-                          type="button"
-                          onClick={() => {
-                            const totalWindows = Math.max(Math.ceil(popularBooks.length / POPULAR_BOOKS_PER_WINDOW), 1);
-                            setBookWindow((value) => (value + 1) % totalWindows);
-                          }}
-                          aria-label="다음 인기 책"
-                        >
-                          →
-                        </button>
-                      )}
                     </div>
 
                     {isBrowseLoading ? (
@@ -609,18 +590,13 @@ export default function SearchPage() {
                           </article>
                         ))}
                       </div>
-                    ) : visiblePopularBooks.length === 0 ? (
+                    ) : popularBooks.length === 0 ? (
                       <EmptyState>인기 책이 없습니다.</EmptyState>
                     ) : (
                       <div className="book-shelf-list book-shelf-list--scroll">
                         {popularBooks.map((book) => (
                           <PopularBookCard key={book.id} book={book} />
                         ))}
-                        {false && visiblePopularBooks.length < POPULAR_BOOKS_PER_WINDOW &&
-                          Array.from({ length: POPULAR_BOOKS_PER_WINDOW - visiblePopularBooks.length }).map((_, index) => (
-                            <div key={`pad-${index}`} className="w-[165px] shrink-0" aria-hidden="true" />
-                          ))
-                        }
                       </div>
                     )}
                   </section>
