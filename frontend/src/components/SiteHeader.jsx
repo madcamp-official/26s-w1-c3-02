@@ -16,6 +16,8 @@ const navItems = [
   { to: '/groups', key: 'lounge', label: '라운지' },
 ];
 
+
+
 function LogoMark() {
   return <img className="w-[132px] shrink-0 object-contain sm:w-[160px] lg:w-[190px]" src="/logo-transparent.png" alt="문장의서재" />;
 }
@@ -35,16 +37,15 @@ export default function SiteHeader({ active = 'auto', showSearch = true }) {
   const [searchParams] = useSearchParams();
   const [keyword, setKeyword] = useState(searchParams.get('q') || '');
   const [category, setCategory] = useState(searchParams.get('category') || 'all');
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+
 
   useEffect(() => {
     setKeyword(searchParams.get('q') || '');
     setCategory(searchParams.get('category') || 'all');
   }, [searchParams]);
 
-  useEffect(() => {
-    setIsMenuOpen(false);
-  }, [location.pathname]);
+
 
   const activeKey =
     active === 'auto'
@@ -61,7 +62,7 @@ export default function SiteHeader({ active = 'auto', showSearch = true }) {
                 : ''
       : active;
 
-  const myPagePath = isAuthenticated ? '/mypage' : '/login';
+  const desktopMyPagePath = isAuthenticated ? '/mypage' : '/login';
   const myPageActiveKey = isAuthenticated ? 'mypage' : 'login';
 
   const handleSearch = (event) => {
@@ -70,7 +71,6 @@ export default function SiteHeader({ active = 'auto', showSearch = true }) {
     const params = new URLSearchParams({ category });
     if (trimmedKeyword) params.set('q', trimmedKeyword);
     navigate(`/search?${params.toString()}`);
-    setIsMenuOpen(false);
   };
 
   const searchForm = (className = '') => (
@@ -122,19 +122,12 @@ export default function SiteHeader({ active = 'auto', showSearch = true }) {
               {item.label}
             </NavLink>
           ))}
-          <NavLink to={myPagePath} active={activeKey === myPageActiveKey}>
+          <NavLink to={desktopMyPagePath} active={activeKey === myPageActiveKey}>
             {isAuthenticated ? '마이페이지' : '로그인'}
           </NavLink>
         </nav>
 
         <div className="flex items-center justify-end gap-2 md:hidden">
-          <Link
-            to={myPagePath}
-            className="flex h-10 w-10 items-center justify-center rounded-full text-text transition hover:bg-pageSoft hover:text-primary"
-            aria-label={isAuthenticated ? '마이페이지' : '로그인'}
-          >
-            <UserIcon className="h-6 w-6" strokeWidth={2.1} />
-          </Link>
           <Link
             to="/search"
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-text transition hover:bg-pageSoft hover:text-primary"
@@ -145,59 +138,18 @@ export default function SiteHeader({ active = 'auto', showSearch = true }) {
               <path d="m13.2 13.2 3.3 3.3" />
             </svg>
           </Link>
-          <button
-            type="button"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-text transition hover:bg-pageSoft hover:text-primary"
-            aria-label="메뉴 보기"
-            aria-expanded={isMenuOpen}
-            onClick={() => setIsMenuOpen((prev) => !prev)}
+          <Link
+            to={isAuthenticated ? '/mypage' : '/login'}
+            className="flex h-10 w-10 items-center justify-center rounded-full text-text transition hover:bg-pageSoft hover:text-primary"
+            aria-label={isAuthenticated ? '마이페이지' : '로그인'}
           >
-            <svg viewBox="0 0 20 20" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M3 5h14" />
-              <path d="M3 10h14" />
-              <path d="M3 15h14" />
-            </svg>
-          </button>
+            <UserIcon className="h-6 w-6" strokeWidth={2.1} />
+          </Link>
         </div>
       </div>
 
-      {isMenuOpen && (
-        <div className="fixed inset-0 z-[60] md:hidden" role="presentation">
-          <button
-            type="button"
-            className="absolute inset-0 bg-slate-950/35"
-            aria-label="메뉴 닫기"
-            onClick={() => setIsMenuOpen(false)}
-          />
-          <aside className="absolute right-0 top-0 flex h-full w-[min(82vw,320px)] flex-col bg-white p-5 shadow-float">
-            <div className="mb-6 flex items-center justify-between gap-3">
-              <LogoMark />
-              <button
-                type="button"
-                className="flex h-10 w-10 items-center justify-center rounded-full text-text transition hover:bg-pageSoft hover:text-primary"
-                aria-label="메뉴 닫기"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <svg viewBox="0 0 20 20" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M5 5l10 10" />
-                  <path d="M15 5L5 15" />
-                </svg>
-              </button>
-            </div>
-            <nav className="grid gap-1" aria-label="모바일 주요 메뉴">
-              {navItems.map((item) => (
-                <NavLink key={item.key} to={item.to} active={activeKey === item.key} onClick={() => setIsMenuOpen(false)}>
-                  {item.label}
-                </NavLink>
-              ))}
-              <NavLink to={myPagePath} active={activeKey === myPageActiveKey} onClick={() => setIsMenuOpen(false)}>
-                {isAuthenticated ? '마이페이지' : '로그인'}
-              </NavLink>
-            </nav>
-            {showSearch && <div className="mt-6">{searchForm('flex w-full')}</div>}
-          </aside>
-        </div>
-      )}
+
+
     </header>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { logout as logoutApi } from '../api/auth';
 import SiteHeader from '../components/SiteHeader';
@@ -173,10 +173,16 @@ function BookCardSkeleton() {
 export default function MyPage() {
   const { user, logout: localLogout, setUser } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
-  const [activeTab, setActiveTab] = useState('dashboard'); // dashboard, annotations, favoriteAnnotations, favoriteBooks, groups, friends, settings
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [tabData, setTabData] = useState([]);
+
+  useEffect(() => {
+    const tab = searchParams.get('tab') || 'dashboard';
+    setActiveTab(tab);
+  }, [searchParams]);
   const [groupInvitations, setGroupInvitations] = useState([]);
   const [dashboardStats, setDashboardStats] = useState({
     annotations: 0,
@@ -540,6 +546,7 @@ export default function MyPage() {
     setIsMobileMenuOpen(false);
     if (key === activeTab) return;
     setActiveTab(key);
+    navigate(`/mypage?tab=${key}`);
     if (key !== 'settings') {
       latestRequestIdRef.current += 1; // 진행 중이던 이전 탭 요청은 무효화
       setTabData([]);
@@ -1262,12 +1269,11 @@ export default function MyPage() {
         </section>
       </div>
 
-      {/* 친구 찾기 모달 */}
-      {isMobileMenuOpen && (
+      {/* 친구 찾기 모달 */}      {isMobileMenuOpen && (
         <div className="fixed inset-0 z-[60] md:hidden" role="presentation">
           <button
             type="button"
-            className="absolute inset-0 bg-slate-950/35"
+            className="absolute inset-0 bg-slate-950/85"
             aria-label="마이페이지 메뉴 닫기"
             onClick={() => setIsMobileMenuOpen(false)}
           />
