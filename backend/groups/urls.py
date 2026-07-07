@@ -20,6 +20,7 @@ from .views import (
     GroupInvitationListView,
     GroupMemberDeleteView,
     GroupMembersView,
+    GroupNoticeView,
     GroupPendingInvitesView,
     MyGroupsView,
 )
@@ -33,6 +34,7 @@ urlpatterns = [
     path('groups/<int:group_id>/members/<int:user_id>', GroupMemberDeleteView.as_view(), name='group-member-delete'),
     path('groups/<int:group_id>/members/<int:user_id>/accept', GroupInvitationAcceptView.as_view(), name='group-member-accept'),
     path('groups/<int:group_id>/invitations', GroupPendingInvitesView.as_view(), name='group-pending-invites'),
+    path('groups/<int:group_id>/notice', GroupNoticeView.as_view(), name='group-notice'),
     path('groups/<int:group_id>/books', GroupBooksView.as_view(), name='group-books'),
     path('groups/<int:group_id>/books/<int:book_id>', GroupBookDeleteView.as_view(), name='group-book-delete'),
     path('groups/<int:group_id>/annotations', GroupAnnotationFeedView.as_view(), name='group-annotation-feed'),

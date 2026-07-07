@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   addGroupBook,
+  createGroupNotice,
   deleteGroup,
   getGroup,
   getGroupPendingInvites,
@@ -16,6 +17,7 @@ import { searchUsers } from '../api/users';
 import { getErrorMessage } from '../utils/error';
 import { getBookCardCategory } from '../utils/bookCategory';
 import SiteHeader from '../components/SiteHeader';
+import ExactBookCover from '../components/ExactBookCover';
 
 const iconProps = {
   viewBox: '0 0 20 20',
@@ -99,6 +101,8 @@ export default function GroupDetailPage() {
   const [bookResults, setBookResults] = useState([]);
   const [isSearchingBooks, setIsSearchingBooks] = useState(false);
   const [addBookError, setAddBookError] = useState('');
+  const [noticeContent, setNoticeContent] = useState('');
+  const [isSavingNotice, setIsSavingNotice] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState('success');
   const latestGroupRequestId = useRef(0);
@@ -295,6 +299,25 @@ export default function GroupDetailPage() {
     }
   };
 
+  const handleCreateNotice = async (event) => {
+    event.preventDefault();
+    const content = noticeContent.trim();
+    if (!content || isSavingNotice) return;
+
+    setIsSavingNotice(true);
+    try {
+      const notice = await createGroupNotice(groupId, content);
+      setGroup((prev) => ({ ...prev, notice }));
+      setNoticeContent('');
+      showToast('공지를 등록했습니다.');
+    } catch (err) {
+      console.error(err);
+      showToast(getErrorMessage(err), 'error');
+    } finally {
+      setIsSavingNotice(false);
+    }
+  };
+
   return (
     <>
       <SiteHeader active="lounge" />
@@ -374,6 +397,42 @@ export default function GroupDetailPage() {
 
               <section className="card card--padded bg-white">
                 <div className="mb-4 flex items-center justify-between gap-3">
+                  <h2 className="section-title !text-lg">공지</h2>
+                  {group.notice?.createdAt && (
+                    <span className="text-xs font-semibold text-text-subtle">
+                      {new Date(group.notice.createdAt).toLocaleDateString('ko-KR')}
+                    </span>
+                  )}
+                </div>
+
+                {group.notice ? (
+                  <div className="rounded-sm bg-pageSoft p-4">
+                    <p className="whitespace-pre-wrap text-sm font-medium leading-relaxed text-text">{group.notice.content}</p>
+                  </div>
+                ) : (
+                  <p className="rounded-sm bg-pageSoft p-4 text-sm font-semibold text-text-muted">등록된 공지가 없습니다.</p>
+                )}
+
+                {isOwner && (
+                  <form className="mt-4 grid gap-3" onSubmit={handleCreateNotice}>
+                    <textarea
+                      className="textarea min-h-[96px]"
+                      value={noticeContent}
+                      onChange={(event) => setNoticeContent(event.target.value)}
+                      placeholder="새 공지를 작성하세요"
+                      disabled={isSavingNotice}
+                    />
+                    <div className="flex justify-end">
+                      <button type="submit" className="button button--primary button--sm" disabled={isSavingNotice || !noticeContent.trim()}>
+                        {isSavingNotice ? '등록 중' : '공지 등록'}
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </section>
+
+              <section className="card card--padded bg-white">
+                <div className="mb-4 flex items-center justify-between gap-3">
                   <h2 className="section-title !text-lg">그룹 도서 ({group.books?.length ?? 0})</h2>
                   <button
                     type="button"
@@ -395,13 +454,12 @@ export default function GroupDetailPage() {
                     {group.books.map((book) => (
                       <article key={book.bookId} className="card book-card !justify-self-start relative bg-white transition hover:-translate-y-1 hover:shadow-card">
                         <Link to={`/books/${book.bookId}?groupId=${groupId}`} className="contents">
-                          {book.coverImageUrl ? (
-                            <img className="book-cover" src={book.coverImageUrl} alt={book.title} />
-                          ) : (
-                            <div className="book-cover flex items-center justify-center p-2 text-center text-xs font-bold text-text-subtle">
-                              No Cover
-                            </div>
-                          )}
+                          <ExactBookCover
+                            coverImageUrl={book.coverImageUrl}
+                            title={book.title}
+                            maxWidth={115}
+                            maxHeight={154}
+                          />
                           <div className="min-w-0">
                             <h3 className="truncate text-base font-bold text-text">{book.title}</h3>
                             <p className="mt-1 truncate text-xs text-text-muted">{book.author}</p>

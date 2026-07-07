@@ -53,3 +53,19 @@ class GroupBook(models.Model):
 
     def __str__(self):
         return f'group={self.group_id} book={self.book_id}'
+
+
+class GroupNotice(models.Model):
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='notices')
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='group_notices')
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'group_notices'
+        indexes = [
+            models.Index(fields=['group', '-created_at'], name='idx_group_notice_latest'),
+        ]
+
+    def __str__(self):
+        return f'group={self.group_id} notice={self.id}'

@@ -7,7 +7,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from annotations.models import Annotation, Like
-from .aladin import search_aladin_books
+from .aladin import clean_author, search_aladin_books
 from .models import Book, BookFavorite
 
 
@@ -47,6 +47,23 @@ class BookApiTests(APITestCase):
         response = self.client.get('/api/books', {'keyword': '헤르만', 'field': 'author'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['data'][0]['bookId'], self.book.id)
+
+    def test_book_author_response_keeps_writer_only(self):
+        book = Book.objects.create(
+            title='Translated Book',
+            author='작가 A (지은이), 번역가 B (옮긴이)',
+            genre_code='NOVEL',
+        )
+
+        response = self.client.get('/api/books', {'keyword': 'Translated Book'})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['data'][0]['bookId'], book.id)
+        self.assertEqual(response.data['data'][0]['author'], '작가 A')
+
+    def test_clean_author_removes_translators_and_role_text(self):
+        self.assertEqual(clean_author('작가 A 지음, 번역가 B 옮김'), '작가 A')
+        self.assertEqual(clean_author('작가 A (지은이), 번역가 B (옮긴이)'), '작가 A')
 
     def test_list_books_can_sort_by_recent_annotation_count(self):
         older_book = Book.objects.create(title='오래된 인기 책', author='작가', genre_code='NOVEL')

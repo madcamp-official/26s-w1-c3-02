@@ -7,7 +7,7 @@ from annotations.serializers import AnnotationBookSerializer
 from books.models import Book
 from common.exceptions import DuplicateError
 
-from .models import Group, GroupBook, GroupMember
+from .models import Group, GroupBook, GroupMember, GroupNotice
 
 User = get_user_model()
 
@@ -74,11 +74,12 @@ class GroupDetailSerializer(serializers.ModelSerializer):
     owner = UserPublicSerializer(read_only=True)
     members = serializers.SerializerMethodField()
     books = serializers.SerializerMethodField()
+    notice = serializers.SerializerMethodField()
     createdAt = serializers.DateTimeField(source='created_at', read_only=True)
 
     class Meta:
         model = Group
-        fields = ['groupId', 'groupName', 'owner', 'members', 'books', 'createdAt']
+        fields = ['groupId', 'groupName', 'owner', 'members', 'books', 'notice', 'createdAt']
 
     def get_members(self, obj):
         memberships = obj.members.filter(status=GroupMember.Status.ACCEPTED).select_related('user').order_by('joined_at')
@@ -87,6 +88,36 @@ class GroupDetailSerializer(serializers.ModelSerializer):
     def get_books(self, obj):
         group_books = obj.group_books.select_related('book').order_by('id')
         return AnnotationBookSerializer([gb.book for gb in group_books], many=True).data
+
+    def get_notice(self, obj):
+        notice = obj.notices.select_related('author').order_by('-created_at', '-id').first()
+        return GroupNoticeSerializer(notice).data if notice else None
+
+
+class GroupNoticeSerializer(serializers.ModelSerializer):
+    noticeId = serializers.IntegerField(source='id', read_only=True)
+    author = UserPublicSerializer(read_only=True)
+    createdAt = serializers.DateTimeField(source='created_at', read_only=True)
+
+    class Meta:
+        model = GroupNotice
+        fields = ['noticeId', 'content', 'author', 'createdAt']
+
+
+class GroupNoticeCreateSerializer(serializers.Serializer):
+    content = serializers.CharField(trim_whitespace=True, max_length=2000)
+
+    def validate_content(self, value):
+        if not value.strip():
+            raise serializers.ValidationError('notice content is required.')
+        return value.strip()
+
+    def create(self, validated_data):
+        return GroupNotice.objects.create(
+            group=self.context['group'],
+            author=self.context['request'].user,
+            content=validated_data['content'],
+        )
 
 
 class GroupUpdateSerializer(serializers.ModelSerializer):

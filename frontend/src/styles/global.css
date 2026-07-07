@@ -84,7 +84,11 @@
   }
 
   .site-header {
-    @apply sticky top-0 z-20 h-[72px] border-b border-line bg-white/90 backdrop-blur;
+    @apply fixed inset-x-0 top-0 z-50 h-[72px] border-b border-line bg-white/90 backdrop-blur;
+  }
+
+  .site-header + .page {
+    @apply mt-[72px];
   }
 
   .brand {

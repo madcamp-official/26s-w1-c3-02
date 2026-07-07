@@ -101,7 +101,7 @@ def normalize_aladin_item(item):
     category_name = item.get('categoryName', '')
     return {
         'title': clean_title(item.get('title', '')),
-        'author': item.get('author', ''),
+        'author': clean_author(item.get('author', '')),
         'publishDate': normalize_date(item.get('pubDate') or item.get('pubdate')),
         'isbn': isbn,
         'genreCode': category_name,
@@ -116,6 +116,28 @@ def normalize_aladin_item(item):
 
 def clean_title(title):
     return re.sub(r'\s+-\s+.*$', '', title or '').strip()
+
+
+def clean_author(author):
+    text = str(author or '').strip()
+    if not text:
+        return ''
+
+    parts = [part.strip() for part in re.split(r'\s*,\s*', text) if part.strip()]
+    author_parts = [
+        part
+        for part in parts
+        if re.search(r'(지음|지은이|\(지은이\)|저자|\(저자\))', part)
+    ]
+    selected = author_parts or parts[:1]
+    cleaned = []
+
+    for part in selected:
+        part = re.sub(r'\s*\([^)]*\)\s*', ' ', part)
+        part = re.sub(r'\s+(지음|지은이|저|저자|글|글쓴이)\s*$', '', part)
+        cleaned.append(part.strip())
+
+    return ', '.join(part for part in cleaned if part)
 
 
 def normalize_date(value):

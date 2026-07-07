@@ -41,6 +41,10 @@ export const removeGroupBook = (groupId, bookId) => {
   return client.delete(`/groups/${groupId}/books/${bookId}`);
 };
 
+export const createGroupNotice = (groupId, content) => {
+  return client.post(`/groups/${groupId}/notice`, { content });
+};
+
 export const getGroupAnnotations = (groupId, params) => {
   return client.get(`/groups/${groupId}/annotations`, { params });
 };

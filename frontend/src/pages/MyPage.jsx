@@ -41,6 +41,7 @@ import {
   TrashIcon,
 } from '../components/icons';
 import DonutChart from '../components/DonutChart';
+import ExactBookCover from '../components/ExactBookCover';
 import { buildGenreSummary } from '../utils/genre';
 import { getTypeMeta, formatCount, formatRelativeTime } from '../utils/format';
 
@@ -87,13 +88,13 @@ function AnnotationRow({ item, meta, onEdit, onDelete }) {
   return (
     <article className="card card--padded flex gap-5 bg-white transition hover:-translate-y-1 hover:shadow-card">
       <Link to={`/books/${item.book?.bookId}`} className="w-[88px] shrink-0 text-center">
-        {item.book?.coverImageUrl ? (
-          <img className="book-cover w-[88px] mx-auto" src={item.book.coverImageUrl} alt={item.book?.title} />
-        ) : (
-          <div className="book-cover w-[88px] mx-auto flex items-center justify-center p-1 text-center text-[10px] font-bold text-text-subtle">
-            No Cover
-          </div>
-        )}
+        <ExactBookCover
+          coverImageUrl={item.book?.coverImageUrl}
+          title={item.book?.title}
+          maxWidth={88}
+          maxHeight={117}
+          fallbackClassName="mx-auto text-[10px]"
+        />
         <p className="mt-2 truncate text-xs font-bold text-text">{item.book?.title}</p>
         <p className="truncate text-[11px] text-text-muted">{item.book?.author}</p>
       </Link>
@@ -693,8 +694,9 @@ export default function MyPage() {
                           return (
                             <li
                               key={item.annotationId}
-                              className="flex items-start gap-3 border-b border-line pb-4 last:border-0 last:pb-0"
+                              className="border-b border-line pb-4 last:border-0 last:pb-0"
                             >
+                              <Link to={`/annotations/${item.annotationId}`} className="flex items-start gap-3 rounded-sm transition hover:bg-pageSoft/70">
                               <div className="h-12 w-12 shrink-0 overflow-hidden rounded-md bg-primary-soft">
                                 {item.book?.coverImageUrl ? (
                                   <img
@@ -719,6 +721,7 @@ export default function MyPage() {
                                 <p>{formatRelativeTime(item.createdAt, formatDate)}</p>
                                 <p className="mt-1 font-semibold text-text-muted">♡ {item.likeCount || 0}</p>
                               </div>
+                              </Link>
                             </li>
                           );
                         })}

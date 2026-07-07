@@ -65,7 +65,7 @@ export default function SiteHeader({ active = 'auto', showSearch = true }) {
   };
 
   return (
-    <header className="site-header relative">
+    <header className="site-header">
       <div className="container grid min-h-[72px] grid-cols-[auto_1fr_auto] items-center gap-3 lg:gap-8">
         <Link to="/" className="brand justify-self-start">
           <LogoMark />

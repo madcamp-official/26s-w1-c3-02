@@ -26,9 +26,11 @@ const formatDate = (isoString) => {
 export default function UserProfilePage() {
   const { userId } = useParams();
   const { user } = useAuth();
+  const PAGE_SIZE = 5;
 
   const [profile, setProfile] = useState(null);
   const [annotations, setAnnotations] = useState([]);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
 
@@ -45,6 +47,7 @@ export default function UserProfilePage() {
         if (ignore) return;
         setProfile(profileRes);
         setAnnotations(annRes.data || []);
+        setVisibleCount(PAGE_SIZE);
       } catch (err) {
         if (ignore) return;
         console.error(err);
@@ -63,6 +66,8 @@ export default function UserProfilePage() {
     annotations.map((a) => a.book?.genreCode),
   );
   const isSelf = user?.id != null && String(user.id) === String(userId);
+  const visibleAnnotations = annotations.slice(0, visibleCount);
+  const hasMoreAnnotations = visibleCount < annotations.length;
 
   return (
     <div className="min-h-screen bg-page flex flex-col">
@@ -149,7 +154,7 @@ export default function UserProfilePage() {
                       <EmptyState message="공개된 주석이 없습니다" />
                     ) : (
                       <ul className="grid gap-4">
-                        {annotations.map((item) => {
+                        {visibleAnnotations.map((item) => {
                           const { label, tagClass } = getTypeMeta(item.type);
                           return (
                             <li key={item.annotationId}>
@@ -186,6 +191,15 @@ export default function UserProfilePage() {
                           );
                         })}
                       </ul>
+                    )}
+                    {hasMoreAnnotations && (
+                      <button
+                        type="button"
+                        onClick={() => setVisibleCount((count) => Math.min(count + PAGE_SIZE, annotations.length))}
+                        className="button button--ghost button--sm mt-4 w-full justify-center"
+                      >
+                        더보기
+                      </button>
                     )}
                   </section>
 

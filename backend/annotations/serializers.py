@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from books.aladin import clean_author
 from books.models import Book
 from groups.models import Group
 
@@ -14,6 +15,11 @@ class AnnotationBookSerializer(serializers.ModelSerializer):
     class Meta:
         model = Book
         fields = ['bookId', 'title', 'author', 'genreCode', 'coverImageUrl']
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['author'] = clean_author(data.get('author'))
+        return data
 
 
 class AnnotationAuthorSerializer(serializers.Serializer):

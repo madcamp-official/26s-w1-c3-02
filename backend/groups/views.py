@@ -21,6 +21,8 @@ from .serializers import (
     GroupInvitationSerializer,
     GroupListSerializer,
     GroupMemberCreateSerializer,
+    GroupNoticeCreateSerializer,
+    GroupNoticeSerializer,
     GroupPendingMemberSerializer,
     GroupUpdateSerializer,
 )
@@ -187,6 +189,24 @@ class GroupBooksView(APIView):
         serializer.is_valid(raise_exception=True)
         group_book = serializer.save()
         return Response({'bookId': group_book.book_id})
+
+
+class GroupNoticeView(APIView):
+    permission_classes = [IsAuthenticated, IsGroupMember]
+
+    def post(self, request, group_id):
+        group = get_object_or_404(Group, pk=group_id)
+        self.check_object_permissions(request, group)
+        if group.owner_id != request.user.id:
+            raise PermissionDenied('owner만 공지를 작성할 수 있습니다.')
+
+        serializer = GroupNoticeCreateSerializer(
+            data=request.data,
+            context={'group': group, 'request': request},
+        )
+        serializer.is_valid(raise_exception=True)
+        notice = serializer.save()
+        return Response(GroupNoticeSerializer(notice).data, status=status.HTTP_201_CREATED)
 
 
 class GroupBookDeleteView(APIView):
