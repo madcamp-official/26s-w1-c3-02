@@ -16,8 +16,8 @@ export const login = async ({ email, password }) => {
   return client.post('/auth/login', { email, password });
 };
 
-export const kakaoLogin = async ({ accessToken }) => {
-  return client.post('/auth/kakao', { accessToken });
+export const kakaoLogin = async ({ code, redirectUri }) => {
+  return client.post('/auth/kakao', { code, redirectUri });
 };
 
 export const logout = async () => {

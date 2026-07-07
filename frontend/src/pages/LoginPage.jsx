@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { login as loginApi, kakaoLogin as kakaoLoginApi } from '../api/auth';
-import { kakaoAuthLogin } from '../lib/kakao';
+import { login as loginApi } from '../api/auth';
+import { kakaoAuthorize } from '../lib/kakao';
 import { getErrorMessage } from '../utils/error';
 
 export default function LoginPage() {
@@ -17,6 +17,12 @@ export default function LoginPage() {
   const [isKakaoLoading, setIsKakaoLoading] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
   const [formError, setFormError] = useState('');
+
+  useEffect(() => {
+    if (location.state?.kakaoError) {
+      setFormError(location.state.kakaoError);
+    }
+  }, [location.state]);
 
   const validate = () => {
     const errors = {};
@@ -59,22 +65,15 @@ export default function LoginPage() {
     }
   };
 
-  const handleKakaoLogin = async () => {
+  const handleKakaoLogin = () => {
     setFormError('');
     setIsKakaoLoading(true);
 
     try {
-      const authObj = await kakaoAuthLogin();
-      const response = await kakaoLoginApi({ accessToken: authObj.access_token });
-      login({ accessToken: response.accessToken, user: response.user });
-      navigate('/', { replace: true });
+      kakaoAuthorize(); // 카카오 동의 화면으로 페이지 이동 (성공/실패는 /auth/kakao/callback에서 처리)
     } catch (err) {
-      const isCancelled = err?.error === 'access_denied' || err?.type === 'cancel' || err?.error === 'popup_closed_by_user';
-      if (!isCancelled) {
-        console.error(err);
-        setFormError(getErrorMessage(err) || '카카오 로그인에 실패했습니다.');
-      }
-    } finally {
+      console.error(err);
+      setFormError(getErrorMessage(err) || '카카오 로그인에 실패했습니다.');
       setIsKakaoLoading(false);
     }
   };

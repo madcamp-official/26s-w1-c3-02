@@ -13,7 +13,7 @@ from django.db import transaction
 from annotations.models import Annotation, Like
 from annotations.views import visible_to
 
-from .kakao import fetch_kakao_profile, unique_nickname
+from .kakao import exchange_code_for_token, fetch_kakao_profile, unique_nickname
 from .models import Friend
 from .serializers import (
     FriendActionSerializer,
@@ -93,10 +93,12 @@ class KakaoLoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        kakao_access_token = request.data.get('accessToken')
-        if not kakao_access_token:
-            raise ValidationError('accessToken은 필수입니다.')
+        code = request.data.get('code')
+        redirect_uri = request.data.get('redirectUri')
+        if not code or not redirect_uri:
+            raise ValidationError('code, redirectUri는 필수입니다.')
 
+        kakao_access_token = exchange_code_for_token(code, redirect_uri)
         profile = fetch_kakao_profile(kakao_access_token)
 
         with transaction.atomic():
