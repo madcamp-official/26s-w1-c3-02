@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { register as registerApi } from '../api/auth';
+import { checkEmail, checkNickname, register as registerApi } from '../api/auth';
 import { getErrorMessage } from '../utils/error';
 
 export default function RegisterPage() {
@@ -12,6 +12,10 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingNickname, setIsCheckingNickname] = useState(false);
+  const [isNicknameAvailable, setIsNicknameAvailable] = useState(null);
+  const [isCheckingEmail, setIsCheckingEmail] = useState(false);
+  const [isEmailAvailable, setIsEmailAvailable] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
   const [formError, setFormError] = useState('');
 
@@ -21,12 +25,16 @@ export default function RegisterPage() {
       errors.nickname = '닉네임을 입력해 주세요.';
     } else if (nickname.length < 2) {
       errors.nickname = '닉네임은 최소 2자 이상이어야 합니다.';
+    } else if (isNicknameAvailable === false) {
+      errors.nickname = '이미 사용 중인 닉네임입니다.';
     }
 
     if (!email) {
       errors.email = '이메일을 입력해 주세요.';
     } else if (!/\S+@\S+\.\S+/.test(email)) {
       errors.email = '올바른 이메일 형식이 아닙니다.';
+    } else if (isEmailAvailable === false) {
+      errors.email = '이미 사용 중인 이메일입니다.';
     }
 
     if (!password) {
@@ -42,6 +50,84 @@ export default function RegisterPage() {
     return errors;
   };
 
+  const checkNicknameAvailability = async (value) => {
+    const trimmed = value.trim();
+    if (!trimmed || trimmed.length < 2) {
+      setIsNicknameAvailable(null);
+      return null;
+    }
+
+    setIsCheckingNickname(true);
+    try {
+      const result = await checkNickname(trimmed);
+      const available = Boolean(result.available);
+      setIsNicknameAvailable(available);
+      return available;
+    } catch (err) {
+      console.error(err);
+      setIsNicknameAvailable(null);
+      return null;
+    } finally {
+      setIsCheckingNickname(false);
+    }
+  };
+
+  const checkEmailAvailability = async (value) => {
+    const trimmed = value.trim();
+    if (!trimmed || !/\S+@\S+\.\S+/.test(trimmed)) {
+      setIsEmailAvailable(null);
+      return null;
+    }
+
+    setIsCheckingEmail(true);
+    try {
+      const result = await checkEmail(trimmed);
+      const available = Boolean(result.available);
+      setIsEmailAvailable(available);
+      return available;
+    } catch (err) {
+      console.error(err);
+      setIsEmailAvailable(null);
+      return null;
+    } finally {
+      setIsCheckingEmail(false);
+    }
+  };
+
+  useEffect(() => {
+    const trimmed = nickname.trim();
+    setIsNicknameAvailable(null);
+
+    if (!trimmed || trimmed.length < 2) {
+      setIsCheckingNickname(false);
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => {
+      checkNicknameAvailability(trimmed);
+    }, 350);
+
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nickname]);
+
+  useEffect(() => {
+    const trimmed = email.trim();
+    setIsEmailAvailable(null);
+
+    if (!trimmed || !/\S+@\S+\.\S+/.test(trimmed)) {
+      setIsCheckingEmail(false);
+      return undefined;
+    }
+
+    const timer = window.setTimeout(() => {
+      checkEmailAvailability(trimmed);
+    }, 350);
+
+    return () => window.clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [email]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFieldErrors({});
@@ -50,6 +136,18 @@ export default function RegisterPage() {
     const errors = validate();
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
+      return;
+    }
+
+    const nicknameAvailable = await checkNicknameAvailability(nickname);
+    if (nicknameAvailable === false) {
+      setFieldErrors({ nickname: '이미 사용 중인 닉네임입니다.' });
+      return;
+    }
+
+    const emailAvailable = await checkEmailAvailability(email);
+    if (emailAvailable === false) {
+      setFieldErrors({ email: '이미 사용 중인 이메일입니다.' });
       return;
     }
 
@@ -78,27 +176,39 @@ export default function RegisterPage() {
           <label className="form-field">
             <span className="form-label">닉네임</span>
             <input
-              className={`input ${fieldErrors.nickname ? 'input--error' : ''}`}
+              className={`input ${fieldErrors.nickname || isNicknameAvailable === false ? 'input--error' : ''}`}
               type="text"
               placeholder="닉네임"
               value={nickname}
               onChange={(e) => setNickname(e.target.value)}
               disabled={isLoading}
             />
-            {fieldErrors.nickname && <span className="form-error">{fieldErrors.nickname}</span>}
+            {fieldErrors.nickname ? (
+              <span className="form-error">{fieldErrors.nickname}</span>
+            ) : isNicknameAvailable === false ? (
+              <span className="form-error">이미 사용 중인 닉네임입니다.</span>
+            ) : isCheckingNickname ? (
+              <span className="form-help">닉네임 중복 확인 중...</span>
+            ) : null}
           </label>
 
           <label className="form-field">
             <span className="form-label">이메일</span>
             <input
-              className={`input ${fieldErrors.email ? 'input--error' : ''}`}
+              className={`input ${fieldErrors.email || isEmailAvailable === false ? 'input--error' : ''}`}
               type="email"
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={isLoading}
             />
-            {fieldErrors.email && <span className="form-error">{fieldErrors.email}</span>}
+            {fieldErrors.email ? (
+              <span className="form-error">{fieldErrors.email}</span>
+            ) : isEmailAvailable === false ? (
+              <span className="form-error">이미 사용 중인 이메일입니다.</span>
+            ) : isCheckingEmail ? (
+              <span className="form-help">이메일 중복 확인 중...</span>
+            ) : null}
           </label>
 
           <label className="form-field">
@@ -133,7 +243,17 @@ export default function RegisterPage() {
             </div>
           )}
 
-          <button className="button button--primary button--lg mt-2" type="submit" disabled={isLoading}>
+          <button
+            className="button button--primary button--lg mt-2"
+            type="submit"
+            disabled={
+              isLoading
+              || isCheckingNickname
+              || isCheckingEmail
+              || isNicknameAvailable === false
+              || isEmailAvailable === false
+            }
+          >
             {isLoading ? (
               <>
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />

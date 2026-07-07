@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-do
 import { getBooks, importBookFromAladin, searchExternalBooks } from '../api/books';
 import { favoriteAnnotation, getAnnotationFeed, searchAnnotations, unfavoriteAnnotation } from '../api/annotations';
 import { getPageData } from '../api/client';
+import BookShelfFrame from '../components/BookShelfFrame';
 import SiteHeader from '../components/SiteHeader';
 import { useAuth } from '../context/AuthContext';
 import { getErrorMessage } from '../utils/error';
@@ -20,6 +21,8 @@ const visibilityLabels = {
   private: '비공개',
   group: '그룹',
 };
+
+const POPULAR_BOOKS_PER_WINDOW = 7;
 
 function LogoMark() {
   return (
@@ -156,25 +159,14 @@ function BookmarkButton({ isActive, isPending, onClick, label = '북마크' }) {
 
 function BookResultCard({ book }) {
   return (
-    <Link to={`/books/${book.id}`} className="group relative block w-full max-w-[220px] justify-self-center">
-      <article className="grid h-full gap-3">
-        {book.coverImageUrl ? (
-          <img
-            className="aspect-[3/4] w-full rounded-sm object-cover shadow-soft transition group-hover:-translate-y-1 group-hover:shadow-card"
-            src={book.coverImageUrl}
-            alt={`${book.title} 표지`}
-          />
-        ) : (
-          <div className="aspect-[3/4] w-full rounded-sm bg-primary-soft" />
-        )}
-        <div className="min-w-0">
-          <h3 className="line-clamp-2 text-sm font-extrabold leading-[1.45] text-text">{book.title}</h3>
-          <div className="mt-1.5 flex items-center justify-between gap-2 text-xs font-semibold text-text-muted">
-            <p className="min-w-0 truncate">{book.author}</p>
-            <span className="shrink-0 whitespace-nowrap">노트 {book.annotationCount}</span>
-          </div>
+    <Link to={`/books/${book.id}`} className="book-shelf-card group">
+      <BookShelfFrame coverImageUrl={book.coverImageUrl} title={book.title}>
+        <h3 className="line-clamp-2 text-sm font-extrabold leading-[1.45] text-text">{book.title}</h3>
+        <div className="mt-1.5 flex items-center justify-between gap-2 text-xs font-semibold text-text-muted">
+          <p className="min-w-0 truncate">{book.author}</p>
+          <span className="shrink-0 whitespace-nowrap">노트 {book.annotationCount}</span>
         </div>
-      </article>
+      </BookShelfFrame>
     </Link>
   );
 }
@@ -289,25 +281,14 @@ function EmptyState({ children }) {
 
 function PopularBookCard({ book }) {
   return (
-    <Link to={`/books/${book.id}`} className="group relative block w-full max-w-[220px] justify-self-center">
-      <article className="grid h-full gap-3">
-        {book.coverImageUrl ? (
-          <img
-            className="aspect-[3/4] w-full rounded-sm object-cover shadow-soft transition group-hover:-translate-y-1 group-hover:shadow-card"
-            src={book.coverImageUrl}
-            alt={`${book.title} 표지`}
-          />
-        ) : (
-          <div className="aspect-[3/4] w-full rounded-sm bg-primary-soft" />
-        )}
-        <div className="min-w-0">
-          <h3 className="line-clamp-2 text-sm font-extrabold leading-[1.45] text-text">{book.title}</h3>
-          <div className="mt-1.5 flex items-center justify-between gap-2 text-xs font-semibold text-text-muted">
-            <p className="min-w-0 truncate">{book.author}</p>
-            <span className="shrink-0 whitespace-nowrap">노트 {book.annotationCount}</span>
-          </div>
+    <Link to={`/books/${book.id}`} className="book-shelf-card group">
+      <BookShelfFrame coverImageUrl={book.coverImageUrl} title={book.title}>
+        <h3 className="line-clamp-2 text-sm font-extrabold leading-[1.45] text-text">{book.title}</h3>
+        <div className="mt-1.5 flex items-center justify-between gap-2 text-xs font-semibold text-text-muted">
+          <p className="min-w-0 truncate">{book.author}</p>
+          <span className="shrink-0 whitespace-nowrap">노트 {book.annotationCount}</span>
         </div>
-      </article>
+      </BookShelfFrame>
     </Link>
   );
 }
@@ -422,7 +403,10 @@ export default function SearchPage() {
     [categoryParam],
   );
   const isBrowseMode = !keywordParam.trim();
-  const visiblePopularBooks = popularBooks.slice(bookWindow * 5, bookWindow * 5 + 5);
+  const visiblePopularBooks = popularBooks.slice(
+    bookWindow * POPULAR_BOOKS_PER_WINDOW,
+    bookWindow * POPULAR_BOOKS_PER_WINDOW + POPULAR_BOOKS_PER_WINDOW,
+  );
 
   useEffect(() => {
     setCategory(activeCategory);
@@ -606,7 +590,7 @@ export default function SearchPage() {
                         className="button button--secondary button--sm"
                         type="button"
                         onClick={() => {
-                          const totalWindows = Math.max(Math.ceil(popularBooks.length / 5), 1);
+                          const totalWindows = Math.max(Math.ceil(popularBooks.length / POPULAR_BOOKS_PER_WINDOW), 1);
                           setBookWindow((value) => (value + 1) % totalWindows);
                         }}
                         aria-label="다음 인기 책"
@@ -616,15 +600,19 @@ export default function SearchPage() {
                     </div>
 
                     {isBrowseLoading ? (
-                      <div className="grid grid-cols-2 gap-x-8 gap-y-5 md:grid-cols-5">
-                        {Array.from({ length: 5 }).map((_, index) => (
-                          <article key={index} className="aspect-[3/4] animate-pulse rounded-sm bg-surfaceMuted" />
+                      <div className="book-shelf-list">
+                        {Array.from({ length: POPULAR_BOOKS_PER_WINDOW }).map((_, index) => (
+                          <article key={index} className="grid h-full w-full max-w-[165px] justify-self-center gap-3 animate-pulse">
+                            <div className="book-shelf-cover">
+                              <div className="aspect-[3/4] h-full rounded-sm bg-surfaceMuted" />
+                            </div>
+                          </article>
                         ))}
                       </div>
                     ) : visiblePopularBooks.length === 0 ? (
                       <EmptyState>인기 책이 없습니다.</EmptyState>
                     ) : (
-                      <div className="grid grid-cols-2 gap-x-8 gap-y-5 md:grid-cols-5">
+                      <div className="book-shelf-list">
                         {visiblePopularBooks.map((book) => (
                           <PopularBookCard key={book.id} book={book} />
                         ))}
@@ -686,7 +674,7 @@ export default function SearchPage() {
               {books.length === 0 && (
                 <p className="text-sm font-semibold text-text-muted">일치하는 책을 찾지 못했습니다</p>
               )}
-              <div className="grid grid-cols-2 gap-x-8 gap-y-5 md:grid-cols-5">
+              <div className="book-shelf-list">
                 {books.map((book) => (
                   <BookResultCard key={book.id} book={book} />
                 ))}

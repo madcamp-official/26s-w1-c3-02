@@ -233,6 +233,34 @@
   .book-cover {
     @apply aspect-[3/4] w-[115px] rounded-xs bg-primary-soft object-cover shadow-soft;
   }
+
+  .book-shelf-list {
+    @apply flex flex-wrap items-start gap-4;
+  }
+
+  .book-shelf-card {
+    @apply relative block max-w-[165px] justify-self-center;
+  }
+
+  .book-shelf-body {
+    @apply mx-auto grid max-w-[165px] gap-3;
+  }
+
+  .book-shelf-cover {
+    @apply flex h-[232px] max-w-[165px] items-end justify-center;
+  }
+
+  .book-shelf-cover__image {
+    @apply max-h-full max-w-[165px] rounded-sm object-contain object-bottom shadow-soft transition group-hover:-translate-y-1 group-hover:shadow-card;
+  }
+
+  .book-shelf-cover__fallback {
+    @apply flex aspect-[3/4] h-full max-h-full w-full items-end rounded-sm bg-primary-soft p-2 shadow-soft;
+  }
+
+  .book-shelf-meta {
+    @apply min-w-0 max-w-full;
+  }
   .annotation-card {
     @apply flex min-h-[220px] flex-col justify-between p-5;
   }

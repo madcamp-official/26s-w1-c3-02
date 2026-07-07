@@ -273,9 +273,10 @@ export default function MyPage() {
         const favoriteBookList = favBooksRes.data || [];
         const groupList = Array.isArray(groupsRes) ? groupsRes : groupsRes.data || [];
 
-        // "나의 취향 분석": 내 서재(즐겨찾기 책)의 중분류 장르 분포
+        // "나의 취향 분석": 내가 작성한 주석이 달린 책의 중분류 장르 분포.
+        // 같은 책에 주석을 여러 개 남기면 그 주석 수만큼 같은 장르가 누적된다.
         const { summary: genreSummary, total: genreTotal } = buildGenreSummary(
-          favoriteBookList.map((book) => book.genreCode),
+          myAnnotations.map((annotation) => annotation.book?.genreCode),
         );
 
         let totalLikes = 0;
@@ -735,7 +736,7 @@ export default function MyPage() {
                     <div className="mb-2 flex items-center justify-between">
                       <h2 className="section-title !text-lg">나의 취향 분석</h2>
                       <button
-                        onClick={() => handleTabClick('favoriteBooks')}
+                        onClick={() => handleTabClick('annotations')}
                         className="text-xs font-bold text-text-muted hover:text-primary"
                       >
                         더보기 ›
@@ -763,7 +764,7 @@ export default function MyPage() {
                       </>
                     ) : (
                       <p className="py-10 text-center text-sm text-text-muted">
-                        내 서재에 책을 담으면 장르 취향을 분석해 드려요.
+                        주석을 작성하면 해당 책의 장르로 취향을 분석해 드려요.
                       </p>
                     )}
                   </section>

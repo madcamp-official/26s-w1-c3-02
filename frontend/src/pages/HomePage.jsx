@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { getBookCategories, getBooks } from '../api/books';
 import { favoriteAnnotation, getAnnotationFeed, unfavoriteAnnotation } from '../api/annotations';
 import { getPageData } from '../api/client';
+import BookShelfFrame from '../components/BookShelfFrame';
 import SiteHeader from '../components/SiteHeader';
 
 
@@ -259,34 +260,24 @@ function BookCoverFallback({ title }) {
 
 function BookCard({ book }) {
   return (
-    <Link to={`/books/${book.id}`} className="group relative block w-full max-w-[220px] justify-self-center">
-      <article className="grid h-full gap-3">
-        {book.coverImageUrl ? (
-          <img
-            className="aspect-[3/4] w-full rounded-sm object-cover shadow-soft transition group-hover:-translate-y-1 group-hover:shadow-card"
-            src={book.coverImageUrl}
-            alt={`${book.title} 표지`}
-          />
-        ) : (
-          <div className="aspect-[3/4] w-full rounded-sm bg-primary-soft" />
-        )}
-
-        <div className="min-w-0">
-          <h3 className="line-clamp-2 text-sm font-extrabold leading-[1.45] text-text">{book.title}</h3>
-          <div className="mt-1.5 flex items-center justify-between gap-2 text-xs font-semibold text-text-muted">
-            <p className="min-w-0 truncate">{book.author}</p>
-            <span className="shrink-0 whitespace-nowrap">노트 {book.annotationCount}</span>
-          </div>
+    <Link to={`/books/${book.id}`} className="book-shelf-card group">
+      <BookShelfFrame coverImageUrl={book.coverImageUrl} title={book.title}>
+        <h3 className="line-clamp-2 text-sm font-extrabold leading-[1.45] text-text">{book.title}</h3>
+        <div className="mt-1.5 flex items-center justify-between gap-2 text-xs font-semibold text-text-muted">
+          <p className="min-w-0 truncate">{book.author}</p>
+          <span className="shrink-0 whitespace-nowrap">노트 {book.annotationCount}</span>
         </div>
-      </article>
+      </BookShelfFrame>
     </Link>
   );
 }
 
 function BookCardSkeleton() {
   return (
-    <article className="grid h-full w-full max-w-[220px] justify-self-center gap-3 animate-pulse">
-      <div className="aspect-[3/4] w-full rounded-sm bg-surfaceMuted" />
+    <article className="grid h-full w-full max-w-[165px] justify-self-center gap-3 animate-pulse">
+      <div className="book-shelf-cover">
+        <div className="aspect-[3/4] h-full rounded-sm bg-surfaceMuted" />
+      </div>
       <div className="min-w-0">
         <div className="h-4 w-2/3 rounded bg-surfaceMuted" />
         <div className="mt-2 h-3 w-1/2 rounded bg-surfaceMuted" />
@@ -442,7 +433,7 @@ export default function HomePage() {
           sort: 'recentAnnotations',
           recentHours: 24,
           page: 1,
-          size: 5,
+          size: 7,
         });
         const page = getPageData(response);
         if (!ignore) setBooks(page.data.map(normalizeBook));
@@ -550,10 +541,10 @@ export default function HomePage() {
             )}
 
             {!errorMessage && (
-              <div className="grid grid-cols-2 gap-x-8 gap-y-5 sm:grid-cols-3 lg:grid-cols-5">
+              <div className="book-shelf-list">
                 {isLoading
-                  ? Array.from({ length: 5 }).map((_, index) => <BookCardSkeleton key={index} />)
-                  : books.slice(0, 5).map((book) => <BookCard key={book.id} book={book} />)}
+                  ? Array.from({ length: 7 }).map((_, index) => <BookCardSkeleton key={index} />)
+                  : books.slice(0, 7).map((book) => <BookCard key={book.id} book={book} />)}
               </div>
             )}
 
