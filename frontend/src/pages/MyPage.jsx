@@ -24,111 +24,25 @@ import { deleteAnnotation } from '../api/annotations';
 import { acceptGroupInvitation, createGroup, removeGroupMember } from '../api/groups';
 import { getErrorMessage } from '../utils/error';
 import { getBookCardCategory } from '../utils/bookCategory';
-
-// 사이드바 아이콘 (lucide-react 미설치 상태라 최소 인라인 SVG로 대체)
-const iconProps = {
-  viewBox: '0 0 20 20',
-  fill: 'none',
-  stroke: 'currentColor',
-  strokeWidth: 1.6,
-  strokeLinecap: 'round',
-  strokeLinejoin: 'round',
-};
-
-const HomeIcon = (props) => (
-  <svg {...iconProps} {...props}>
-    <path d="M3 9.5 10 3l7 6.5" />
-    <path d="M5 8.5V16a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V8.5" />
-  </svg>
-);
-
-const MessageIcon = (props) => (
-  <svg {...iconProps} {...props}>
-    <path d="M3 4h14v9H8l-4 3v-3H3z" />
-  </svg>
-);
-
-const HeartIcon = (props) => (
-  <svg {...iconProps} {...props}>
-    <path d="M10 17s-6.5-4.1-8.2-8A4.3 4.3 0 0 1 10 5a4.3 4.3 0 0 1 8.2 4c-1.7 3.9-8.2 8-8.2 8Z" />
-  </svg>
-);
-
-const BookIcon = (props) => (
-  <svg {...iconProps} {...props}>
-    <path d="M3 4.5A1.5 1.5 0 0 1 4.5 3H10v14H4.5A1.5 1.5 0 0 1 3 15.5v-11Z" />
-    <path d="M17 4.5A1.5 1.5 0 0 0 15.5 3H10v14h5.5a1.5 1.5 0 0 0 1.5-1.5v-11Z" />
-  </svg>
-);
-
-const UsersIcon = (props) => (
-  <svg {...iconProps} {...props}>
-    <circle cx="7" cy="7" r="2.3" />
-    <path d="M2.5 16c.5-2.8 2.3-4.3 4.5-4.3s4 1.5 4.5 4.3" />
-    <circle cx="14" cy="6.5" r="2" />
-    <path d="M12.5 11.9c1.8.2 3.2 1.6 3.6 4.1" />
-  </svg>
-);
-
-const UserIcon = (props) => (
-  <svg {...iconProps} {...props}>
-    <circle cx="10" cy="6.5" r="3" />
-    <path d="M3.5 17c.8-3.6 3-5.5 6.5-5.5s5.7 1.9 6.5 5.5" />
-  </svg>
-);
-
-const SettingsIcon = (props) => (
-  <svg {...iconProps} {...props}>
-    <circle cx="10" cy="10" r="2.6" />
-    <path d="M10 2.5v2M10 15.5v2M17.5 10h-2M4.5 10h-2M15.4 4.6l-1.4 1.4M6 12.6l-1.4 1.4M15.4 15.4l-1.4-1.4M6 7.4 4.6 6" />
-  </svg>
-);
-
-// 즐겨찾기(북마크) 뱃지 — 기본은 채워진 형태, outline이 필요하면 fill="none" stroke="currentColor"로 덮어쓴다
-const BookmarkIcon = (props) => (
-  <svg viewBox="0 0 20 20" fill="currentColor" {...props}>
-    <path d="M5.5 3a1 1 0 0 0-1 1v13l5.5-3.3L15.5 17V4a1 1 0 0 0-1-1h-9Z" />
-  </svg>
-);
-
-const CalendarIcon = (props) => (
-  <svg {...iconProps} {...props}>
-    <rect x="3" y="4.5" width="14" height="12" rx="1.5" />
-    <path d="M3 8h14M7 3v3M13 3v3" />
-  </svg>
-);
-
-const MailIcon = (props) => (
-  <svg {...iconProps} {...props}>
-    <rect x="3" y="5" width="14" height="10" rx="1.5" />
-    <path d="M3.5 6 10 11l6.5-5" />
-  </svg>
-);
-
-const CameraIcon = (props) => (
-  <svg {...iconProps} {...props}>
-    <path d="M4 7.5A1.5 1.5 0 0 1 5.5 6h1.6l.9-1.4A1 1 0 0 1 8.85 4h2.3a1 1 0 0 1 .85.6L12.9 6h1.6A1.5 1.5 0 0 1 16 7.5v6A1.5 1.5 0 0 1 14.5 15h-9A1.5 1.5 0 0 1 4 13.5v-6Z" />
-    <circle cx="10" cy="10" r="2.4" />
-  </svg>
-);
-
-const PlusIcon = (props) => (
-  <svg {...iconProps} strokeWidth={2.2} {...props}>
-    <path d="M10 4v12M4 10h12" />
-  </svg>
-);
-
-const EditIcon = (props) => (
-  <svg {...iconProps} {...props}>
-    <path d="M12.5 3.5 16 7l-9 9-4 1 1-4 8.5-9.5Z" />
-  </svg>
-);
-
-const TrashIcon = (props) => (
-  <svg {...iconProps} {...props}>
-    <path d="M4 5.5h12M8 5.5v-1a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1M6 5.5 6.6 16a1 1 0 0 0 1 1h4.8a1 1 0 0 0 1-1L14 5.5" />
-  </svg>
-);
+import {
+  HomeIcon,
+  MessageIcon,
+  HeartIcon,
+  BookIcon,
+  UsersIcon,
+  UserIcon,
+  SettingsIcon,
+  BookmarkIcon,
+  CalendarIcon,
+  MailIcon,
+  CameraIcon,
+  PlusIcon,
+  EditIcon,
+  TrashIcon,
+} from '../components/icons';
+import DonutChart from '../components/DonutChart';
+import { buildGenreSummary } from '../utils/genre';
+import { getTypeMeta, formatCount, formatRelativeTime } from '../utils/format';
 
 const NAV_ITEMS = [
   { key: 'dashboard', label: '대시보드', Icon: HomeIcon },
@@ -139,26 +53,6 @@ const NAV_ITEMS = [
   { key: 'friends', label: '친구', Icon: UserIcon },
   { key: 'settings', label: '설정', Icon: SettingsIcon },
 ];
-
-// 주석 유형별 라벨/태그 색상
-const ANNOTATION_TYPE_META = {
-  QUESTION: { label: '질문', tagClass: 'tag--cream' },
-  DISCUSSION: { label: '토론', tagClass: 'tag--green' },
-  REVIEW: { label: '감상', tagClass: 'tag--rose' },
-};
-const getTypeMeta = (type) => ANNOTATION_TYPE_META[type] || { label: '일반', tagClass: '' };
-
-// genreCode: 알라딘 categoryName 원문("국내도서>소설/시/희곡>판타지/환상문학>...").
-// 첫 '>'와 두 번째 '>' 사이의 중분류(위 예시라면 "소설/시/희곡")를 취향 분석 기준으로 쓴다.
-// 세그먼트 구조가 없는(중분류가 없는) 예전/축약 코드는 집계에서 제외(null 반환).
-const parseGenreLabel = (genreCode) => {
-  const parts = (genreCode || '').split('>').map((s) => s.trim()).filter(Boolean);
-  return parts.length >= 2 ? parts[1] : null;
-};
-
-// 대시보드 "나의 취향 분석" 도넛 차트 색상 — 내 서재(즐겨찾기 책) 중분류 상위 5개 + 나머지(기타)는 회색 고정
-const GENRE_CHART_COLORS = ['#2a78d6', '#1baf7a', '#eda100', '#008300', '#8a63d2', '#c65b6e'];
-const GENRE_OTHER_COLOR = '#9aa4b5';
 
 // 선택 가능한 프로필 아이콘 프리셋 — 사용자가 이미지를 업로드하는 대신 이 중 하나를 고른다.
 // 다른 화면(헤더, 그룹 멤버 목록 등)에 실제로 노출하는 작업은 아직 하지 않는다(팀원 작업과의 충돌 방지를 위해
@@ -175,74 +69,6 @@ const AVATAR_ICON_OPTIONS = [
   { key: 'coffee', emoji: '☕', bg: 'bg-accent-rose' },
   { key: 'moon', emoji: '🌙', bg: 'bg-primary-soft' },
 ];
-
-// 큰 숫자를 "1,284" / "1.2K" 형태로 축약
-const formatCount = (n) => {
-  const value = n || 0;
-  if (value < 1000) return value.toLocaleString('en-US');
-  const k = value / 1000;
-  return `${Number.isInteger(k) ? k.toFixed(0) : k.toFixed(1)}K`;
-};
-
-// "2시간 전" / "어제" / "3일 전" 형태의 상대 시간 표시 (그 이상은 날짜로 폴백)
-const formatRelativeTime = (isoString, formatDate) => {
-  if (!isoString) return '';
-  const diffMinutes = Math.floor((Date.now() - new Date(isoString).getTime()) / 60000);
-  if (diffMinutes < 1) return '방금 전';
-  if (diffMinutes < 60) return `${diffMinutes}분 전`;
-  const diffHours = Math.floor(diffMinutes / 60);
-  if (diffHours < 24) return `${diffHours}시간 전`;
-  const diffDays = Math.floor(diffHours / 24);
-  if (diffDays === 1) return '어제';
-  if (diffDays < 7) return `${diffDays}일 전`;
-  return formatDate(isoString);
-};
-
-// 주석 유형 분포 도넛 — 세그먼트 사이 2px 간격, 둥근 끝, 값은 범례에 항상 직접 표기(호버 없이도 읽힘)
-function DonutChart({ segments, total }) {
-  const radius = 54;
-  const strokeWidth = 16;
-  const circumference = 2 * Math.PI * radius;
-  const gapPx = 2;
-  const usable = circumference - segments.length * gapPx;
-  let cumulative = 0;
-
-  return (
-    <svg viewBox="0 0 140 140" className="mx-auto h-[150px] w-[150px]">
-      <circle cx="70" cy="70" r={radius} fill="none" stroke="#f3f5f8" strokeWidth={strokeWidth} />
-      <g transform="translate(70,70) rotate(-90)">
-        {segments.map((seg) => {
-          const fraction = total > 0 ? seg.value / total : 0;
-          const dash = fraction * usable;
-          const offset = -cumulative;
-          cumulative += dash + gapPx;
-          if (dash <= 0) return null;
-          const pct = total > 0 ? Math.round((seg.value / total) * 100) : 0;
-          return (
-            <circle
-              key={seg.key}
-              r={radius}
-              fill="none"
-              stroke={seg.color}
-              strokeWidth={strokeWidth}
-              strokeLinecap="round"
-              strokeDasharray={`${dash} ${circumference - dash}`}
-              strokeDashoffset={offset}
-            >
-              <title>{`${seg.label}: ${seg.value}개 (${pct}%)`}</title>
-            </circle>
-          );
-        })}
-      </g>
-      <text x="70" y="66" textAnchor="middle" className="fill-text-subtle" style={{ fontSize: 11, fontWeight: 600 }}>
-        총
-      </text>
-      <text x="70" y="87" textAnchor="middle" className="fill-text" style={{ fontSize: 20, fontWeight: 800 }}>
-        {total}개
-      </text>
-    </svg>
-  );
-}
 
 // 공통 EmptyState 컴포넌트
 function EmptyState({ message }) {
@@ -448,28 +274,9 @@ export default function MyPage() {
         const groupList = Array.isArray(groupsRes) ? groupsRes : groupsRes.data || [];
 
         // "나의 취향 분석": 내 서재(즐겨찾기 책)의 중분류 장르 분포
-        const genreCounts = new Map();
-        favoriteBookList.forEach((book) => {
-          const label = parseGenreLabel(book.genreCode);
-          if (label) {
-            genreCounts.set(label, (genreCounts.get(label) || 0) + 1);
-          }
-        });
-
-        const sortedGenres = [...genreCounts.entries()].sort((a, b) => b[1] - a[1]);
-        const topGenres = sortedGenres.slice(0, 5);
-        const otherCount = sortedGenres.slice(5).reduce((sum, [, count]) => sum + count, 0);
-
-        const genreSummary = topGenres.map(([label, value], i) => ({
-          key: label,
-          label,
-          value,
-          color: GENRE_CHART_COLORS[i],
-        }));
-        if (otherCount > 0) {
-          genreSummary.push({ key: '__other__', label: '기타', value: otherCount, color: GENRE_OTHER_COLOR });
-        }
-        const genreTotal = genreSummary.reduce((sum, g) => sum + g.value, 0);
+        const { summary: genreSummary, total: genreTotal } = buildGenreSummary(
+          favoriteBookList.map((book) => book.genreCode),
+        );
 
         let totalLikes = 0;
         myAnnotations.forEach((a) => {
@@ -1346,7 +1153,13 @@ export default function MyPage() {
                           <div className="h-8 w-8 rounded-full bg-primary-soft flex items-center justify-center text-xs font-bold text-primary">
                             {friend.nickname?.charAt(0).toUpperCase()}
                           </div>
-                          <span className="text-sm font-semibold text-text">{friend.nickname}</span>
+                          {friend.userId ? (
+                            <Link to={`/users/${friend.userId}`} className="text-sm font-semibold text-text transition hover:text-primary">
+                              {friend.nickname}
+                            </Link>
+                          ) : (
+                            <span className="text-sm font-semibold text-text">{friend.nickname}</span>
+                          )}
                         </div>
                         <button
                           onClick={() => handleDeleteRelationship(friend.id, friend.nickname, '친구 삭제가')}

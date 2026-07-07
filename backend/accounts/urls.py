@@ -24,6 +24,7 @@ from .views import (
     LogoutView,
     MeView,
     RegisterView,
+    UserProfileView,
     UserSearchView,
 )
 
@@ -33,6 +34,7 @@ urlpatterns = [
     path('auth/logout', LogoutView.as_view(), name='auth-logout'),
     path('users/me', MeView.as_view(), name='users-me'),
     path('users', UserSearchView.as_view(), name='users-search'),
+    path('users/<int:user_id>', UserProfileView.as_view(), name='user-profile'),
     path('users/me/friends', FriendListView.as_view(), name='friends-list'),
     path('users/me/friend-requests', FriendRequestListView.as_view(), name='friend-requests-list'),
     path('friends', FriendCreateView.as_view(), name='friends-create'),

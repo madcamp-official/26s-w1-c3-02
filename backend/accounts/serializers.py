@@ -96,6 +96,18 @@ class UserPublicSerializer(serializers.ModelSerializer):
         fields = ['id', 'nickname']
 
 
+class UserProfileSerializer(serializers.ModelSerializer):
+    """GET /users/{userId} 공개 프로필 — email 제외(비공개). 통계(annotationCount/totalLikes)는 view에서 덧붙임."""
+
+    avatarUrl = serializers.CharField(source='avatar_url', read_only=True)
+    avatarIcon = serializers.CharField(source='avatar_icon', read_only=True)
+    createdAt = serializers.DateTimeField(source='date_joined', read_only=True)
+
+    class Meta:
+        model = User
+        fields = ['id', 'nickname', 'bio', 'avatarUrl', 'avatarIcon', 'createdAt']
+
+
 class FriendSerializer(serializers.Serializer):
     """GET /users/me/friends, GET /users/me/friend-requests 공용 — Friend row를 request.user 기준 상대방 시점으로 변환."""
 

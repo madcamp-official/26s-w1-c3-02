@@ -237,7 +237,13 @@ function AnnotationResultCard({ annotation, isMine, onRequireAuth }) {
           </blockquote>
           <p className="mt-3 leading-[1.7] text-text-muted">{annotation.review}</p>
           <footer className="mt-5 flex items-center justify-between text-sm text-text-muted">
-            <span>{annotation.author}</span>
+            {annotation.authorId ? (
+              <Link to={`/users/${annotation.authorId}`} className="font-semibold transition hover:text-primary">
+                {annotation.author}
+              </Link>
+            ) : (
+              <span>{annotation.author}</span>
+            )}
             <span>♡ {annotation.likeCount} · 댓글 {annotation.commentCount}</span>
           </footer>
           <div className="mt-4 flex justify-end">
@@ -345,7 +351,13 @@ function BrowseAnnotationCard({ annotation, onRequireAuth }) {
       </blockquote>
       <p className="mt-3 line-clamp-2 leading-[1.7] text-text-muted">{annotation.review}</p>
       <footer className="mt-5 flex items-center justify-between text-sm text-text-muted">
-        <span>{annotation.author}</span>
+        {annotation.authorId ? (
+          <Link to={`/users/${annotation.authorId}`} className="font-semibold transition hover:text-primary">
+            {annotation.author}
+          </Link>
+        ) : (
+          <span>{annotation.author}</span>
+        )}
         <div className="flex flex-wrap items-center justify-end gap-2">
           <span>♡ {annotation.likeCount} · 댓글 {annotation.commentCount}</span>
           <button

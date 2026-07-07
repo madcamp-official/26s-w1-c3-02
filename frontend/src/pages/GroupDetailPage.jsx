@@ -454,7 +454,13 @@ export default function GroupDetailPage() {
                         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-soft text-xs font-bold text-primary">
                           {member.nickname?.charAt(0).toUpperCase()}
                         </span>
-                        <span className="truncate text-sm font-semibold text-text">{member.nickname}</span>
+                        {member.id ? (
+                          <Link to={`/users/${member.id}`} className="truncate text-sm font-semibold text-text transition hover:text-primary">
+                            {member.nickname}
+                          </Link>
+                        ) : (
+                          <span className="truncate text-sm font-semibold text-text">{member.nickname}</span>
+                        )}
                         {member.id === group.owner?.id && <span className="tag shrink-0 text-[10px]">방장</span>}
                       </div>
                       {isOwner && member.id !== group.owner?.id && (

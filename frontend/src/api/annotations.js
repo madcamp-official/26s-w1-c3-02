@@ -33,6 +33,10 @@ export const getMyAnnotations = (params) => {
   return client.get('/users/me/annotations', { params });
 };
 
+export const getUserAnnotations = (userId, params) => {
+  return client.get(`/users/${userId}/annotations`, { params });
+};
+
 export const favoriteAnnotation = (annotationId) => {
   return client.post(`/annotations/${annotationId}/favorite`);
 };

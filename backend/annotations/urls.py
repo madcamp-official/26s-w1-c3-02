@@ -27,6 +27,7 @@ from .views import (
     FavoriteAnnotationListView,
     LikeView,
     MyAnnotationListView,
+    UserAnnotationListView,
 )
 
 urlpatterns = [
@@ -37,6 +38,7 @@ urlpatterns = [
     path('books/<int:book_id>/annotations', BookAnnotationListView.as_view(), name='book-annotation-list'),
     path('annotations/<int:annotation_id>/favorite', AnnotationFavoriteView.as_view(), name='annotation-favorite'),
     path('users/me/annotations', MyAnnotationListView.as_view(), name='my-annotation-list'),
+    path('users/<int:user_id>/annotations', UserAnnotationListView.as_view(), name='user-annotation-list'),
     path('users/me/favorite-annotations', FavoriteAnnotationListView.as_view(), name='favorite-annotation-list'),
     path('annotations/<int:annotation_id>/comments', CommentListCreateView.as_view(), name='comment-list-create'),
     path('comments/<int:comment_id>', CommentDetailView.as_view(), name='comment-detail'),

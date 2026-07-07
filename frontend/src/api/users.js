@@ -12,6 +12,10 @@ export const searchUsers = async (nickname) => {
   return client.get('/users', { params: { nickname } });
 };
 
+export const getUserProfile = async (userId) => {
+  return client.get(`/users/${userId}`);
+};
+
 export const getMyAnnotations = async (params) => {
   return client.get('/users/me/annotations', { params });
 };

@@ -8,6 +8,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import AccessToken
 
+from annotations.models import Annotation, Like
+from annotations.views import visible_to
+
 from .models import Friend
 from .serializers import (
     FriendActionSerializer,
@@ -15,6 +18,7 @@ from .serializers import (
     FriendSerializer,
     LoginSerializer,
     RegisterSerializer,
+    UserProfileSerializer,
     UserPublicSerializer,
     UserSerializer,
     UserUpdateSerializer,
@@ -88,6 +92,27 @@ class UserSearchView(APIView):
         queryset = User.objects.filter(nickname__icontains=keyword).exclude(pk=request.user.pk)
         serializer = UserPublicSerializer(queryset, many=True)
         return Response({'data': serializer.data})
+
+
+class UserProfileView(APIView):
+    """GET /api/users/{userId} — 공개 프로필. 비로그인 허용. 통계는 뷰어에게 보이는 공개/친구공개 주석 기준."""
+
+    permission_classes = [AllowAny]
+
+    def get(self, request, user_id):
+        user = get_object_or_404(User, pk=user_id)
+        visible = visible_to(request.user).filter(
+            user_id=user_id,
+            visibility__in=[Annotation.Visibility.PUBLIC, Annotation.Visibility.FRIENDS],
+        )
+        total_likes = Like.objects.filter(
+            target_type=Like.TargetType.ANNOTATION,
+            target_id__in=visible.values('id'),
+        ).count()
+        data = UserProfileSerializer(user).data
+        data['annotationCount'] = visible.count()
+        data['totalLikes'] = total_likes
+        return Response(data)
 
 
 class FriendListView(APIView):

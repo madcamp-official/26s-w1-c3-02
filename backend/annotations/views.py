@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from django.contrib.auth import get_user_model
 from django.db.models import Count, Exists, IntegerField, OuterRef, Q, Subquery, Value
 from django.db.models.functions import Coalesce
 from django.utils import timezone
@@ -14,6 +15,8 @@ from groups.models import GroupMember
 
 from .models import Annotation, AnnotationFavorite, Comment, Like
 from .serializers import AnnotationSerializer, CommentSerializer
+
+User = get_user_model()
 
 
 def visible_to(user):
@@ -199,6 +202,25 @@ class MyAnnotationListView(generics.ListAPIView):
 
     def get_queryset(self):
         queryset = annotations_with_stats(self.request).filter(user=self.request.user)
+        return sort_annotations(queryset, self.request.query_params.get('sort'))
+
+
+class UserAnnotationListView(generics.ListAPIView):
+    """GET /api/users/{userId}/annotations — 특정 사용자의 공개/친구공개 주석만. 비로그인 허용.
+
+    annotations_with_stats가 이미 visible_to를 적용하므로, 결과는 '그 사용자의 PUBLIC 전체 +
+    (뷰어가 친구일 때만) FRIENDS'가 된다. GROUP/PRIVATE은 어떤 뷰어에게도 노출되지 않는다.
+    """
+
+    serializer_class = AnnotationSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        generics.get_object_or_404(User, pk=self.kwargs['user_id'])
+        queryset = annotations_with_stats(self.request).filter(
+            user_id=self.kwargs['user_id'],
+            visibility__in=[Annotation.Visibility.PUBLIC, Annotation.Visibility.FRIENDS],
+        )
         return sort_annotations(queryset, self.request.query_params.get('sort'))
 
 

@@ -164,7 +164,13 @@ function AnnotationCard({ annotation, isMine, onDelete, onRequireAuth }) {
           </blockquote>
           <p className="mt-4 text-base leading-[1.8] text-text-muted">{annotation.review}</p>
           <footer className="mt-7 flex flex-wrap items-center justify-between gap-4 text-sm text-text-muted">
-            <span>{annotation.author}</span>
+            {annotation.authorId ? (
+              <Link to={`/users/${annotation.authorId}`} className="font-semibold transition hover:text-primary">
+                {annotation.author}
+              </Link>
+            ) : (
+              <span>{annotation.author}</span>
+            )}
             <div className="flex flex-wrap gap-2">
               {isMine && (
                 <>
@@ -221,7 +227,13 @@ function CommentCard({ comment, isMine, onDelete, onRequireAuth }) {
   return (
     <article className="border-l-4 border-primary-soft py-1 pl-5">
       <header className="flex flex-wrap items-center gap-3">
-        <strong className="text-sm text-text">{comment.author}</strong>
+        {comment.authorId ? (
+          <Link to={`/users/${comment.authorId}`} className="text-sm font-bold text-text transition hover:text-primary">
+            {comment.author}
+          </Link>
+        ) : (
+          <strong className="text-sm text-text">{comment.author}</strong>
+        )}
         <span className="text-sm text-text-subtle">{formatDate(comment.createdAt)}</span>
       </header>
       <p className="mt-3 leading-[1.75] text-text">{comment.content}</p>
