@@ -19,6 +19,6 @@ export function kakaoAuthorize() {
   ensureKakaoInit();
   window.Kakao.Auth.authorize({
     redirectUri: KAKAO_REDIRECT_URI,
-    scope: 'profile_nickname, account_email',
+    scope: 'profile_nickname',
   });
 }
