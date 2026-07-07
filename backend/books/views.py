@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 from common.exceptions import DuplicateError
 
 from .aladin import lookup_aladin_book, search_aladin_books
+from .daily_quote import get_daily_quote
 from .models import Book, BookFavorite
 from .serializers import BookSerializer
 
@@ -222,5 +223,11 @@ class AladinBookImportView(APIView):
         )
         serializer = BookSerializer(book, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class DailyQuoteView(APIView):
+    def get(self, request):
+        date_str = request.query_params.get('date') or timezone.localdate().isoformat()
+        return Response(get_daily_quote(date_str))
 
 # Create your views here.

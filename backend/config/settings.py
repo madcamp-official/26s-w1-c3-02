@@ -57,6 +57,11 @@ ALADIN_TTB_KEY = env('ALADIN_TTB_KEY')
 ALADIN_API_BASE_URL = env('ALADIN_API_BASE_URL', 'http://www.aladin.co.kr/ttb/api')
 ALADIN_CACHE_TTL = env_int('ALADIN_CACHE_TTL', 86400)
 
+OPENAI_API_KEY = env('OPENAI_API_KEY')
+OPENAI_API_BASE_URL = env('OPENAI_API_BASE_URL', 'https://api.openai.com/v1')
+OPENAI_MODEL = env('OPENAI_MODEL', 'gpt-4o-mini')
+OPENAI_DAILY_QUOTE_CACHE_TTL = env_int('OPENAI_DAILY_QUOTE_CACHE_TTL', 86400)
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/

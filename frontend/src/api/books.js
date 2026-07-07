@@ -9,6 +9,10 @@ export const getBookCategories = () => {
   return client.get('/books/categories');
 };
 
+export const getDailyQuote = () => {
+  return client.get('/books/daily-quote');
+};
+
 export const getBook = (bookId) => {
   return client.get(`/books/${bookId}`);
 };
