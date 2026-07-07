@@ -586,17 +586,6 @@ export default function SearchPage() {
                   <section className="grid gap-4">
                     <div className="flex items-center justify-between gap-4">
                       <h2 className="section-title">인기 책</h2>
-                      <button
-                        className="button button--secondary button--sm"
-                        type="button"
-                        onClick={() => {
-                          const totalWindows = Math.max(Math.ceil(popularBooks.length / POPULAR_BOOKS_PER_WINDOW), 1);
-                          setBookWindow((value) => (value + 1) % totalWindows);
-                        }}
-                        aria-label="다음 인기 책"
-                      >
-                        →
-                      </button>
                     </div>
 
                     {isBrowseLoading ? (
@@ -616,6 +605,19 @@ export default function SearchPage() {
                         {visiblePopularBooks.map((book) => (
                           <PopularBookCard key={book.id} book={book} />
                         ))}
+                        {popularBooks.length > POPULAR_BOOKS_PER_WINDOW && (
+                          <button
+                            className="button button--secondary button--sm browse-book-next-button"
+                            type="button"
+                            onClick={() => {
+                              const totalWindows = Math.max(Math.ceil(popularBooks.length / POPULAR_BOOKS_PER_WINDOW), 1);
+                              setBookWindow((value) => (value + 1) % totalWindows);
+                            }}
+                            aria-label="다음 인기 책"
+                          >
+                            →
+                          </button>
+                        )}
                       </div>
                     )}
                   </section>
