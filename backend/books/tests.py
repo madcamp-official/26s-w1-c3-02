@@ -6,7 +6,7 @@ from unittest.mock import patch
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from annotations.models import Annotation
+from annotations.models import Annotation, Like
 from .aladin import search_aladin_books
 from .models import Book, BookFavorite
 
@@ -74,6 +74,10 @@ class BookApiTests(APITestCase):
         Book.objects.create(title='Physics', author='writer', genre_code='국내도서 > 과학 > 물리학')
         Book.objects.create(title='Biology', author='writer', genre_code='국내도서 > 과학 > 생명과학')
 
+        for book in Book.objects.filter(title__in=['Korean Novel', 'World Novel', 'Physics', 'Biology']):
+            annotation = Annotation.objects.create(user=self.user, book=book, passage=f'{book.title} passage')
+            Like.objects.create(user=self.user, target_type=Like.TargetType.ANNOTATION, target_id=annotation.id)
+
         response = self.client.get('/api/books/categories')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -85,6 +89,49 @@ class BookApiTests(APITestCase):
 
         science = next(item for item in response.data['data'] if item['label'] == '과학')
         self.assertEqual(science['count'], 2)
+
+    def test_book_categories_use_top_three_recent_liked_annotation_categories(self):
+        users = [
+            get_user_model().objects.create_user(
+                email=f'like-{index}@example.com',
+                nickname=f'like-{index}',
+                password='pw1234!!',
+            )
+            for index in range(5)
+        ]
+        categories = [
+            ('Korean Novel', 4),
+            ('Science Books', 3),
+            ('Essay', 2),
+            ('History', 1),
+        ]
+
+        for category, like_count in categories:
+            book = Book.objects.create(title=f'{category} Book', author='writer', genre_code=category)
+            annotation = Annotation.objects.create(user=self.user, book=book, passage=f'{category} passage')
+            for user in users[:like_count]:
+                Like.objects.create(user=user, target_type=Like.TargetType.ANNOTATION, target_id=annotation.id)
+
+        old_book = Book.objects.create(title='Old Book', author='writer', genre_code='Old Favorite')
+        old_annotation = Annotation.objects.create(user=self.user, book=old_book, passage='old passage')
+        old_like = Like.objects.create(
+            user=users[0],
+            target_type=Like.TargetType.ANNOTATION,
+            target_id=old_annotation.id,
+        )
+        Like.objects.filter(pk=old_like.pk).update(created_at=timezone.now() - timedelta(days=31))
+
+        response = self.client.get('/api/books/categories')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data['data'],
+            [
+                {'label': 'Korean Novel', 'value': 'Korean Novel', 'count': 4},
+                {'label': 'Science Books', 'value': 'Science Books', 'count': 3},
+                {'label': 'Essay', 'value': 'Essay', 'count': 2},
+            ],
+        )
 
     def test_list_books_can_filter_by_category_group(self):
         target = Book.objects.create(title='Korean Novel', author='writer', genre_code='국내도서 > 소설/시/희곡 > 한국소설')

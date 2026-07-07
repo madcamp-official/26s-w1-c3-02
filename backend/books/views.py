@@ -9,6 +9,8 @@ from rest_framework.views import APIView
 
 from common.exceptions import DuplicateError
 
+from annotations.models import Annotation, Like
+
 from .aladin import lookup_aladin_book, search_aladin_books
 from .daily_quote import get_daily_quote
 from .models import Book, BookFavorite
@@ -130,16 +132,29 @@ class BookCategoryListView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def get(self, request):
+        cutoff = timezone.now() - timedelta(days=30)
+        liked_annotation_ids = list(
+            Like.objects.filter(
+                target_type=Like.TargetType.ANNOTATION,
+                created_at__gte=cutoff,
+            ).values_list('target_id', flat=True)
+        )
+        annotation_categories = dict(
+            Annotation.objects.filter(id__in=liked_annotation_ids)
+            .select_related('book')
+            .values_list('id', 'book__genre_code')
+        )
         counts = {}
 
-        for genre_code in Book.objects.exclude(genre_code='').values_list('genre_code', flat=True):
+        for annotation_id in liked_annotation_ids:
+            genre_code = annotation_categories.get(annotation_id)
             category = get_book_category_group(genre_code)
             if category:
                 counts[category] = counts.get(category, 0) + 1
 
         categories = [
             {'label': label, 'value': label, 'count': count}
-            for label, count in sorted(counts.items(), key=lambda item: (-item[1], item[0]))[:5]
+            for label, count in sorted(counts.items(), key=lambda item: (-item[1], item[0]))[:3]
         ]
 
         return Response({'data': categories})
