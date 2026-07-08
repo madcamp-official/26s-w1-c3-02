@@ -7,6 +7,7 @@ import { getPageData } from '../api/client';
 import { like, unlike } from '../api/likes';
 import SiteHeader from '../components/SiteHeader';
 import UserAvatar from '../components/common/UserAvatar';
+import { BookmarkIcon } from '../components/icons';
 import { useAuth } from '../context/AuthContext';
 import { splitBookCategory } from '../utils/bookCategory';
 
@@ -196,7 +197,8 @@ function BookHero({ book, isLoading, onToggleFavorite, isFavoritePending }) {
             disabled={isFavoritePending}
             aria-pressed={book.isFavorited}
           >
-            {book.isFavorited ? '★ 서재에 담김' : '☆ 서재에 담기'}
+            <BookmarkIcon className="h-4 w-4" fill={book.isFavorited ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={1.8} />
+            {book.isFavorited ? '서재에 담김' : '서재에 담기'}
           </button>
           <span className="text-base font-medium text-text-subtle">구절 노트 {book.annotationCount}개</span>
         </div>
