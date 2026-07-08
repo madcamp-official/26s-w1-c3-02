@@ -48,8 +48,13 @@ def get_book_category_group(category):
 
 def books_with_stats(request):
     # annotation_count는 카드에 노출되는 "실제 주석 개수"이므로 recentHours와 무관하게 항상 전체 개수를 센다.
+    # 공개(public) 주석만 카운트한다 — 비공개/친구공개/그룹공개 주석은 다른 사용자에게 보이지 않으므로 제외.
     queryset = Book.objects.annotate(
-        annotation_count=Count('annotations', distinct=True),
+        annotation_count=Count(
+            'annotations',
+            filter=Q(annotations__visibility=Annotation.Visibility.PUBLIC),
+            distinct=True,
+        ),
     )
 
     recent_hours = request.query_params.get('recentHours')
