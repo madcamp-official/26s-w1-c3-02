@@ -144,30 +144,251 @@ docker compose exec backend python manage.py loaddata seed
 
 환경 변수(DB 접속 정보, `DJANGO_SECRET_KEY`, `DJANGO_ALLOWED_HOSTS`, 알라딘 API 키 등)는 모두 루트 `.env`로 주입합니다. 배포 시에는 `DJANGO_DEBUG=False`, `DJANGO_ALLOWED_HOSTS`에 배포 호스트를 지정합니다.
 
+## DB 스키마
+
+```mermaid
+erDiagram
+    User ||--o{ Annotation : writes
+    User ||--o{ Comment : writes
+    User ||--o{ Like : gives
+    User ||--o{ BookFavorite : bookmarks
+    User ||--o{ AnnotationFavorite : bookmarks
+    User ||--o{ Group : owns
+    User ||--o{ GroupMember : joins
+    User ||--o{ GroupNotice : writes
+    User ||--o{ Friend : requests
+    User ||--o{ Friend : receives
+
+    Book ||--o{ Annotation : has
+    Book ||--o{ BookFavorite : has
+    Book ||--o{ GroupBook : linked_to
+
+    Group ||--o{ GroupMember : has
+    Group ||--o{ GroupBook : has
+    Group ||--o{ GroupNotice : has
+    Group ||--o{ Annotation : contains
+
+    Annotation ||--o{ Comment : has
+    Annotation ||--o{ AnnotationFavorite : has
+
+    User {
+        bigint id PK
+        string email UK
+        string nickname UK
+        string bio
+        string avatar_url
+        string avatar_icon
+        string kakao_id UK
+        datetime created_at
+    }
+
+    Book {
+        bigint id PK
+        string title
+        string author
+        date publish_date
+        string isbn
+        string genre_code
+        string cover_image_url
+        datetime created_at
+    }
+
+    Annotation {
+        bigint id PK
+        bigint user_id FK
+        bigint book_id FK
+        bigint group_id FK
+        string type
+        string passage
+        string review
+        int page
+        string visibility
+        boolean is_spoiler
+        datetime created_at
+    }
+
+    Comment {
+        bigint id PK
+        bigint annotation_id FK
+        bigint user_id FK
+        string type
+        string content
+        datetime created_at
+    }
+
+    Like {
+        bigint id PK
+        bigint user_id FK
+        string target_type
+        bigint target_id
+        datetime created_at
+    }
+
+    BookFavorite {
+        bigint id PK
+        bigint user_id FK
+        bigint book_id FK
+        datetime created_at
+    }
+
+    AnnotationFavorite {
+        bigint id PK
+        bigint user_id FK
+        bigint annotation_id FK
+        datetime created_at
+    }
+
+    Group {
+        bigint id PK
+        string group_name
+        bigint owner_id FK
+        datetime created_at
+    }
+
+    GroupMember {
+        bigint id PK
+        bigint group_id FK
+        bigint user_id FK
+        string status
+        datetime joined_at
+    }
+
+    GroupBook {
+        bigint id PK
+        bigint group_id FK
+        bigint book_id FK
+    }
+
+    GroupNotice {
+        bigint id PK
+        bigint group_id FK
+        bigint author_id FK
+        string content
+        datetime created_at
+    }
+
+    Friend {
+        bigint id PK
+        bigint requester_id FK
+        bigint addressee_id FK
+        string status
+        datetime created_at
+    }
+```
+
+> `Like`는 `target_type`(`annotation`/`comment`) + `target_id`로 대상을 가리키는 polymorphic 관계라 위 다이어그램에는 FK 화살표로 표현하지 않았습니다.
+
 ## API 문서
 
-상세 API 명세는 [docs/api-spec.md](docs/api-spec.md)를 참고합니다. Base URL은 `/api`이며, JWT Bearer 토큰으로 인증합니다.
-
-API는 6개 카테고리로 구성됩니다.
-
-- **인증/사용자** — 이메일·카카오 로그인, 회원가입, 프로필 조회/수정, 사용자 검색·공개 프로필
-- **책** — 목록/검색/상세, 알라딘 연동 외부 검색·등록, 오늘의 문장, 북마크
-- **주석** — 홈 피드, 검색, 작성/수정/삭제, 즐겨찾기
-- **댓글 · 좋아요** — 주석·댓글 댓글/좋아요
-- **친구** — 검색, 요청/수락/삭제
-- **그룹 주석방** — 생성/관리, 멤버 초대, 공지, 그룹 도서, 그룹 전용 주석 피드
+상세 API 명세는 [docs/api-spec.md](docs/api-spec.md)를 참고합니다. Base URL은 `/api`이며, JWT Bearer 토큰으로 인증합니다(🔒 표시된 endpoint만 인증 필요).
 
 <details>
-<summary>전체 엔드포인트 목록 보기</summary>
+<summary><strong>인증/사용자</strong></summary>
 
-- 인증/사용자: `/api/auth/register`, `/api/auth/nickname-check`, `/api/auth/email-check`, `/api/auth/login`, `/api/auth/kakao`, `/api/auth/logout`, `/api/users/me`, `/api/users`, `/api/users/{userId}`
-- 책: `/api/books`, `/api/books/{bookId}`, `/api/books/{bookId}/favorite`, `/api/books/categories`, `/api/books/daily-quote`, `/api/books/external-search`, `/api/books/import-from-aladin`, `/api/books/recommendations`, `/api/users/me/favorite-books`
-- 주석: `/api/annotations/feed`, `/api/annotations/search`, `/api/annotations`, `/api/annotations/{annotationId}`, `/api/books/{bookId}/annotations`, `/api/annotations/{annotationId}/favorite`, `/api/users/me/annotations`, `/api/users/{userId}/annotations`, `/api/users/me/favorite-annotations`
-- 댓글: `/api/annotations/{annotationId}/comments`, `/api/comments/{commentId}`
-- 좋아요: `/api/likes`
-- 친구: `/api/friends`, `/api/friends/{userId}/accept`, `/api/friends/{userId}`, `/api/users/me/friends`, `/api/users/me/friend-requests`
-- 그룹: `/api/groups`, `/api/groups/{groupId}`, `/api/groups/{groupId}/members`, `/api/groups/{groupId}/members/{userId}`, `/api/groups/{groupId}/books`, `/api/groups/{groupId}/books/{bookId}`, `/api/groups/{groupId}/annotations`, `/api/users/me/groups`
-- 그룹 초대/공지: `/api/groups/{groupId}/invitations`, `/api/groups/{groupId}/members/{userId}/accept`, `/api/users/me/group-invitations`, `/api/groups/{groupId}/notice`
+| Method | Endpoint | 설명 | 요청 | 응답 |
+|---|---|---|---|---|
+| POST | `/api/auth/register` | 회원가입 | `{ nickname, email, password }` | `{ id, nickname, email, createdAt }` |
+| GET | `/api/auth/nickname-check` | 닉네임 중복 확인 | query `nickname` | `{ available }` |
+| GET | `/api/auth/email-check` | 이메일 중복 확인 | query `email` | `{ available }` |
+| POST | `/api/auth/login` | 로그인 및 토큰 발급 | `{ email, password }` | `{ accessToken, user }` |
+| POST | `/api/auth/kakao` | 카카오 로그인/가입 및 토큰 발급 | `{ code, redirectUri }` | `{ accessToken, user, isNewUser }` |
+| POST 🔒 | `/api/auth/logout` | 로그아웃 | - | `204 No Content` |
+| GET 🔒 | `/api/users/me` | 내 정보 조회 | - | `User` |
+| PATCH 🔒 | `/api/users/me` | 프로필 수정 | `{ nickname?, password?, bio?, avatarUrl?, avatarIcon? }` | 수정된 `User` |
+| GET 🔒 | `/api/users` | 닉네임 사용자 검색 | query `nickname` | `{ data: [{ id, nickname }] }` |
+| GET | `/api/users/{userId}` | 사용자 공개 프로필 조회 | - | `{ id, nickname, bio, avatarUrl, avatarIcon, createdAt, annotationCount, totalLikes }` |
+
+</details>
+
+<details>
+<summary><strong>책</strong></summary>
+
+| Method | Endpoint | 설명 | 요청 | 응답 |
+|---|---|---|---|---|
+| GET | `/api/books` | 책 목록/검색 | query `keyword, genreCode, sort, page, size` | `{ data: [Book], pagination }` |
+| GET | `/api/books/categories` | 최근 30일 좋아요 기반 인기 카테고리 상위 3개 | - | `{ data: [{ label, value, count }] }` |
+| GET | `/api/books/daily-quote` | 오늘의 문장 큐레이션 | query `date?` | `{ date, topic, author, book_title, content, coverImageUrl, isbn }` |
+| GET | `/api/books/external-search` | 알라딘 도서 검색(등록 전 미리보기) | query `keyword, field?, page?, size?` | `{ data: [...] }` |
+| POST | `/api/books/import-from-aladin` | 알라딘 ISBN으로 책 등록/조회 | `{ isbn }` | `Book` |
+| GET | `/api/books/recommendations` | 추천 책 목록 | query `size?` | `Book[]` |
+| GET | `/api/books/{bookId}` | 책 상세 | - | `Book` |
+| POST 🔒 | `/api/books` | 책 등록 | `{ title, author, publishDate, isbn, genreCode, coverImageUrl }` | 생성된 `Book` |
+| POST 🔒 | `/api/books/{bookId}/favorite` | 책 북마크 추가 | - | `201` |
+| DELETE 🔒 | `/api/books/{bookId}/favorite` | 책 북마크 해제 | - | `204` |
+| GET 🔒 | `/api/users/me/favorite-books` | 내 북마크 책 목록 | - | `Book` 목록 페이지네이션 |
+
+</details>
+
+<details>
+<summary><strong>주석</strong></summary>
+
+| Method | Endpoint | 설명 | 요청 | 응답 |
+|---|---|---|---|---|
+| GET | `/api/annotations/feed` | 홈/둘러보기 주석 피드 | query `recentHours?, scope?, sort?, page, size` | `Annotation` 목록 페이지네이션 |
+| GET | `/api/annotations/search` | 주석 검색 | query `bookId?, keyword?, pageNumber?, type?, sort?, page, size` | `Annotation` 목록 페이지네이션 |
+| POST 🔒 | `/api/annotations` | 주석 작성 | `{ bookId, type, passage, review, page, visibility, isSpoiler, groupId }` | 생성된 `Annotation` |
+| GET | `/api/annotations/{annotationId}` | 주석 상세 | - | `Annotation` |
+| PATCH 🔒 | `/api/annotations/{annotationId}` | 주석 수정 | 수정할 필드 일부 | 수정된 `Annotation` |
+| DELETE 🔒 | `/api/annotations/{annotationId}` | 주석 삭제 | - | `204` |
+| GET | `/api/books/{bookId}/annotations` | 책별 주석 목록 | query `type?, sort?, page, size` | `Annotation` 목록 페이지네이션 |
+| POST 🔒 | `/api/annotations/{annotationId}/favorite` | 주석 즐겨찾기 추가 | - | `201` |
+| DELETE 🔒 | `/api/annotations/{annotationId}/favorite` | 주석 즐겨찾기 해제 | - | `204` |
+| GET 🔒 | `/api/users/me/annotations` | 내가 작성한 주석 목록 | - | `Annotation` 목록 페이지네이션 |
+| GET | `/api/users/{userId}/annotations` | 특정 사용자가 작성한 주석 목록(공개 범위 준수) | - | `Annotation` 목록 페이지네이션 |
+| GET 🔒 | `/api/users/me/favorite-annotations` | 내 즐겨찾기 주석 목록 | - | `Annotation` 목록 페이지네이션 |
+
+</details>
+
+<details>
+<summary><strong>댓글 · 좋아요</strong></summary>
+
+| Method | Endpoint | 설명 | 요청 | 응답 |
+|---|---|---|---|---|
+| GET | `/api/annotations/{annotationId}/comments` | 댓글 목록 | query `type?, sort?, page, size` | `Comment` 목록 페이지네이션 |
+| POST 🔒 | `/api/annotations/{annotationId}/comments` | 댓글 작성 | `{ type, content }` | 생성된 `Comment` |
+| PATCH 🔒 | `/api/comments/{commentId}` | 댓글 수정 | `{ content }` | 수정된 `Comment` |
+| DELETE 🔒 | `/api/comments/{commentId}` | 댓글 삭제 | - | `204` |
+| POST 🔒 | `/api/likes` | 좋아요 추가 | `{ targetType, targetId }` | `{ likeId, targetType, targetId, createdAt }` |
+| DELETE 🔒 | `/api/likes` | 좋아요 취소 | query `targetType, targetId` | `204` |
+
+</details>
+
+<details>
+<summary><strong>친구</strong></summary>
+
+| Method | Endpoint | 설명 | 요청 | 응답 |
+|---|---|---|---|---|
+| GET 🔒 | `/api/users/me/friends` | 내 친구 목록 | - | `{ data: [...] }` |
+| GET 🔒 | `/api/users/me/friend-requests` | 친구 요청 목록 | query `direction: received\|sent` | `{ data: [...] }` |
+| POST 🔒 | `/api/friends` | 친구 요청 보내기 | `{ friendId }` | `{ requesterId, addresseeId, status, createdAt }` |
+| POST 🔒 | `/api/friends/{userId}/accept` | 친구 요청 수락 | - | `{ requesterId, addresseeId, status, createdAt }` |
+| DELETE 🔒 | `/api/friends/{userId}` | 요청 취소/거절 또는 친구 삭제 | - | `204` |
+
+</details>
+
+<details>
+<summary><strong>그룹 주석방</strong></summary>
+
+| Method | Endpoint | 설명 | 요청 | 응답 |
+|---|---|---|---|---|
+| GET 🔒 | `/api/users/me/groups` | 내가 속한 그룹 목록 | - | `Group[]` |
+| POST 🔒 | `/api/groups` | 그룹 생성 | `{ groupName, bookIds?, memberIds? }` | 생성된 `Group` |
+| GET 🔒 | `/api/groups/{groupId}` | 그룹 상세 | - | `Group` |
+| PATCH 🔒 | `/api/groups/{groupId}` | 그룹 이름 수정 | `{ groupName }` | 수정된 `Group` |
+| DELETE 🔒 | `/api/groups/{groupId}` | 그룹 삭제 | - | `204` |
+| GET 🔒 | `/api/groups/{groupId}/members` | 그룹 멤버 목록 | - | `UserPublic[]` |
+| POST 🔒 | `/api/groups/{groupId}/members` | 멤버 초대/추가 | `{ userId }` | `{ userId, status }` |
+| DELETE 🔒 | `/api/groups/{groupId}/members/{userId}` | 멤버 내보내기/나가기 | - | `204` |
+| POST 🔒 | `/api/groups/{groupId}/members/{userId}/accept` | 그룹 초대 수락(본인만) | - | `{ groupId, userId, status }` |
+| GET 🔒 | `/api/groups/{groupId}/invitations` | 대기 중인 초대 목록(owner 전용) | - | `[{ userId, nickname, avatarUrl, avatarIcon, invitedAt }]` |
+| GET 🔒 | `/api/users/me/group-invitations` | 내가 받은 대기 중인 그룹 초대 목록 | - | `[{ groupId, groupName, owner, memberCount, invitedAt }]` |
+| POST 🔒 | `/api/groups/{groupId}/notice` | 그룹 공지 작성/수정(owner 전용) | `{ content }` | 생성/수정된 공지 |
+| GET 🔒 | `/api/groups/{groupId}/books` | 그룹 도서 목록 | - | `Book[]` |
+| POST 🔒 | `/api/groups/{groupId}/books` | 그룹 도서 추가 | `{ bookId }` | `{ bookId }` |
+| DELETE 🔒 | `/api/groups/{groupId}/books/{bookId}` | 그룹 도서 제거 | - | `204` |
+| GET 🔒 | `/api/groups/{groupId}/annotations` | 그룹 주석 피드 | query `bookId?, type?, sort?, page, size` | `Annotation` 목록 페이지네이션 |
+
+</details>
 
 </details>
 
@@ -183,18 +404,18 @@ API는 6개 카테고리로 구성됩니다.
 - 알라딘 API 연동 도서 검색·등록 구현
 - Docker Compose 기반 통합 실행 및 KAIST VM 배포
 
-## 데모
+## 배포 결과물
 
-<!-- TODO: 움짤(GIF) 4개 이상 또는 20초 이상 동영상(혹은 스크린샷 4장 이상)을 아래에 추가하세요. -->
+> 접속 가능한 링크, 실행 방법, 주요 구현 내용
 
-| 화면 | 데모 |
-|---|---|
-| 홈 | ![홈 화면 데모](docs/media/demo-home.gif) |
-| 책 상세 | ![책 상세 데모](docs/media/demo-book-detail.gif) |
-| 주석 작성 | ![주석 작성 데모](docs/media/demo-annotation.gif) |
-| 마이페이지 | ![마이페이지 데모](docs/media/demo-mypage.gif) |
+- **[서비스 URL:](https://munjang.madcamp-kaist.org/)**
+- **실행 방법:**
 
-<!-- 또는 동영상 링크: [데모 영상](docs/media/demo.mp4) -->
+```bash
+# 실행 방법 작성
+```
+
+---
 
 ## 🔁 회고 (KPT)
 
