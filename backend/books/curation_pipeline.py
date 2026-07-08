@@ -43,10 +43,10 @@ STEP2_SYSTEM_PROMPT = """[Role]
 [current_date]와 [verified_events](위키백과에서 검증된, 그날 실제로 일어난 문학 관련 사건 목록)를 참고해서, 서로 다른 주제·작가·책을 다루는 배너를 정확히 [batch_size]개 작성하고, 반드시 아래 [Output Format]의 JSON 구조로만 응답해줘.
 
 [Constraints]
-1. 사실 확인: 정보의 사실 여부가 매우 중요해. [verified_events]에 없는 사건·연도·날짜를 지어내지 마. [verified_events]의 항목에 기반해 배너를 작성할 때는 그 항목의 text·year에 명시된 사실만 사용하고 임의로 살을 붙이지 마.
+1. 사실 확인: 정보의 사실 여부가 매우 중요해. [verified_events]에 없는 사건·연도·날짜를 지어내지 마. [verified_events]의 항목에 기반해 배너를 작성할 때는 그 항목의 text·year에 명시된 사실만 사용해.
 2. 사건-배너 매칭: [verified_events]가 비어있지 않다면, 반드시 각 항목마다 정확히 1개의 배너를 작성할 것(하나의 사건 = 하나의 배너, 총 [batch_size]개 = [verified_events]의 개수). 이 경우 절대로 5번 규칙(대체 배너)을 섞어 쓰지 말 것 — 모든 배너가 실제 사건에 기반해야 함.
-3. 분량 제한: 각 배너의 content 배열은 정확히 3개의 문자열(문장) 요소만 가질 것.
-4. 톤앤매너: 독자의 호기심을 자극하면서도 지적이고 대화체(습니다체)를 사용할 것.
+3. 분량: 각 배너의 content 배열은 도입-설명-마무리가 자연스럽게 이어지는 하나의 짧은 이야기가 되도록 작성하고, 문장 단위로 나눠 배열 요소로 담을 것. 문장 개수를 억지로 맞추지 말고, 내용을 풀어내는 데 필요한 만큼(대략 3~6문장)만 자연스럽게 쓸 것.
+4. 톤앤매너: 독자의 호기심을 자극하면서도 지적이고 문학적인 대화체(습니다체)를 사용할 것.
 5. 예외 처리(대체 배너): [verified_events]가 완전히 비어 있는 경우(위키백과 조회 실패 또는 그날 문학 사건이 하나도 없는 경우)에만, 오늘 날짜의 월(Month)이나 계절과 관련된 세계적인 문학 작품의 구절이나 작가의 에피소드로 총 [batch_size]개의 배너를 대체 작성할 것. 이 경우 '오늘'과 정확히 연결된 사건인 것처럼 쓰지 말고, 계절감이 있는 단순 책 추천의 느낌이 나도록 작성할 것.
 6. 중복 방지: [batch_size]개의 배너는 서로 다른 topic·author·book_title을 다뤄야 해. 같은 작가나 같은 책을 두 번 이상 등장시키지 마.
 7. 마크다운(Markdown) 코드 블록(```json ... ```)을 제외한 어떠한 서론이나 결론도 출력하지 말 것.
@@ -60,9 +60,9 @@ STEP2_SYSTEM_PROMPT = """[Role]
       "author": "작가 이름 (영어 이름)",
       "book_title": "관련 도서명 (원제)",
       "content": [
-        "첫 번째 문장: 오늘의 날짜와 문학적 사건의 도입부",
-        "두 번째 문장: 사건이나 작품에 대한 구체적인 설명",
-        "세 번째 문장: 이 사건이 가지는 의미나 독자에게 건네는 마무리 인사"
+        "오늘의 날짜와 문학적 사건을 자연스럽게 소개하는 문장에서 시작해서,",
+        "사건이나 작품을 구체적으로 설명하고,",
+        "그 의미를 짚으며 독자에게 건네는 마무리로 끝나는 흐름으로, 필요한 만큼의 문장을 이어서 작성"
       ],
       "source_event": "이 배너의 근거가 된 verified_events 항목의 text (대체 배너인 경우 빈 문자열)"
     }
@@ -120,7 +120,7 @@ def curate_batch(date_str, verified_events, batch_size):
         {'current_date': date_str, 'batch_size': target_count, 'verified_events': verified_events},
         ensure_ascii=False,
     )
-    result = call_openai_json(STEP2_SYSTEM_PROMPT, user_content, temperature=0.5, timeout=60)
+    result = call_openai_json(STEP2_SYSTEM_PROMPT, user_content, temperature=0.6, timeout=60)
     curations = result.get('curations') if isinstance(result, dict) else None
     if not isinstance(curations, list) or not curations:
         raise exceptions.APIException('OpenAI curation batch response missing "curations" list.')
@@ -179,8 +179,8 @@ def validate_curation_item(item):
         if not item.get(key):
             raise exceptions.APIException(f'Curation item missing required field: {key}.')
     content = item['content']
-    if not (isinstance(content, list) and len(content) == 3 and all(isinstance(s, str) for s in content)):
-        raise exceptions.APIException('Curation item content must be exactly 3 strings.')
+    if not (isinstance(content, list) and 1 <= len(content) <= 8 and all(isinstance(s, str) and s for s in content)):
+        raise exceptions.APIException('Curation item content must be a non-empty list of 1-8 strings.')
 
 
 def build_curation_rows(month, day, raw_curations):

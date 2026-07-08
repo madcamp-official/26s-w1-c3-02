@@ -11,6 +11,5 @@ export const AVATAR_ICON_OPTIONS = [
   { key: 'fox', emoji: '🦊', bg: 'bg-accent-cream' },
   { key: 'bear', emoji: '🐻', bg: 'bg-accent-green' },
   { key: 'rabbit', emoji: '🐰', bg: 'bg-primary-soft' },
-  { key: 'owl', emoji: '🦉', bg: 'bg-accent-cream' },
   { key: 'panda', emoji: '🐼', bg: 'bg-accent-blue' },
 ];

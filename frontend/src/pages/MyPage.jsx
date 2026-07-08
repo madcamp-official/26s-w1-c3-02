@@ -672,7 +672,7 @@ export default function MyPage() {
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-6">
+                  <div className="flex flex-wrap items-center justify-center gap-6 sm:justify-start">
                     {[
                       { label: '작성한 주석', value: dashboardStats.annotations, Icon: MessageIcon, tab: 'annotations' },
                       { label: '받은 좋아요', value: dashboardStats.totalLikes, Icon: HeartIcon, tab: 'annotations' },
