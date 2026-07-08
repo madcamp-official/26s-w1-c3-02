@@ -372,7 +372,7 @@ function HomeHero({ quote, isLoading, errorMessage }) {
             </div>
 
             {/* 데스크톱 뷰: 모든 문장을 각각 단독 줄로 표시 */}
-            <div className="hidden gap-1.5 text-base font-medium leading-relaxed text-text-muted sm:grid sm:mt-4">
+            <div className="hidden gap-0.5 text-base font-medium leading-snug text-text-muted sm:grid sm:mt-4">
               {(quote.content || []).map((sentence, index) => (
                 <p key={index} className="break-keep">{sentence}</p>
               ))}
