@@ -215,49 +215,35 @@ flowchart TD
 
 <!-- TODO: 각 화면 캡처/와이어프레임 이미지로 교체하세요. 경로 예시: docs/media/screens/{name}.png -->
 
-#### 홈 (`/`)
+### 홈 (`/`)
 
 ![홈](docs/media/screens/home.png)
 
-#### 둘러보기/검색 (`/search`)
+### 둘러보기(`/search`)
 
 ![둘러보기/검색 - 기본 화면](docs/media/screens/search-browse.png)
 
+### 외부 책 검색(`/search`)
+
 ![둘러보기/검색 - 검색 결과 및 책 추가](docs/media/screens/search-results.png)
 
-#### 책 상세 (`/books/:bookId`)
+### 책 상세 (`/books/:bookId`)
 
 ![책 상세](docs/media/screens/book-detail.png)
 
-#### 주석 상세 (`/annotations/:annotationId`)
+### 주석 상세 (`/annotations/:annotationId`)
 
 ![주석 상세](docs/media/screens/annotation-detail.png)
 
-#### 주석 작성 (`/annotations/new`)
-
-![주석 작성](docs/media/screens/annotation-new.png)
-
-#### 로그인 (`/login`)
+### 로그인 (`/login`)
 
 ![로그인](docs/media/screens/login.png)
 
-#### 회원가입 (`/register`)
-
-![회원가입](docs/media/screens/register.png)
-
-#### 마이페이지 (`/mypage`)
+### 마이페이지 (`/mypage`)
 
 ![마이페이지](docs/media/screens/mypage.png)
 
-#### 사용자 프로필 (`/users/:userId`)
-
-![사용자 프로필](docs/media/screens/user-profile.png)
-
-#### 라운지 (`/groups`)
-
-![라운지](docs/media/screens/groups.png)
-
-#### 그룹 상세 (`/groups/:groupId`)
+### 그룹 상세 (`/groups/:groupId`)
 
 ![그룹 상세](docs/media/screens/group-detail.png)
 
