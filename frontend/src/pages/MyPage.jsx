@@ -562,7 +562,7 @@ export default function MyPage() {
       <SiteHeader active="mypage" />
 
       <main className="page flex-1">
-      <div className="container mb-4 flex items-center justify-between md:hidden">
+      <div className="container mb-4 flex items-center justify-between lg:hidden">
         <div>
           <p className="text-xs font-bold text-text-subtle">마이페이지</p>
           <h1 className="text-xl font-extrabold text-text">
@@ -583,10 +583,10 @@ export default function MyPage() {
           메뉴
         </button>
       </div>
-      <div className="container flex flex-col md:flex-row items-start gap-6">
+      <div className="container flex flex-col items-stretch gap-6 lg:flex-row lg:items-start">
         {/* 좌측 사이드바 */}
-        <aside className="hidden w-full shrink-0 md:block md:w-[220px]">
-          <div className="card card--padded bg-white md:sticky md:top-[88px]">
+        <aside className="hidden w-full shrink-0 lg:block lg:w-[220px]">
+          <div className="card card--padded bg-white lg:sticky lg:top-[88px]">
             <h2 className="section-title mb-3">마이페이지</h2>
             <div className="h-px bg-line -mx-6 mb-3" />
             <nav className="grid gap-1">
@@ -609,7 +609,7 @@ export default function MyPage() {
         </aside>
 
         {/* 우측 콘텐츠 */}
-        <section className="min-w-0 flex-1 grid gap-6">
+        <section className="grid w-full min-w-0 flex-1 gap-6">
           {/* 1. 대시보드 */}
           {activeTab === 'dashboard' && (
             isLoadingTab ? (
@@ -961,12 +961,12 @@ export default function MyPage() {
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 {tabData.map((book) => (
                   <Link to={`/books/${book.bookId}`} key={book.bookId} className="block">
-                    <article className="card book-card bg-white transition hover:-translate-y-1 hover:shadow-card">
-                      <div className="relative">
+                    <article className="card grid w-full justify-items-center gap-3 bg-white p-3 transition hover:-translate-y-1 hover:shadow-card sm:max-w-none sm:grid-cols-[132px_minmax(0,1fr)] sm:justify-items-stretch sm:gap-4 sm:p-4">
+                      <div className="relative w-full max-w-[132px] sm:w-[132px] sm:max-w-none">
                         {book.coverImageUrl ? (
-                          <img className="book-cover" src={book.coverImageUrl} alt={book.title} />
+                          <img className="aspect-[3/4] w-full rounded-xs object-cover shadow-soft" src={book.coverImageUrl} alt={book.title} />
                         ) : (
-                          <div className="book-cover flex items-center justify-center text-center text-xs font-bold text-text-subtle p-2">
+                          <div className="flex aspect-[3/4] w-full items-center justify-center rounded-xs bg-primary-soft p-2 text-center text-xs font-bold text-text-subtle shadow-soft">
                             No Cover
                           </div>
                         )}
@@ -983,10 +983,10 @@ export default function MyPage() {
                           <BookmarkIcon className="h-4 w-4" />
                         </button>
                       </div>
-                      <div className="min-w-0 flex h-full flex-col justify-center">
-                        <h3 className="truncate text-base font-bold text-text leading-tight">{book.title}</h3>
-                        <p className="mt-1 text-xs text-text-muted truncate">{book.author}</p>
-                        <div className="mt-3">
+                      <div className="flex h-full min-w-0 w-full flex-col justify-center text-center sm:text-left">
+                        <h3 className="line-clamp-2 text-sm font-bold leading-tight text-text sm:truncate sm:text-base">{book.title}</h3>
+                        <p className="mt-1 truncate text-xs text-text-muted">{book.author}</p>
+                        <div className="mt-3 hidden sm:block">
                           <span className="tag tag--blue max-w-full truncate">{getBookCardCategory(book.genreCode)}</span>
                         </div>
                       </div>
@@ -1099,7 +1099,7 @@ export default function MyPage() {
           {activeTab === 'friends' && (
             <div className="grid gap-6">
               {/* 친구 요청 관리 섹션 */}
-              <section className="grid md:grid-cols-2 gap-4">
+              <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 {/* 받은 요청 */}
                 <div className="card card--padded bg-white">
                   <h3 className="text-sm font-bold text-text mb-3">받은 친구 요청</h3>
@@ -1108,12 +1108,12 @@ export default function MyPage() {
                   ) : (
                     <ul className="grid gap-2">
                       {receivedRequests.map((req) => (
-                        <li key={req.userId} className="flex justify-between items-center p-2 rounded bg-pageSoft border border-line">
+                        <li key={req.userId} className="flex flex-col items-stretch gap-3 rounded border border-line bg-pageSoft p-3 sm:flex-row sm:items-center sm:justify-between">
                           <div className="flex items-center gap-2">
                             <UserAvatar avatarIcon={req.avatarIcon} avatarUrl={req.avatarUrl} nickname={req.nickname} size="sm" />
                             <span className="text-sm font-semibold text-text">{req.nickname}</span>
                           </div>
-                          <div className="flex gap-1.5">
+                          <div className="grid grid-cols-2 gap-1.5 sm:flex">
                             <button
                               onClick={() => handleAcceptRequest(req.userId, req.nickname)}
                               className="button button--primary button--sm !min-h-8"
@@ -1154,7 +1154,7 @@ export default function MyPage() {
                   ) : (
                     <ul className="grid gap-2">
                       {sentRequests.map((req) => (
-                        <li key={req.userId} className="flex justify-between items-center p-2 rounded bg-pageSoft border border-line">
+                        <li key={req.userId} className="flex flex-col items-stretch gap-3 rounded border border-line bg-pageSoft p-3 sm:flex-row sm:items-center sm:justify-between">
                           <div className="flex items-center gap-2">
                             <UserAvatar avatarIcon={req.avatarIcon} avatarUrl={req.avatarUrl} nickname={req.nickname} size="sm" />
                             <span className="text-sm font-semibold text-text">{req.nickname}</span>
@@ -1180,7 +1180,7 @@ export default function MyPage() {
                 ) : (
                   <ul className="grid gap-2">
                     {tabData.map((friend) => (
-                      <li key={friend.id} className="flex justify-between items-center p-3 rounded-sm border border-line bg-pageSoft/50 hover:bg-pageSoft transition-colors">
+                        <li key={friend.id} className="flex flex-col items-stretch gap-3 rounded-sm border border-line bg-pageSoft/50 p-3 transition-colors hover:bg-pageSoft sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-3">
                           <UserAvatar
                             avatarIcon={friend.avatarIcon}
@@ -1286,7 +1286,7 @@ export default function MyPage() {
       </div>
 
       {/* 친구 찾기 모달 */}      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-[60] md:hidden" role="presentation">
+        <div className="fixed inset-0 z-[60] lg:hidden" role="presentation">
           <button
             type="button"
             className="absolute inset-0 bg-slate-950/85"
