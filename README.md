@@ -106,51 +106,6 @@
 | `/groups` | 라운지 | 참여 중인 그룹 목록, 그룹 생성, 받은 초대 수락/거절 |
 | `/groups/:groupId` | 그룹 상세 | 그룹 정보, 멤버 초대/관리, 도서 관리 |
 
-## 기술 스택
-
-| 영역 | 사용 |
-|---|---|
-| Frontend | Vite, React, React Router |
-| HTTP Client | axios |
-| Styling | Tailwind CSS + 전역 컴포넌트 클래스 |
-| Auth State | React Context |
-| Backend | Django, Django REST Framework |
-| Database | MySQL |
-| Auth | JWT Bearer (djangorestframework-simplejwt), 카카오 소셜 로그인(OAuth) |
-| 배포 | Docker Compose (nginx + gunicorn + MySQL), KAIST VM |
-
-## 폴더 구조
-
-```text
-26s-w1-c3-02/
-├── docker-compose.yml       # db(MySQL) + backend(gunicorn) + frontend(nginx) 통합 실행
-├── backend/
-│   ├── Dockerfile
-│   ├── manage.py
-│   ├── requirements.txt
-│   ├── config/              # 설정·루트 URL (settings, urls, wsgi)
-│   ├── common/              # 공통 인프라 (pagination, exceptions, permissions)
-│   ├── accounts/            # User, Friend — 인증·사용자·친구 (카카오 로그인 포함)
-│   ├── groups/              # Group, GroupMember, GroupBook — 그룹 주석방
-│   ├── books/               # Book, BookFavorite — 도서·북마크·알라딘 연동
-│   ├── annotations/         # Annotation, Comment, Like, AnnotationFavorite
-│   └── fixtures/            # seed.json (데모 데이터)
-└── frontend/
-    ├── Dockerfile
-    ├── nginx.conf           # 정적 서빙 + /api·/admin 프록시
-    ├── src/
-    │   ├── api/             # axios 클라이언트 및 도메인별 API 모듈
-    │   ├── components/
-    │   ├── context/         # AuthContext
-    │   ├── features/        # 도메인별 기능 모듈 (annotations, auth, books, friends, groups, mypage)
-    │   ├── hooks/
-    │   ├── lib/             # kakao.js 등 외부 연동
-    │   ├── pages/           # 화면 컴포넌트 (위 화면 구조 참고)
-    │   ├── utils/
-    │   └── styles/
-    └── package.json
-```
-
 ## IA 및 화면 설계서
 
 > 서비스의 전체 페이지 구조와 페이지 간 이동 흐름; 각 페이지의 주요 UI 구성, 입력 요소, 버튼, 사용자 행동 흐름 등을 간단한 와이어프레임 형태로 정리
@@ -246,6 +201,51 @@ flowchart TD
 ### 그룹 상세 (`/groups/:groupId`)
 
 ![그룹 상세](docs/media/screens/group-detail.png)
+
+## 기술 스택
+
+| 영역 | 사용 |
+|---|---|
+| Frontend | Vite, React, React Router |
+| HTTP Client | axios |
+| Styling | Tailwind CSS + 전역 컴포넌트 클래스 |
+| Auth State | React Context |
+| Backend | Django, Django REST Framework |
+| Database | MySQL |
+| Auth | JWT Bearer (djangorestframework-simplejwt), 카카오 소셜 로그인(OAuth) |
+| 배포 | Docker Compose (nginx + gunicorn + MySQL), KAIST VM |
+
+## 폴더 구조
+
+```text
+26s-w1-c3-02/
+├── docker-compose.yml       # db(MySQL) + backend(gunicorn) + frontend(nginx) 통합 실행
+├── backend/
+│   ├── Dockerfile
+│   ├── manage.py
+│   ├── requirements.txt
+│   ├── config/              # 설정·루트 URL (settings, urls, wsgi)
+│   ├── common/              # 공통 인프라 (pagination, exceptions, permissions)
+│   ├── accounts/            # User, Friend — 인증·사용자·친구 (카카오 로그인 포함)
+│   ├── groups/              # Group, GroupMember, GroupBook — 그룹 주석방
+│   ├── books/               # Book, BookFavorite — 도서·북마크·알라딘 연동
+│   ├── annotations/         # Annotation, Comment, Like, AnnotationFavorite
+│   └── fixtures/            # seed.json (데모 데이터)
+└── frontend/
+    ├── Dockerfile
+    ├── nginx.conf           # 정적 서빙 + /api·/admin 프록시
+    ├── src/
+    │   ├── api/             # axios 클라이언트 및 도메인별 API 모듈
+    │   ├── components/
+    │   ├── context/         # AuthContext
+    │   ├── features/        # 도메인별 기능 모듈 (annotations, auth, books, friends, groups, mypage)
+    │   ├── hooks/
+    │   ├── lib/             # kakao.js 등 외부 연동
+    │   ├── pages/           # 화면 컴포넌트 (위 화면 구조 참고)
+    │   ├── utils/
+    │   └── styles/
+    └── package.json
+```
 
 ## DB 스키마
 
@@ -527,6 +527,7 @@ docker compose exec backend python manage.py loaddata seed
 ### Try
 
 <!-- TODO: 다음에 시도해볼 점을 작성하세요. -->
+
 
 ## 참고 문서
 
