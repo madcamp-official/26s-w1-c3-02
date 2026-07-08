@@ -5,20 +5,20 @@
 
 책 속 문장을 직접 기록하고, 같은 구절에 대한 질문·토론·감상을 나누는 웹 기반 독서 주석 서비스입니다.
 
-## 프로젝트 개요
+## 📖 프로젝트 개요
 
 문장서재는 책 전문을 제공하지 않고, 사용자가 직접 입력한 짧은 인용 구절과 페이지 번호를 기준으로 주석 카드를 쌓아가는 서비스입니다. 개인 독서 노트처럼 비공개로 기록할 수도 있고, 공개·친구 공개·그룹 공개 범위를 선택해 다른 독자와 생각을 나눌 수도 있습니다.
 
-## 팀원
+## 👥 팀원
 
 | 이름 | GitHub | 담당 |
 |---|---|---|
-| 이지오 | [@easy0131](https://github.com/easy0131) | 도서·주석·검색·좋아요·즐겨찾기 |
-| 박수현 | [@suh1088](https://github.com/suh1088) | 인증·마이페이지·친구·그룹 주석방 |
+| 이지오 | [@easy0131](https://github.com/easy0131) | 도서·주석·검색·좋아요·즐겨찾기/ UI |
+| 박수현 | [@suh1088](https://github.com/suh1088) | 인증·마이페이지·친구·그룹 주석방/ Kcloud VM 배포 |
 
-## 핵심 기능
+## ✨ 핵심 기능
 
-### 인증 및 사용자
+### 1. 인증 및 사용자
 
 <details>
 <summary>세부 내용 보기</summary>
@@ -32,7 +32,7 @@
 
 </details>
 
-### 책 탐색 및 북마크
+### 2. 책 탐색 및 북마크
 
 <details>
 <summary>세부 내용 보기</summary>
@@ -46,7 +46,7 @@
 
 </details>
 
-### 주석 카드
+### 3. 주석 카드
 
 <details>
 <summary>세부 내용 보기</summary>
@@ -59,7 +59,7 @@
 
 </details>
 
-### 주석 즐겨찾기와 좋아요
+### 4. 주석 즐겨찾기와 좋아요
 
 <details>
 <summary>세부 내용 보기</summary>
@@ -71,7 +71,7 @@
 
 </details>
 
-### 그룹 주석방
+### 5. 그룹 주석방
 
 <details>
 <summary>세부 내용 보기</summary>
@@ -86,7 +86,7 @@
 
 </details>
 
-## 화면 구조
+## 🗺️ 화면 구조
 
 | 경로 | 화면 | 주요 기능 |
 |---|---|---|
@@ -106,7 +106,7 @@
 | `/groups` | 라운지 | 참여 중인 그룹 목록, 그룹 생성, 받은 초대 수락/거절 |
 | `/groups/:groupId` | 그룹 상세 | 그룹 정보, 멤버 초대/관리, 도서 관리 |
 
-## IA 및 화면 설계서
+## 🎨 IA 및 화면 설계서
 
 > 서비스의 전체 페이지 구조와 페이지 간 이동 흐름; 각 페이지의 주요 UI 구성, 입력 요소, 버튼, 사용자 행동 흐름 등을 간단한 와이어프레임 형태로 정리
 
@@ -170,39 +170,39 @@ flowchart TD
 
 <!-- TODO: 각 화면 캡처/와이어프레임 이미지로 교체하세요. 경로 예시: docs/media/screens/{name}.png -->
 
-### 로그인 (`/login`)
+### 1. 로그인 (`/login`)
 
 ![로그인](docs/media/screens/login.png)
 
-### 홈 (`/`)
+### 2. 홈 (`/`)
 
 ![홈](docs/media/screens/home.png)
 
-### 둘러보기(`/search`)
+### 3. 둘러보기(`/search`)
 
 ![둘러보기/검색 - 기본 화면](docs/media/screens/search-browse.png)
 
-### 외부 책 검색(`/search`)
+### 4. 외부 책 검색(`/search`)
 
 ![둘러보기/검색 - 검색 결과 및 책 추가](docs/media/screens/search-results.png)
 
-### 책 상세 (`/books/:bookId`)
+### 5. 책 상세 (`/books/:bookId`)
 
 ![책 상세](docs/media/screens/book-detail.png)
 
-### 주석 상세 (`/annotations/:annotationId`)
+### 6. 주석 상세 (`/annotations/:annotationId`)
 
 ![주석 상세](docs/media/screens/annotation-detail.png)
 
-### 마이페이지 (`/mypage`)
+### 7. 마이페이지 (`/mypage`)
 
 ![마이페이지](docs/media/screens/mypage.png)
 
-### 그룹 상세 (`/groups/:groupId`)
+### 8. 그룹 상세 (`/groups/:groupId`)
 
 ![그룹 상세](docs/media/screens/group-detail.png)
 
-## 기술 스택
+## 🛠️ 기술 스택
 
 | 영역 | 사용 |
 |---|---|
@@ -215,7 +215,7 @@ flowchart TD
 | Auth | JWT Bearer (djangorestframework-simplejwt), 카카오 소셜 로그인(OAuth) |
 | 배포 | Docker Compose (nginx + gunicorn + MySQL), KAIST VM |
 
-## 폴더 구조
+## 📁 폴더 구조
 
 ```text
 26s-w1-c3-02/
@@ -247,7 +247,7 @@ flowchart TD
     └── package.json
 ```
 
-## DB 스키마
+## 🗄️ DB 스키마
 
 ```mermaid
 erDiagram
@@ -381,7 +381,7 @@ erDiagram
 
 > `Like`는 `target_type`(`annotation`/`comment`) + `target_id`로 대상을 가리키는 polymorphic 관계라 위 다이어그램에는 FK 화살표로 표현하지 않았습니다.
 
-## API 문서
+## 🔌 API 문서
 
 상세 API 명세는 [docs/api-spec.md](docs/api-spec.md)를 참고합니다. Base URL은 `/api`이며, JWT Bearer 토큰으로 인증합니다(🔒 표시된 endpoint만 인증 필요).
 
@@ -495,7 +495,7 @@ erDiagram
 
 </details>
 
-## 배포 결과물
+## 🚀 배포 결과물
 
 > 접속 가능한 링크, 실행 방법, 주요 구현 내용
 
@@ -518,18 +518,24 @@ docker compose exec backend python manage.py loaddata seed
 
 ### Keep
 
-<!-- TODO: 계속 유지하고 싶은 좋았던 점을 작성하세요. -->
+- 팀원과 계속해서 소통하면서 판단이 어려운 부분에 대한 의견을 지속적으로, 자주 물어보는 습관
+- 미리 문서화를 하고 계획을 세워두고 진행하면 AI에게 컨텍스트를 넣어주는 데 매우 편리하다.
+- 분업하기 전 겹치는 부분을 미리 구현하고 분업하면 병렬 작업의 이점을 살릴 수 있다.
 
 ### Problem
 
-<!-- TODO: 아쉬웠던 점, 문제였던 점을 작성하세요. -->
+- 깃 충돌은 코드를 미리 이해하고 해결하지 않는다면 문제가 발생했다.
+- 깃 커밋 메세지를 더욱 명확하게 작성해야 히스토리를 읽기 편하다
 
 ### Try
 
-<!-- TODO: 다음에 시도해볼 점을 작성하세요. -->
+- UI를 피그마로 미리 틀을 잡아두고 직접 디자인하기
+- 모바일을 위한 UI를 처음부터 따로 구현
+- 기술 스택을 더 서비스의 맥락과 니즈에 맞게 정하기
+- 개발 관련 용어들을 더 많이 공부해서 소통을 원활하게 하기
 
 
-## 참고 문서
+## 📚 참고 문서
 
 - [docs/api-spec.md](docs/api-spec.md): API 상세 명세
 - [docs/product.md](docs/product.md): 제품 기획 메모
