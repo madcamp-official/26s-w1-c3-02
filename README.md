@@ -221,11 +221,17 @@ flowchart TD
 
 #### 둘러보기/검색 (`/search`)
 
-![둘러보기/검색](docs/media/screens/search.png)
+![둘러보기/검색 - 기본 화면](docs/media/screens/search-browse.png)
+
+![둘러보기/검색 - 검색 결과 및 책 추가](docs/media/screens/search-results.png)
 
 #### 책 상세 (`/books/:bookId`)
 
 ![책 상세](docs/media/screens/book-detail.png)
+
+#### 주석 상세 (`/annotations/:annotationId`)
+
+![주석 상세](docs/media/screens/annotation-detail.png)
 
 #### 주석 작성 (`/annotations/new`)
 
@@ -246,7 +252,6 @@ flowchart TD
 #### 사용자 프로필 (`/users/:userId`)
 
 ![사용자 프로필](docs/media/screens/user-profile.png)
-
 
 #### 라운지 (`/groups`)
 
