@@ -225,7 +225,7 @@ function getBookId(book) {
   return book?.bookId ?? book?.id;
 }
 
-function HeroBookCover({ quote }) {
+function HeroBookCover({ quote, compact = false }) {
   const navigate = useNavigate();
   const [imageFailed, setImageFailed] = useState(false);
   const [isOpening, setIsOpening] = useState(false);
@@ -270,6 +270,31 @@ function HeroBookCover({ quote }) {
     }
   };
 
+  if (compact) {
+    return (
+      <button
+        type="button"
+        onClick={openBookDetail}
+        disabled={isOpening}
+        className="group flex h-[52px] w-[39px] shrink-0 items-end justify-center overflow-visible rounded-xs disabled:cursor-wait"
+        aria-label={`${quote.book_title} 책 상세 보기`}
+      >
+        {showImage ? (
+          <img
+            className="block max-h-full max-w-full rounded-xs object-contain object-bottom shadow-soft transition group-hover:-translate-y-0.5 group-hover:shadow-card"
+            src={quote.coverImageUrl}
+            alt={`${quote.book_title} 표지`}
+            onError={() => setImageFailed(true)}
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center rounded-xs bg-primary-soft p-1 text-center text-[8px] font-bold leading-tight text-text/70 shadow-soft">
+            {quote.book_title}
+          </div>
+        )}
+      </button>
+    );
+  }
+
   return (
     <button type="button" onClick={openBookDetail} disabled={isOpening} className="group block w-fit max-w-[108px] min-w-0 text-left disabled:cursor-wait sm:max-w-[115px]">
       <span className="inline-flex h-[144px] max-w-[108px] items-end align-top sm:h-[154px] sm:max-w-[115px]">
@@ -292,8 +317,8 @@ function HeroBookCover({ quote }) {
 
 function HeroSkeleton() {
   return (
-    <div className="mt-4 grid grid-cols-[108px_minmax(0,1fr)] gap-4 animate-pulse sm:grid-cols-[115px_1fr] sm:gap-8">
-      <div className="book-cover w-[108px] bg-surfaceMuted sm:w-[115px]" />
+    <div className="mt-4 grid animate-pulse gap-2 sm:grid-cols-[115px_1fr] sm:gap-8">
+      <div className="book-cover hidden w-[115px] bg-surfaceMuted sm:block" />
       <div className="grid gap-2">
         <div className="h-6 w-1/2 rounded bg-surfaceMuted" />
         <div className="h-4 w-full rounded bg-surfaceMuted" />
@@ -309,8 +334,13 @@ function HomeHero({ quote, isLoading, errorMessage }) {
 
   return (
     <section className="hero-card relative min-h-[260px] px-5 pb-7 pt-5 sm:px-8 sm:pb-[32px] md:px-10 md:pb-[40px] md:pt-7">
-      <div className="flex flex-wrap items-center gap-4">
+      <div className="flex items-start justify-between gap-4 sm:items-center sm:justify-start">
         <p className="section-title">{todayLabel}</p>
+        {!isLoading && !errorMessage && quote && (
+          <div className="sm:hidden">
+            <HeroBookCover quote={quote} compact />
+          </div>
+        )}
       </div>
 
       {isLoading && <HeroSkeleton />}
@@ -322,11 +352,13 @@ function HomeHero({ quote, isLoading, errorMessage }) {
       )}
 
       {!isLoading && !errorMessage && quote && (
-        <div className="mt-4 grid grid-cols-[108px_minmax(0,1fr)] gap-4 sm:grid-cols-[max-content_1fr] sm:gap-8">
-          <HeroBookCover quote={quote} />
+        <div className="mt-4 grid gap-3 sm:grid-cols-[max-content_1fr] sm:gap-8">
+          <div className="hidden sm:block">
+            <HeroBookCover quote={quote} />
+          </div>
           <div className="min-w-0 self-start">
-            <h1 className="break-keep text-lg font-semibold leading-[1.45] text-text sm:text-2xl sm:leading-[1.6] md:text-[28px]">{quote.topic}</h1>
-            <div className="mt-2 grid gap-1 text-sm font-medium leading-relaxed text-text-muted sm:mt-4 sm:gap-1.5 sm:text-base">
+            <h1 className="break-keep text-2xl font-semibold leading-[1.45] text-text sm:leading-[1.6] md:text-[28px]">{quote.topic}</h1>
+            <div className="mt-3 grid gap-1.5 text-base font-medium leading-relaxed text-text-muted sm:mt-4">
               {(quote.content || []).map((sentence, index) => (
                 <p key={index} className="break-keep">{sentence}</p>
               ))}

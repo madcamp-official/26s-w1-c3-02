@@ -20,6 +20,12 @@
     font-family: var(--font-body);
   }
 
+  @media (max-width: 639px) {
+    html {
+      font-size: 15px;
+    }
+  }
+
   body {
     @apply m-0 min-h-screen min-w-[320px] bg-page;
     background-image: radial-gradient(circle at top left, #ffffff 0, #f8f6f1 38%, #f7f4ed 100%);
@@ -77,6 +83,16 @@
 
   .section-title {
     @apply m-0 text-[22px] font-bold leading-[1.35] text-text;
+  }
+
+  @media (max-width: 639px) {
+    .page-title {
+      @apply text-[25px];
+    }
+
+    .section-title {
+      @apply text-[20px];
+    }
   }
 
   .muted-text {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { getBooks, importBookFromAladin, searchExternalBooks } from '../api/books';
 import { favoriteAnnotation, getAnnotationFeed, searchAnnotations, unfavoriteAnnotation } from '../api/annotations';
@@ -389,6 +389,7 @@ export default function SearchPage() {
   const [addBookError, setAddBookError] = useState('');
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState('success');
+  const mobileSearchInputRef = useRef(null);
 
   const showToast = (message, type = 'success') => {
     setToastMessage(message);
@@ -419,6 +420,11 @@ export default function SearchPage() {
       setAnnotationFilter('all');
     }
   }, [annotationFilter, isAuthenticated]);
+
+  useEffect(() => {
+    if (searchParams.get('focus') !== '1') return;
+    mobileSearchInputRef.current?.focus();
+  }, [searchParams]);
 
   useEffect(() => {
     let ignore = false;
@@ -572,6 +578,38 @@ export default function SearchPage() {
 
       <main className="page">
         <div className="container grid gap-8">
+          <form
+            className="flex min-h-11 items-center overflow-hidden rounded-full border border-line bg-white shadow-soft focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10 md:hidden"
+            onSubmit={handleSubmit}
+          >
+            <select
+              className="h-11 w-[104px] shrink-0 border-0 bg-transparent px-3 text-sm font-bold text-text outline-none"
+              value={category}
+              onChange={(event) => setCategory(event.target.value)}
+              aria-label="검색 카테고리"
+            >
+              {searchCategories.map((item) => (
+                <option key={item.value} value={item.value}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
+            <span className="h-5 w-px shrink-0 bg-line" aria-hidden="true" />
+            <input
+              ref={mobileSearchInputRef}
+              className="h-11 min-w-0 flex-1 bg-transparent px-3 text-sm text-text outline-none placeholder:text-text-subtle"
+              value={keyword}
+              onChange={(event) => setKeyword(event.target.value)}
+              placeholder="검색어를 입력하세요"
+            />
+            <button className="flex h-11 w-11 shrink-0 items-center justify-center text-primary" type="submit" aria-label="검색">
+              <svg viewBox="0 0 20 20" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="9" cy="9" r="5.5" />
+                <path d="m13.2 13.2 3.3 3.3" />
+              </svg>
+            </button>
+          </form>
+
           <section>
             <h1 className="page-title mt-2">
               {isBrowseMode ? '둘러보기' : `“${keywordParam}” 검색 결과`}

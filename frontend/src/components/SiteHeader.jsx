@@ -129,7 +129,7 @@ export default function SiteHeader({ active = 'auto', showSearch = true }) {
 
         <div className="flex items-center justify-end gap-2 md:hidden">
           <Link
-            to="/search"
+            to="/search?focus=1"
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-text transition hover:bg-pageSoft hover:text-primary"
             aria-label="검색"
           >
