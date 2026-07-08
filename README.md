@@ -13,8 +13,8 @@
 
 | 이름 | GitHub | 담당 |
 |---|---|---|
-| 이지오 | [@easy0131](https://github.com/easy0131) | 도서·주석·검색·좋아요·즐겨찾기 |
-| 박수현 | [@suh1088](https://github.com/suh1088) | 인증·마이페이지·친구·그룹 주석방 |
+| 이지오 | [@easy0131](https://github.com/easy0131) | 도서·주석·검색·좋아요·즐겨찾기/ UI |
+| 박수현 | [@suh1088](https://github.com/suh1088) | 인증·마이페이지·친구·그룹 주석방/ Kcloud VM 배포 |
 
 ## ✨ 핵심 기능
 
