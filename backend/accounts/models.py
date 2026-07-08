@@ -5,7 +5,7 @@ from .managers import UserManager
 
 # avatar_icon에 저장 가능한 값 — frontend/src/utils/avatarIcons.js의 AVATAR_ICON_OPTIONS와 반드시 동기화할 것.
 AVATAR_ICON_KEYS = frozenset({
-    'basic', 'man1', 'man2', 'woman1', 'woman2', 'cat', 'fox', 'bear', 'rabbit', 'owl', 'panda',
+    'basic', 'man1', 'man2', 'woman1', 'woman2', 'cat', 'fox', 'bear', 'rabbit', 'panda',
 })
 
 
