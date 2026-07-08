@@ -391,7 +391,7 @@ function BookCard({ book }) {
         <h3 className="line-clamp-2 text-sm font-extrabold leading-[1.45] text-text">{book.title}</h3>
         <div className="mt-1.5 flex items-center justify-between gap-2 text-xs font-semibold text-text-muted">
           <p className="min-w-0 truncate">{book.author}</p>
-          <span className="shrink-0 whitespace-nowrap">노트 {book.annotationCount}</span>
+          <span className="shrink-0 whitespace-nowrap">주석 {book.annotationCount}</span>
         </div>
       </BookShelfFrame>
     </Link>

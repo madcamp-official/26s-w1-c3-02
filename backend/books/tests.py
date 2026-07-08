@@ -77,13 +77,16 @@ class BookApiTests(APITestCase):
         response = self.client.get('/api/books', {
             'sort': 'recentAnnotations',
             'recentHours': 24,
-            'size': 3,
+            'size': 10,
         })
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # 정렬은 최근 24시간 활동 기준으로 recent_book이 앞에 오지만,
+        # 카드에 노출되는 annotationCount는 recentHours와 무관하게 항상 전체 주석 개수여야 한다.
+        results = {item['bookId']: item for item in response.data['data']}
         self.assertEqual(response.data['data'][0]['bookId'], recent_book.id)
-        self.assertEqual(response.data['data'][0]['annotationCount'], 2)
-        self.assertEqual(response.data['data'][1]['annotationCount'], 0)
+        self.assertEqual(results[recent_book.id]['annotationCount'], 2)
+        self.assertEqual(results[older_book.id]['annotationCount'], 1)
 
     def test_book_categories_use_top_saved_category_groups(self):
         Book.objects.create(title='Korean Novel', author='writer', genre_code='국내도서 > 소설/시/희곡 > 한국소설')
