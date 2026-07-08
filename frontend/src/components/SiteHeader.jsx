@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { UserIcon } from './icons';
+import { MYPAGE_NAV_ITEMS } from '../utils/mypageNavItems';
 
 const searchCategories = [
   { label: '통합검색', value: 'all' },
@@ -37,6 +37,7 @@ export default function SiteHeader({ active = 'auto', showSearch = true }) {
   const [searchParams] = useSearchParams();
   const [keyword, setKeyword] = useState(searchParams.get('q') || '');
   const [category, setCategory] = useState(searchParams.get('category') || 'all');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
 
 
@@ -107,6 +108,7 @@ export default function SiteHeader({ active = 'auto', showSearch = true }) {
   );
 
   return (
+    <>
     <header className="site-header">
       <div className="container grid min-h-[64px] grid-cols-[auto_1fr_auto] items-center gap-3 md:min-h-[74px] lg:gap-8">
         <Link to="/" className="brand justify-self-start">
@@ -138,18 +140,74 @@ export default function SiteHeader({ active = 'auto', showSearch = true }) {
               <path d="m13.2 13.2 3.3 3.3" />
             </svg>
           </Link>
-          <Link
-            to={isAuthenticated ? '/mypage' : '/login'}
-            className="flex h-10 w-10 items-center justify-center rounded-full text-text transition hover:bg-pageSoft hover:text-primary"
-            aria-label={isAuthenticated ? '마이페이지' : '로그인'}
-          >
-            <UserIcon className="h-6 w-6" strokeWidth={2.1} />
-          </Link>
+          {isAuthenticated ? (
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-text transition hover:bg-pageSoft hover:text-primary"
+              aria-label="메뉴 열기"
+            >
+              <svg viewBox="0 0 20 20" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M3 5h14" />
+                <path d="M3 10h14" />
+                <path d="M3 15h14" />
+              </svg>
+            </button>
+          ) : (
+            <Link
+              to="/login"
+              className="button button--primary button--sm shrink-0 whitespace-nowrap"
+            >
+              로그인
+            </Link>
+          )}
         </div>
       </div>
-
-
-
     </header>
+
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-[60] md:hidden" role="presentation">
+          <button
+            type="button"
+            className="absolute inset-0 bg-slate-950/85"
+            aria-label="메뉴 닫기"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+          <aside className="absolute right-0 top-0 flex h-full w-[min(82vw,320px)] flex-col bg-white p-5 shadow-float">
+            <div className="mb-5 flex items-center justify-between gap-3">
+              <h2 className="section-title !text-lg">메뉴</h2>
+              <button
+                type="button"
+                className="flex h-10 w-10 items-center justify-center rounded-full text-text transition hover:bg-pageSoft hover:text-primary"
+                aria-label="메뉴 닫기"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <svg viewBox="0 0 20 20" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M5 5l10 10" />
+                  <path d="M15 5L5 15" />
+                </svg>
+              </button>
+            </div>
+            <nav className="grid gap-1">
+              {MYPAGE_NAV_ITEMS.map(({ key, label, Icon }) => (
+                <Link
+                  key={key}
+                  to={`/mypage?tab=${key}`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`flex items-center gap-3 rounded-sm px-3 py-3 text-sm font-semibold text-left transition-colors ${
+                    activeKey === 'mypage' && location.search === `?tab=${key}`
+                      ? 'bg-primary-soft text-primary'
+                      : 'text-text-muted hover:bg-pageSoft hover:text-text'
+                  }`}
+                >
+                  <Icon className="h-[18px] w-[18px] shrink-0" />
+                  {label}
+                </Link>
+              ))}
+            </nav>
+          </aside>
+        </div>
+      )}
+    </>
   );
 }

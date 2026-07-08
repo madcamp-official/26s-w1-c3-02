@@ -25,13 +25,10 @@ import { acceptGroupInvitation, createGroup, removeGroupMember } from '../api/gr
 import { getErrorMessage } from '../utils/error';
 import { getBookCardCategory } from '../utils/bookCategory';
 import {
-  HomeIcon,
   MessageIcon,
   HeartIcon,
   BookIcon,
   UsersIcon,
-  UserIcon,
-  SettingsIcon,
   BookmarkIcon,
   CalendarIcon,
   MailIcon,
@@ -47,16 +44,7 @@ import AvatarIconGlyph from '../components/common/AvatarIconGlyph';
 import { buildGenreSummary } from '../utils/genre';
 import { getTypeMeta, formatCount, formatRelativeTime } from '../utils/format';
 import { AVATAR_ICON_OPTIONS } from '../utils/avatarIcons';
-
-const NAV_ITEMS = [
-  { key: 'dashboard', label: '대시보드', Icon: HomeIcon },
-  { key: 'annotations', label: '내 주석', Icon: MessageIcon },
-  { key: 'favoriteAnnotations', label: '즐겨찾기한 주석', Icon: HeartIcon },
-  { key: 'favoriteBooks', label: '내 서재', Icon: BookIcon },
-  { key: 'groups', label: '그룹 라운지', Icon: UsersIcon },
-  { key: 'friends', label: '친구', Icon: UserIcon },
-  { key: 'settings', label: '설정', Icon: SettingsIcon },
-];
+import { MYPAGE_NAV_ITEMS as NAV_ITEMS } from '../utils/mypageNavItems';
 
 // 공통 EmptyState 컴포넌트
 function EmptyState({ message }) {
@@ -178,7 +166,6 @@ export default function MyPage() {
   const [searchParams] = useSearchParams();
 
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'dashboard');
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [tabData, setTabData] = useState([]);
 
   useEffect(() => {
@@ -545,7 +532,6 @@ export default function MyPage() {
   // 사이드바 탭 전환: activeTab과 함께 tabData/isLoadingTab을 같은 이벤트에서 초기화해
   // "새 탭인데 이전 탭의 데이터가 그대로 렌더링되는" 프레임이 생기지 않도록 한다.
   const handleTabClick = (key) => {
-    setIsMobileMenuOpen(false);
     if (key === activeTab) return;
     setActiveTab(key);
     navigate(`/mypage?tab=${key}`);
@@ -562,26 +548,11 @@ export default function MyPage() {
       <SiteHeader active="mypage" />
 
       <main className="page flex-1">
-      <div className="container mb-4 flex items-center justify-between lg:hidden">
-        <div>
-          <p className="text-xs font-bold text-text-subtle">마이페이지</p>
-          <h1 className="text-xl font-extrabold text-text">
-            {NAV_ITEMS.find((item) => item.key === activeTab)?.label}
-          </h1>
-        </div>
-        <button
-          type="button"
-          onClick={() => setIsMobileMenuOpen(true)}
-          className="button button--secondary button--sm"
-          aria-label="마이페이지 메뉴 열기"
-        >
-          <svg viewBox="0 0 20 20" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M3 5h14" />
-            <path d="M3 10h14" />
-            <path d="M3 15h14" />
-          </svg>
-          메뉴
-        </button>
+      <div className="container mb-4 lg:hidden">
+        <p className="text-xs font-bold text-text-subtle">마이페이지</p>
+        <h1 className="text-xl font-extrabold text-text">
+          {NAV_ITEMS.find((item) => item.key === activeTab)?.label}
+        </h1>
       </div>
       <div className="container flex flex-col items-stretch gap-6 lg:flex-row lg:items-start">
         {/* 좌측 사이드바 */}
@@ -1283,50 +1254,6 @@ export default function MyPage() {
           )}
         </section>
       </div>
-
-      {/* 친구 찾기 모달 */}      {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-[60] lg:hidden" role="presentation">
-          <button
-            type="button"
-            className="absolute inset-0 bg-slate-950/85"
-            aria-label="마이페이지 메뉴 닫기"
-            onClick={() => setIsMobileMenuOpen(false)}
-          />
-          <aside className="absolute right-0 top-0 flex h-full w-[min(82vw,320px)] flex-col bg-white p-5 shadow-float">
-            <div className="mb-5 flex items-center justify-between gap-3">
-              <h2 className="section-title !text-lg">마이페이지</h2>
-              <button
-                type="button"
-                className="flex h-10 w-10 items-center justify-center rounded-full text-text transition hover:bg-pageSoft hover:text-primary"
-                aria-label="마이페이지 메뉴 닫기"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <svg viewBox="0 0 20 20" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M5 5l10 10" />
-                  <path d="M15 5L5 15" />
-                </svg>
-              </button>
-            </div>
-            <nav className="grid gap-1">
-              {NAV_ITEMS.map(({ key, label, Icon }) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => handleTabClick(key)}
-                  className={`flex items-center gap-3 rounded-sm px-3 py-3 text-sm font-semibold text-left transition-colors ${
-                    activeTab === key
-                      ? 'bg-primary-soft text-primary'
-                      : 'text-text-muted hover:bg-pageSoft hover:text-text'
-                  }`}
-                >
-                  <Icon className="h-[18px] w-[18px] shrink-0" />
-                  {label}
-                </button>
-              ))}
-            </nav>
-          </aside>
-        </div>
-      )}
 
       {showSearchModal && (
         <div className="modal-overlay">
