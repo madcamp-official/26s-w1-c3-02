@@ -120,7 +120,7 @@ def curate_batch(date_str, verified_events, batch_size):
         {'current_date': date_str, 'batch_size': target_count, 'verified_events': verified_events},
         ensure_ascii=False,
     )
-    result = call_openai_json(STEP2_SYSTEM_PROMPT, user_content, temperature=0.5, timeout=60)
+    result = call_openai_json(STEP2_SYSTEM_PROMPT, user_content, temperature=0.8, timeout=60)
     curations = result.get('curations') if isinstance(result, dict) else None
     if not isinstance(curations, list) or not curations:
         raise exceptions.APIException('OpenAI curation batch response missing "curations" list.')
