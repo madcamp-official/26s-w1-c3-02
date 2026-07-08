@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { getBook } from '../api/books';
 import { createAnnotation, getAnnotation, updateAnnotation } from '../api/annotations';
@@ -79,6 +79,7 @@ export default function AnnotationFormPage() {
   const [isLoadingBook, setIsLoadingBook] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const isSubmittingRef = useRef(false);
 
   useEffect(() => {
     let ignore = false;
@@ -152,6 +153,9 @@ export default function AnnotationFormPage() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+    if (isSubmittingRef.current) return;
+
     setErrorMessage('');
 
     if (!bookId) {
@@ -164,6 +168,7 @@ export default function AnnotationFormPage() {
       return;
     }
 
+    isSubmittingRef.current = true;
     setIsSubmitting(true);
 
     try {
@@ -187,6 +192,7 @@ export default function AnnotationFormPage() {
     } catch (error) {
       setErrorMessage(error.message || '구절 노트를 게시하지 못했습니다.');
     } finally {
+      isSubmittingRef.current = false;
       setIsSubmitting(false);
     }
   };
