@@ -271,11 +271,11 @@ function HeroBookCover({ quote }) {
   };
 
   return (
-    <button type="button" onClick={openBookDetail} disabled={isOpening} className="group block w-fit max-w-[115px] min-w-0 text-left disabled:cursor-wait">
-      <span className="inline-flex h-[154px] max-w-[115px] items-end align-top">
+    <button type="button" onClick={openBookDetail} disabled={isOpening} className="group block w-fit max-w-[108px] min-w-0 text-left disabled:cursor-wait sm:max-w-[115px]">
+      <span className="inline-flex h-[144px] max-w-[108px] items-end align-top sm:h-[154px] sm:max-w-[115px]">
       {showImage ? (
         <img
-          className="block h-auto max-h-full w-auto max-w-[115px] rounded-xs object-contain object-bottom shadow-soft transition group-hover:-translate-y-1 group-hover:shadow-card"
+          className="block h-auto max-h-full w-auto max-w-[108px] rounded-xs object-contain object-bottom shadow-soft transition group-hover:-translate-y-1 group-hover:shadow-card sm:max-w-[115px]"
           src={quote.coverImageUrl}
           alt={`${quote.book_title} 표지`}
           onError={() => setImageFailed(true)}
@@ -292,8 +292,8 @@ function HeroBookCover({ quote }) {
 
 function HeroSkeleton() {
   return (
-    <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-[115px_1fr] sm:gap-8 animate-pulse">
-      <div className="book-cover bg-surfaceMuted" />
+    <div className="mt-4 grid grid-cols-[108px_minmax(0,1fr)] gap-4 animate-pulse sm:grid-cols-[115px_1fr] sm:gap-8">
+      <div className="book-cover w-[108px] bg-surfaceMuted sm:w-[115px]" />
       <div className="grid gap-2">
         <div className="h-6 w-1/2 rounded bg-surfaceMuted" />
         <div className="h-4 w-full rounded bg-surfaceMuted" />
@@ -308,7 +308,7 @@ function HomeHero({ quote, isLoading, errorMessage }) {
   const todayLabel = formatTodayLabel();
 
   return (
-    <section className="hero-card relative min-h-[260px] px-8 pb-[32px] pt-5 md:px-10 md:pb-[40px] md:pt-7">
+    <section className="hero-card relative min-h-[260px] px-5 pb-7 pt-5 sm:px-8 sm:pb-[32px] md:px-10 md:pb-[40px] md:pt-7">
       <div className="flex flex-wrap items-center gap-4">
         <p className="section-title">{todayLabel}</p>
       </div>
@@ -322,13 +322,13 @@ function HomeHero({ quote, isLoading, errorMessage }) {
       )}
 
       {!isLoading && !errorMessage && quote && (
-        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-[max-content_1fr] sm:gap-8">
+        <div className="mt-4 grid grid-cols-[108px_minmax(0,1fr)] gap-4 sm:grid-cols-[max-content_1fr] sm:gap-8">
           <HeroBookCover quote={quote} />
-          <div>
-            <h1 className="text-2xl font-semibold leading-[1.6] text-text md:text-[28px]">{quote.topic}</h1>
-            <div className="mt-4 grid gap-1.5 text-base font-medium leading-relaxed text-text-muted">
+          <div className="min-w-0 self-start">
+            <h1 className="break-keep text-lg font-semibold leading-[1.45] text-text sm:text-2xl sm:leading-[1.6] md:text-[28px]">{quote.topic}</h1>
+            <div className="mt-2 grid gap-1 text-sm font-medium leading-relaxed text-text-muted sm:mt-4 sm:gap-1.5 sm:text-base">
               {(quote.content || []).map((sentence, index) => (
-                <p key={index}>{sentence}</p>
+                <p key={index} className="break-keep">{sentence}</p>
               ))}
             </div>
           </div>
