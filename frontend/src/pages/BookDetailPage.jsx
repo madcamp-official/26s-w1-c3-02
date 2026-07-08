@@ -160,7 +160,7 @@ function BookCover({ book }) {
 function BookHero({ book, isLoading, onToggleFavorite, isFavoritePending }) {
   if (isLoading) {
     return (
-      <section className="mx-auto grid w-full max-w-[900px] gap-6 py-10 md:grid-cols-[240px_1fr] md:items-center md:py-16">
+      <section className="mx-auto grid w-full max-w-[900px] gap-6 py-6 md:grid-cols-[240px_1fr] md:items-center md:py-8">
         <div className="mx-auto aspect-[3/4] w-full max-w-[180px] animate-pulse rounded-md bg-surfaceMuted md:mx-0 md:max-w-[220px]" />
         <div className="grid gap-4">
           <div className="h-6 w-20 rounded-full bg-surfaceMuted" />
@@ -172,7 +172,7 @@ function BookHero({ book, isLoading, onToggleFavorite, isFavoritePending }) {
   }
 
   return (
-    <section className="mx-auto grid w-full max-w-[900px] gap-6 py-10 md:grid-cols-[240px_1fr] md:items-center md:py-16">
+    <section className="mx-auto grid w-full max-w-[900px] gap-6 py-6 md:grid-cols-[240px_1fr] md:items-center md:py-8">
       <div className="flex justify-center md:justify-start">
         <BookCover book={book} />
       </div>
