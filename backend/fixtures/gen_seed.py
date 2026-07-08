@@ -448,6 +448,11 @@ annotations = [
 
 # 홈 "오늘의 주석" 피드(recentHours=24)에 항상 걸리도록, 각 주석의 created_at을 원래 하드코딩된
 # 문자열 대신 NOW를 기준으로 역산한 시각으로 덮어쓴다(가장 오래된 것이 NOW-5h, 가장 최근 것이 NOW-15m).
+# user=6(easy0131), user=13(easy00)은 DB 초기화 이후 더 이상 존재하지 않는 시드 유저라서
+# 그걸 참조하는 주석은 FK 위반을 피하기 위해 제외한다.
+MISSING_SEED_USERS = {6, 13}
+annotations = [row for row in annotations if row[2] not in MISSING_SEED_USERS]
+
 for idx, (pk, book, user, group, typ, passage, review, page, visibility, is_spoiler, _created_at) in enumerate(annotations):
     add(
         'annotations.annotation',
