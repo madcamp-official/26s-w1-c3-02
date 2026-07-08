@@ -8,7 +8,7 @@ import DonutChart from '../components/DonutChart';
 import UserAvatar from '../components/common/UserAvatar';
 import { buildGenreSummary } from '../utils/genre';
 import { getTypeMeta, formatCount, formatRelativeTime } from '../utils/format';
-import { MessageIcon, HeartIcon, BookIcon, CalendarIcon } from '../components/icons';
+import { MessageIcon, TriangleIcon, BookIcon, CalendarIcon } from '../components/icons';
 
 function EmptyState({ message }) {
   return (
@@ -130,7 +130,7 @@ export default function UserProfilePage() {
                   <div className="flex flex-wrap items-center gap-6">
                     {[
                       { label: '작성한 주석', value: profile.annotationCount, Icon: MessageIcon },
-                      { label: '받은 좋아요', value: profile.totalLikes, Icon: HeartIcon },
+                      { label: '받은 좋아요', value: profile.totalLikes, Icon: TriangleIcon },
                     ].map(({ label, value, Icon }) => (
                       <div key={label} className="flex flex-col items-center gap-2 text-center">
                         <span className="flex h-11 w-11 items-center justify-center rounded-full bg-primary-soft text-primary">
@@ -181,7 +181,7 @@ export default function UserProfilePage() {
                                 </div>
                                 <div className="shrink-0 text-right text-xs text-text-subtle">
                                   <p>{formatRelativeTime(item.createdAt, formatDate)}</p>
-                                  <p className="mt-1 font-semibold text-text-muted">♡ {item.likeCount || 0}</p>
+                                  <p className="mt-1 font-semibold text-text-muted">▲ {item.likeCount || 0}</p>
                                 </div>
                               </Link>
                             </li>

@@ -24,9 +24,15 @@ export const MessageIcon = (props) => (
   </svg>
 );
 
-export const HeartIcon = (props) => (
+// 좋아요 표시는 앱 전체에서 유니코드 ▲ 글자로 통일한다. 다른 스트로크 아이콘과 같은
+// className="h-5 w-5" 규격으로 끼워 넣을 수 있도록 span으로 감싼다.
+export const TriangleIcon = ({ className = '' }) => (
+  <span className={`flex items-center justify-center leading-none ${className}`} aria-hidden="true">▲</span>
+);
+
+export const StarIcon = (props) => (
   <svg {...iconProps} {...props}>
-    <path d="M10 17s-6.5-4.1-8.2-8A4.3 4.3 0 0 1 10 5a4.3 4.3 0 0 1 8.2 4c-1.7 3.9-8.2 8-8.2 8Z" />
+    <path d="M10 2.5l2.35 4.76 5.25.76-3.8 3.7.9 5.23L10 14.5l-4.7 2.45.9-5.23-3.8-3.7 5.25-.76z" strokeLinejoin="round" />
   </svg>
 );
 

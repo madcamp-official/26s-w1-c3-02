@@ -26,7 +26,7 @@ import { getErrorMessage } from '../utils/error';
 import { getBookCardCategory } from '../utils/bookCategory';
 import {
   MessageIcon,
-  HeartIcon,
+  TriangleIcon,
   BookIcon,
   UsersIcon,
   BookmarkIcon,
@@ -120,7 +120,7 @@ function AnnotationRow({ item, meta, onEdit, onDelete }) {
             {item.isSpoiler && <span className="tag tag--danger">스포일러</span>}
           </div>
           <div className="flex gap-3 text-text-subtle font-medium">
-            <span>♡ {item.likeCount || 0}</span>
+            <span>▲ {item.likeCount || 0}</span>
             <span>💬 {item.commentCount || 0}</span>
           </div>
         </footer>
@@ -646,7 +646,7 @@ export default function MyPage() {
                   <div className="flex flex-wrap items-center justify-center gap-6 sm:justify-start">
                     {[
                       { label: '작성한 주석', value: dashboardStats.annotations, Icon: MessageIcon, tab: 'annotations' },
-                      { label: '받은 좋아요', value: dashboardStats.totalLikes, Icon: HeartIcon, tab: 'annotations' },
+                      { label: '받은 좋아요', value: dashboardStats.totalLikes, Icon: TriangleIcon, tab: 'annotations' },
                       { label: '친구', value: dashboardStats.friends, Icon: UsersIcon, tab: 'friends' },
                     ].map(({ label, value, Icon, tab }) => (
                       <button
@@ -702,7 +702,7 @@ export default function MyPage() {
                               </div>
                               <div className="shrink-0 text-right text-xs text-text-subtle">
                                 <p>{formatRelativeTime(item.createdAt, formatDate)}</p>
-                                <p className="mt-1 font-semibold text-text-muted">♡ {item.likeCount || 0}</p>
+                                <p className="mt-1 font-semibold text-text-muted">▲ {item.likeCount || 0}</p>
                               </div>
                               </Link>
                             </li>
