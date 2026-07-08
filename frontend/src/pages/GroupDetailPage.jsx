@@ -104,6 +104,7 @@ export default function GroupDetailPage() {
   const [addBookError, setAddBookError] = useState('');
   const [noticeContent, setNoticeContent] = useState('');
   const [isSavingNotice, setIsSavingNotice] = useState(false);
+  const [isEditingNotice, setIsEditingNotice] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState('success');
   const latestGroupRequestId = useRef(0);
@@ -310,6 +311,7 @@ export default function GroupDetailPage() {
       const notice = await createGroupNotice(groupId, noticeContent);
       setGroup((prev) => ({ ...prev, notice }));
       setNoticeContent(notice.content ?? '');
+      setIsEditingNotice(false);
       showToast('공지를 수정했습니다.');
     } catch (err) {
       console.error(err);
@@ -407,11 +409,25 @@ export default function GroupDetailPage() {
               <section className="card card--padded bg-white">
                 <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <h2 className="section-title !text-lg">공지</h2>
-                  {group.notice?.createdAt && (
-                    <span className="text-xs font-semibold text-text-subtle">
-                      {new Date(group.notice.createdAt).toLocaleDateString('ko-KR')}
-                    </span>
-                  )}
+                  <div className="flex items-center gap-3">
+                    {group.notice?.createdAt && (
+                      <span className="text-xs font-semibold text-text-subtle">
+                        {new Date(group.notice.createdAt).toLocaleDateString('ko-KR')}
+                      </span>
+                    )}
+                    {isOwner && !isEditingNotice && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNoticeContent(group.notice?.content ?? '');
+                          setIsEditingNotice(true);
+                        }}
+                        className="button button--secondary button--sm !min-h-8 !px-3 text-xs"
+                      >
+                        <EditIcon className="h-3.5 w-3.5" /> 수정하기
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {group.notice ? (
@@ -422,7 +438,7 @@ export default function GroupDetailPage() {
                   <p className="rounded-sm bg-pageSoft p-4 text-sm font-semibold text-text-muted">등록된 공지가 없습니다.</p>
                 )}
 
-                {isOwner && (
+                {isOwner && isEditingNotice && (
                   <form className="mt-4 grid gap-3" onSubmit={handleCreateNotice}>
                     <textarea
                       className="textarea min-h-[96px]"
@@ -430,8 +446,20 @@ export default function GroupDetailPage() {
                       onChange={(event) => setNoticeContent(event.target.value)}
                       placeholder="새 공지를 작성하세요"
                       disabled={isSavingNotice}
+                      autoFocus
                     />
-                    <div className="flex justify-end">
+                    <div className="flex justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsEditingNotice(false);
+                          setNoticeContent(group.notice?.content ?? '');
+                        }}
+                        className="button button--secondary button--sm w-full sm:w-auto"
+                        disabled={isSavingNotice}
+                      >
+                        취소
+                      </button>
                       <button type="submit" className="button button--primary button--sm w-full sm:w-auto" disabled={isSavingNotice}>
                         {isSavingNotice ? '저장 중' : '공지 수정'}
                       </button>

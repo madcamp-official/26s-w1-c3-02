@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getBookCategories, getBooks, getDailyQuote, importBookFromAladin, searchExternalBooks } from '../api/books';
-import { favoriteAnnotation, getAnnotationFeed, unfavoriteAnnotation } from '../api/annotations';
+import { getAnnotationFeed } from '../api/annotations';
+import { like, unlike } from '../api/likes';
 import { getPageData } from '../api/client';
 import BookShelfFrame from '../components/BookShelfFrame';
 import SiteHeader from '../components/SiteHeader';
@@ -51,7 +52,7 @@ function normalizeFeedItem(annotation) {
     review: annotation.review ?? '',
     likes: annotation.likeCount ?? 0,
     comments: annotation.commentCount ?? annotation.comments ?? 0,
-    isFavorited: Boolean(annotation.isFavorited),
+    isLiked: Boolean(annotation.isLiked),
   };
 }
 
@@ -405,7 +406,8 @@ function BookCardSkeleton() {
 
 function AnnotationCard({ item }) {
   const navigate = useNavigate();
-  const [isFavorited, setIsFavorited] = useState(item.isFavorited);
+  const [isLiked, setIsLiked] = useState(item.isLiked);
+  const [likeCount, setLikeCount] = useState(item.likes);
   const [isPending, setIsPending] = useState(false);
 
   const goToProfile = (event) => {
@@ -414,22 +416,24 @@ function AnnotationCard({ item }) {
     if (item.authorId) navigate(`/users/${item.authorId}`);
   };
 
-  const handleFavorite = async (event) => {
+  const handleLike = async (event) => {
     event.preventDefault();
     if (isPending) return;
 
-    const nextFavorited = !isFavorited;
+    const nextLiked = !isLiked;
     setIsPending(true);
-    setIsFavorited(nextFavorited);
+    setIsLiked(nextLiked);
+    setLikeCount((count) => Math.max(count + (nextLiked ? 1 : -1), 0));
 
     try {
-      if (nextFavorited) {
-        await favoriteAnnotation(item.id);
+      if (nextLiked) {
+        await like({ targetType: 'annotation', targetId: item.id });
       } else {
-        await unfavoriteAnnotation(item.id);
+        await unlike({ targetType: 'annotation', targetId: item.id });
       }
     } catch {
-      setIsFavorited(!nextFavorited);
+      setIsLiked(!nextLiked);
+      setLikeCount((count) => Math.max(count + (nextLiked ? -1 : 1), 0));
     } finally {
       setIsPending(false);
     }
@@ -473,17 +477,17 @@ function AnnotationCard({ item }) {
 
       <footer className="card-actions">
         <div className="flex items-center gap-5">
-          <span>♡ {item.likes}</span>
+          <span>♡ {likeCount}</span>
           <span>댓글 {item.comments}</span>
         </div>
         <button
           type="button"
-          className={`button button--sm ${isFavorited ? 'button--primary' : 'button--secondary'}`}
-          onClick={handleFavorite}
+          className={`button button--sm ${isLiked ? 'button--primary' : 'button--secondary'}`}
+          onClick={handleLike}
           disabled={isPending}
-          aria-pressed={isFavorited}
+          aria-pressed={isLiked}
         >
-          {isFavorited ? '★ 저장됨' : '☆ 저장'}
+          {isLiked ? '♥ 좋아요' : '♡ 좋아요'}
         </button>
       </footer>
       </article>
