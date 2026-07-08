@@ -56,6 +56,13 @@ const UsersIcon = (props) => (
   </svg>
 );
 
+const NoticeIcon = (props) => (
+  <svg {...iconProps} {...props}>
+    <path d="M3 8.5v3a1 1 0 0 0 1 1h1.4l1.2 4h2l-1.1-4H10l5.5 3V4.5L10 7.5H4a1 1 0 0 0-1 1Z" />
+    <path d="M15.5 8.2a2.1 2.1 0 0 1 0 3.6" />
+  </svg>
+);
+
 const BookIcon = (props) => (
   <svg {...iconProps} {...props}>
     <path d="M3 4.5A1.5 1.5 0 0 1 4.5 3H10v14H4.5A1.5 1.5 0 0 1 3 15.5v-11Z" />
@@ -404,17 +411,18 @@ export default function GroupDetailPage() {
                     </button>
                   )}
                 </div>
-              </section>
 
-              <section className="card card--padded bg-white">
-                <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <h2 className="section-title !text-lg">공지</h2>
-                  <div className="flex items-center gap-3">
-                    {group.notice?.createdAt && (
-                      <span className="text-xs font-semibold text-text-subtle">
-                        {new Date(group.notice.createdAt).toLocaleDateString('ko-KR')}
-                      </span>
-                    )}
+                <div className="mt-5 border-t border-line pt-4">
+                  <div className="mb-2.5 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-1.5 text-text-muted">
+                      <NoticeIcon className="h-4 w-4" />
+                      <h2 className="text-xs font-bold uppercase tracking-wide">공지</h2>
+                      {group.notice?.createdAt && (
+                        <span className="text-xs font-medium text-text-subtle">
+                          · {new Date(group.notice.createdAt).toLocaleDateString('ko-KR')}
+                        </span>
+                      )}
+                    </div>
                     {isOwner && !isEditingNotice && (
                       <button
                         type="button"
@@ -422,50 +430,48 @@ export default function GroupDetailPage() {
                           setNoticeContent(group.notice?.content ?? '');
                           setIsEditingNotice(true);
                         }}
-                        className="button button--secondary button--sm !min-h-8 !px-3 text-xs"
+                        className="flex items-center gap-1 text-xs font-semibold text-text-muted transition hover:text-primary"
                       >
                         <EditIcon className="h-3.5 w-3.5" /> 수정하기
                       </button>
                     )}
                   </div>
-                </div>
 
-                {group.notice ? (
-                  <div className="rounded-sm bg-pageSoft p-4">
-                    <p className="whitespace-pre-wrap text-sm font-medium leading-relaxed text-text">{group.notice.content}</p>
-                  </div>
-                ) : (
-                  <p className="rounded-sm bg-pageSoft p-4 text-sm font-semibold text-text-muted">등록된 공지가 없습니다.</p>
-                )}
-
-                {isOwner && isEditingNotice && (
-                  <form className="mt-4 grid gap-3" onSubmit={handleCreateNotice}>
-                    <textarea
-                      className="textarea min-h-[96px]"
-                      value={noticeContent}
-                      onChange={(event) => setNoticeContent(event.target.value)}
-                      placeholder="새 공지를 작성하세요"
-                      disabled={isSavingNotice}
-                      autoFocus
-                    />
-                    <div className="flex justify-end gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsEditingNotice(false);
-                          setNoticeContent(group.notice?.content ?? '');
-                        }}
-                        className="button button--secondary button--sm w-full sm:w-auto"
+                  {isEditingNotice ? (
+                    <form className="grid gap-2" onSubmit={handleCreateNotice}>
+                      <textarea
+                        className="textarea min-h-[88px]"
+                        value={noticeContent}
+                        onChange={(event) => setNoticeContent(event.target.value)}
+                        placeholder="새 공지를 작성하세요"
                         disabled={isSavingNotice}
-                      >
-                        취소
-                      </button>
-                      <button type="submit" className="button button--primary button--sm w-full sm:w-auto" disabled={isSavingNotice}>
-                        {isSavingNotice ? '저장 중' : '공지 수정'}
-                      </button>
-                    </div>
-                  </form>
-                )}
+                        autoFocus
+                      />
+                      <div className="flex justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsEditingNotice(false);
+                            setNoticeContent(group.notice?.content ?? '');
+                          }}
+                          className="button button--secondary button--sm w-full sm:w-auto"
+                          disabled={isSavingNotice}
+                        >
+                          취소
+                        </button>
+                        <button type="submit" className="button button--primary button--sm w-full sm:w-auto" disabled={isSavingNotice}>
+                          {isSavingNotice ? '저장 중' : '공지 수정'}
+                        </button>
+                      </div>
+                    </form>
+                  ) : group.notice ? (
+                    <p className="whitespace-pre-wrap rounded-sm bg-pageSoft p-3 text-sm font-medium leading-relaxed text-text">
+                      {group.notice.content}
+                    </p>
+                  ) : (
+                    <p className="rounded-sm bg-pageSoft p-3 text-sm font-semibold text-text-muted">등록된 공지가 없습니다.</p>
+                  )}
+                </div>
               </section>
 
               <section className="card card--padded bg-white">

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { getBooks, importBookFromAladin, searchExternalBooks } from '../api/books';
-import { favoriteAnnotation, getAnnotationFeed, searchAnnotations, unfavoriteAnnotation } from '../api/annotations';
+import { getAnnotationFeed, searchAnnotations } from '../api/annotations';
+import { like, unlike } from '../api/likes';
 import { getPageData } from '../api/client';
 import BookShelfFrame from '../components/BookShelfFrame';
 import SiteHeader from '../components/SiteHeader';
@@ -76,7 +77,7 @@ function normalizeAnnotation(annotation) {
     visibility: visibilityLabels[annotation.visibility] ?? annotation.visibility ?? '공개',
     likeCount: annotation.likeCount ?? 0,
     commentCount: annotation.commentCount ?? 0,
-    isFavorited: Boolean(annotation.isFavorited),
+    isLiked: Boolean(annotation.isLiked),
     isSpoiler: Boolean(annotation.isSpoiler),
     createdAt: annotation.createdAt,
     time: formatRelativeTime(annotation.createdAt),
@@ -177,27 +178,30 @@ function BookResultCard({ book }) {
 
 function AnnotationResultCard({ annotation, isMine, onRequireAuth }) {
   const [isRevealed, setIsRevealed] = useState(!annotation.isSpoiler || isMine);
-  const [isFavorited, setIsFavorited] = useState(annotation.isFavorited);
+  const [isLiked, setIsLiked] = useState(annotation.isLiked);
+  const [likeCount, setLikeCount] = useState(annotation.likeCount);
   const [isPending, setIsPending] = useState(false);
   const shouldHideContent = annotation.isSpoiler && !isMine && !isRevealed;
 
-  const handleFavorite = async (event) => {
+  const handleLike = async (event) => {
     event.preventDefault();
-    if (!onRequireAuth()) return; 
+    if (!onRequireAuth()) return;
     if (isPending) return;
 
-    const nextFavorited = !isFavorited;
+    const nextLiked = !isLiked;
     setIsPending(true);
-    setIsFavorited(nextFavorited);
+    setIsLiked(nextLiked);
+    setLikeCount((count) => Math.max(count + (nextLiked ? 1 : -1), 0));
 
     try {
-      if (nextFavorited) {
-        await favoriteAnnotation(annotation.id);
+      if (nextLiked) {
+        await like({ targetType: 'annotation', targetId: annotation.id });
       } else {
-        await unfavoriteAnnotation(annotation.id);
+        await unlike({ targetType: 'annotation', targetId: annotation.id });
       }
     } catch {
-      setIsFavorited(!nextFavorited);
+      setIsLiked(!nextLiked);
+      setLikeCount((count) => Math.max(count + (nextLiked ? -1 : 1), 0));
     } finally {
       setIsPending(false);
     }
@@ -243,17 +247,17 @@ function AnnotationResultCard({ annotation, isMine, onRequireAuth }) {
                 <span>{annotation.author}</span>
               )}
             </span>
-            <span>♡ {annotation.likeCount} · 댓글 {annotation.commentCount}</span>
+            <span>♡ {likeCount} · 댓글 {annotation.commentCount}</span>
           </footer>
           <div className="mt-4 flex justify-end">
             <button
               type="button"
-              className={`button button--sm ${isFavorited ? 'button--primary' : 'button--secondary'}`}
-              onClick={handleFavorite}
+              className={`button button--sm ${isLiked ? 'button--primary' : 'button--secondary'}`}
+              onClick={handleLike}
               disabled={isPending}
-              aria-pressed={isFavorited}
+              aria-pressed={isLiked}
             >
-              {isFavorited ? '★ 저장됨' : '☆ 저장'}
+              {isLiked ? '♥ 좋아요' : '♡ 좋아요'}
             </button>
           </div>
         </>
@@ -299,26 +303,29 @@ function PopularBookCard({ book }) {
 }
 
 function BrowseAnnotationCard({ annotation, onRequireAuth }) {
-  const [isFavorited, setIsFavorited] = useState(annotation.isFavorited);
+  const [isLiked, setIsLiked] = useState(annotation.isLiked);
+  const [likeCount, setLikeCount] = useState(annotation.likeCount);
   const [isPending, setIsPending] = useState(false);
 
-  const handleFavorite = async (event) => {
+  const handleLike = async (event) => {
     event.preventDefault();
     if (!onRequireAuth()) return;
     if (isPending) return;
 
-    const nextFavorited = !isFavorited;
+    const nextLiked = !isLiked;
     setIsPending(true);
-    setIsFavorited(nextFavorited);
+    setIsLiked(nextLiked);
+    setLikeCount((count) => Math.max(count + (nextLiked ? 1 : -1), 0));
 
     try {
-      if (nextFavorited) {
-        await favoriteAnnotation(annotation.id);
+      if (nextLiked) {
+        await like({ targetType: 'annotation', targetId: annotation.id });
       } else {
-        await unfavoriteAnnotation(annotation.id);
+        await unlike({ targetType: 'annotation', targetId: annotation.id });
       }
     } catch {
-      setIsFavorited(!nextFavorited);
+      setIsLiked(!nextLiked);
+      setLikeCount((count) => Math.max(count + (nextLiked ? -1 : 1), 0));
     } finally {
       setIsPending(false);
     }
@@ -348,15 +355,15 @@ function BrowseAnnotationCard({ annotation, onRequireAuth }) {
           )}
         </span>
         <div className="flex flex-wrap items-center justify-end gap-2">
-          <span>♡ {annotation.likeCount} · 댓글 {annotation.commentCount}</span>
+          <span>♡ {likeCount} · 댓글 {annotation.commentCount}</span>
           <button
             type="button"
-            className={`button button--sm ${isFavorited ? 'button--primary' : 'button--secondary'}`}
-            onClick={handleFavorite}
+            className={`button button--sm ${isLiked ? 'button--primary' : 'button--secondary'}`}
+            onClick={handleLike}
             disabled={isPending}
-            aria-pressed={isFavorited}
+            aria-pressed={isLiked}
           >
-            {isFavorited ? '★ 저장됨' : '☆ 저장'}
+            {isLiked ? '♥ 좋아요' : '♡ 좋아요'}
           </button>
         </div>
       </footer>
