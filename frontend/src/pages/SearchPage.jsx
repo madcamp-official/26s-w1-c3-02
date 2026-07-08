@@ -8,6 +8,7 @@ import SiteHeader from '../components/SiteHeader';
 import UserAvatar from '../components/common/UserAvatar';
 import { useAuth } from '../context/AuthContext';
 import { getErrorMessage } from '../utils/error';
+import useDragScroll from '../hooks/useDragScroll';
 
 const searchCategories = [
   { label: '통합검색', value: 'all' },
@@ -364,6 +365,8 @@ function BrowseAnnotationCard({ annotation, onRequireAuth }) {
 }
 
 export default function SearchPage() {
+  const popularScrollRef = useDragScroll();
+  const searchScrollRef = useDragScroll();
   const { isAuthenticated, user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -640,7 +643,7 @@ export default function SearchPage() {
                     ) : popularBooks.length === 0 ? (
                       <EmptyState>인기 책이 없습니다.</EmptyState>
                     ) : (
-                      <div className="book-shelf-list book-shelf-list--scroll">
+                      <div ref={popularScrollRef} className="book-shelf-list book-shelf-list--scroll">
                         {popularBooks.map((book) => (
                           <PopularBookCard key={book.id} book={book} />
                         ))}
@@ -702,7 +705,7 @@ export default function SearchPage() {
               {books.length === 0 && (
                 <p className="text-sm font-semibold text-text-muted">일치하는 책을 찾지 못했습니다</p>
               )}
-              <div className="book-shelf-list book-shelf-list--scroll">
+              <div ref={searchScrollRef} className="book-shelf-list book-shelf-list--scroll">
                 {books.map((book) => (
                   <BookResultCard key={book.id} book={book} />
                 ))}

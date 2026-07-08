@@ -6,6 +6,7 @@ import { getPageData } from '../api/client';
 import BookShelfFrame from '../components/BookShelfFrame';
 import SiteHeader from '../components/SiteHeader';
 import UserAvatar from '../components/common/UserAvatar';
+import useDragScroll from '../hooks/useDragScroll';
 
 
 const genreFilters = [
@@ -504,6 +505,7 @@ function Footer() {
 }
 
 export default function HomePage() {
+  const scrollRef = useDragScroll();
   const navigate = useNavigate();
   const [books, setBooks] = useState([]);
   const [todayFeed, setTodayFeed] = useState([]);
@@ -692,7 +694,7 @@ export default function HomePage() {
             )}
 
             {!errorMessage && (
-              <div className="book-shelf-list book-shelf-list--scroll mt-8">
+              <div ref={scrollRef} className="book-shelf-list book-shelf-list--scroll mt-8">
                 {isLoading ? (
                   Array.from({ length: 7 }).map((_, index) => <BookCardSkeleton key={index} />)
                 ) : (
