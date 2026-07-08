@@ -47,9 +47,12 @@ def get_book_category_group(category):
 
 
 def books_with_stats(request):
-    recent_hours = request.query_params.get('recentHours')
-    annotation_filter = Q()
+    # annotation_count는 카드에 노출되는 "실제 주석 개수"이므로 recentHours와 무관하게 항상 전체 개수를 센다.
+    queryset = Book.objects.annotate(
+        annotation_count=Count('annotations', distinct=True),
+    )
 
+    recent_hours = request.query_params.get('recentHours')
     if recent_hours:
         try:
             hours = float(recent_hours)
@@ -58,12 +61,13 @@ def books_with_stats(request):
         except (TypeError, ValueError):
             raise exceptions.ValidationError('recentHours must be a positive number.')
 
+        # recent_annotation_count는 "최근 인기순" 정렬 전용 지표 — 표시용 annotation_count와는 별개.
         cutoff = timezone.now() - timedelta(hours=hours)
-        annotation_filter = Q(annotations__created_at__gte=cutoff)
-
-    queryset = Book.objects.annotate(
-        annotation_count=Count('annotations', filter=annotation_filter, distinct=True),
-    )
+        queryset = queryset.annotate(
+            recent_annotation_count=Count(
+                'annotations', filter=Q(annotations__created_at__gte=cutoff), distinct=True,
+            ),
+        )
 
     if request.user.is_authenticated:
         favorites = BookFavorite.objects.filter(user=request.user, book_id=OuterRef('pk'))
@@ -104,6 +108,8 @@ class BookListCreateView(generics.ListCreateAPIView):
         sort = self.request.query_params.get('sort')
 
         if sort in ('popular', 'recentAnnotations'):
+            if self.request.query_params.get('recentHours'):
+                return queryset.order_by('-recent_annotation_count', 'title', 'id')
             return queryset.order_by('-annotation_count', 'title', 'id')
 
         return queryset.order_by('title', 'id')
@@ -123,9 +129,12 @@ class BookRecommendationView(generics.ListAPIView):
 
     def get_queryset(self):
         size = max(int(self.request.query_params.get('size', 10)), 1)
-        return books_with_stats(self.request).annotate(
+        queryset = books_with_stats(self.request).annotate(
             favorite_count=Count('favorites', distinct=True),
-        ).order_by('-annotation_count', '-favorite_count', 'title', 'id')[:size]
+        )
+        if self.request.query_params.get('recentHours'):
+            return queryset.order_by('-recent_annotation_count', '-favorite_count', 'title', 'id')[:size]
+        return queryset.order_by('-annotation_count', '-favorite_count', 'title', 'id')[:size]
 
 
 class BookCategoryListView(APIView):
