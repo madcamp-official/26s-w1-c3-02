@@ -1105,7 +1105,7 @@ export default function MyPage() {
                   {receivedRequests.length === 0 ? (
                     <p className="text-xs text-text-muted py-4">대기 중인 요청이 없습니다</p>
                   ) : (
-                    <ul className="grid gap-2">
+                    <ul className="grid grid-cols-2 gap-2 sm:grid-cols-1">
                       {receivedRequests.map((req) => (
                         <li key={req.userId} className="flex flex-col items-stretch gap-3 rounded border border-line bg-pageSoft p-3 sm:flex-row sm:items-center sm:justify-between">
                           <div className="flex items-center gap-2">
@@ -1151,7 +1151,7 @@ export default function MyPage() {
                   {sentRequests.length === 0 ? (
                     <p className="text-xs text-text-muted py-4">대기 중인 요청이 없습니다</p>
                   ) : (
-                    <ul className="grid gap-2">
+                    <ul className="grid grid-cols-2 gap-2 sm:grid-cols-1">
                       {sentRequests.map((req) => (
                         <li key={req.userId} className="flex flex-col items-stretch gap-3 rounded border border-line bg-pageSoft p-3 sm:flex-row sm:items-center sm:justify-between">
                           <div className="flex items-center gap-2">
@@ -1177,7 +1177,7 @@ export default function MyPage() {
                 {tabData.length === 0 ? (
                   <p className="text-xs text-text-muted py-4">아직 친구가 없습니다</p>
                 ) : (
-                  <ul className="grid gap-2">
+                  <ul className="grid grid-cols-2 gap-2 sm:grid-cols-1">
                     {tabData.map((friend) => (
                         <li key={friend.id} className="flex flex-col items-stretch gap-3 rounded-sm border border-line bg-pageSoft/50 p-3 transition-colors hover:bg-pageSoft sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-3">
