@@ -18,7 +18,7 @@
 
 ## ✨ 핵심 기능
 
-### 인증 및 사용자
+### 1. 인증 및 사용자
 
 <details>
 <summary>세부 내용 보기</summary>
@@ -32,7 +32,7 @@
 
 </details>
 
-### 책 탐색 및 북마크
+### 2. 책 탐색 및 북마크
 
 <details>
 <summary>세부 내용 보기</summary>
@@ -46,7 +46,7 @@
 
 </details>
 
-### 주석 카드
+### 3. 주석 카드
 
 <details>
 <summary>세부 내용 보기</summary>
@@ -59,7 +59,7 @@
 
 </details>
 
-### 주석 즐겨찾기와 좋아요
+### 4. 주석 즐겨찾기와 좋아요
 
 <details>
 <summary>세부 내용 보기</summary>
@@ -71,7 +71,7 @@
 
 </details>
 
-### 그룹 주석방
+### 5. 그룹 주석방
 
 <details>
 <summary>세부 내용 보기</summary>
@@ -170,35 +170,35 @@ flowchart TD
 
 <!-- TODO: 각 화면 캡처/와이어프레임 이미지로 교체하세요. 경로 예시: docs/media/screens/{name}.png -->
 
-### 로그인 (`/login`)
+### 1. 로그인 (`/login`)
 
 ![로그인](docs/media/screens/login.png)
 
-### 홈 (`/`)
+### 2. 홈 (`/`)
 
 ![홈](docs/media/screens/home.png)
 
-### 둘러보기(`/search`)
+### 3. 둘러보기(`/search`)
 
 ![둘러보기/검색 - 기본 화면](docs/media/screens/search-browse.png)
 
-### 외부 책 검색(`/search`)
+### 4. 외부 책 검색(`/search`)
 
 ![둘러보기/검색 - 검색 결과 및 책 추가](docs/media/screens/search-results.png)
 
-### 책 상세 (`/books/:bookId`)
+### 5. 책 상세 (`/books/:bookId`)
 
 ![책 상세](docs/media/screens/book-detail.png)
 
-### 주석 상세 (`/annotations/:annotationId`)
+### 6. 주석 상세 (`/annotations/:annotationId`)
 
 ![주석 상세](docs/media/screens/annotation-detail.png)
 
-### 마이페이지 (`/mypage`)
+### 7. 마이페이지 (`/mypage`)
 
 ![마이페이지](docs/media/screens/mypage.png)
 
-### 그룹 상세 (`/groups/:groupId`)
+### 8. 그룹 상세 (`/groups/:groupId`)
 
 ![그룹 상세](docs/media/screens/group-detail.png)
 
