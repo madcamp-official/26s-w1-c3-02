@@ -18,8 +18,10 @@
 
 ## 핵심 기능
 
+### 인증 및 사용자
+
 <details>
-<summary><strong>인증 및 사용자</strong></summary>
+<summary>세부 내용 보기</summary>
 
 - 이메일/비밀번호 기반 회원가입 및 로그인
 - 카카오 소셜 로그인 (최초 로그인 시 닉네임 설정 온보딩 포함)
@@ -30,8 +32,10 @@
 
 </details>
 
+### 책 탐색 및 북마크
+
 <details>
-<summary><strong>책 탐색 및 북마크</strong></summary>
+<summary>세부 내용 보기</summary>
 
 - 홈 화면에서 책 목록과 장르 필터 제공
 - 검색 화면에서 책 제목/저자/주석 통합 검색
@@ -42,8 +46,10 @@
 
 </details>
 
+### 주석 카드
+
 <details>
-<summary><strong>주석 카드</strong></summary>
+<summary>세부 내용 보기</summary>
 
 - 책별로 구절 노트 작성
 - 주석 유형: `QUESTION`, `DISCUSSION`, `REVIEW`, `NORMAL`
@@ -53,8 +59,10 @@
 
 </details>
 
+### 주석 즐겨찾기와 좋아요
+
 <details>
-<summary><strong>주석 즐겨찾기와 좋아요</strong></summary>
+<summary>세부 내용 보기</summary>
 
 - 주석 즐겨찾기 추가/해제
 - 홈 피드, 검색 결과, 책 상세 주석 카드, 주석 상세에서 바로 저장 가능
@@ -63,8 +71,10 @@
 
 </details>
 
+### 그룹 주석방
+
 <details>
-<summary><strong>그룹 주석방</strong></summary>
+<summary>세부 내용 보기</summary>
 
 - 라운지(그룹 목록) 및 마이페이지에서 그룹 생성
 - 그룹 상세에서 그룹 이름 수정, 그룹 삭제/나가기
