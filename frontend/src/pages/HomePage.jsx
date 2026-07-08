@@ -360,7 +360,19 @@ function HomeHero({ quote, isLoading, errorMessage }) {
           </div>
           <div className="min-w-0 self-start">
             <h1 className="break-keep text-2xl font-semibold leading-[1.45] text-text sm:leading-[1.6] md:text-[28px]">{quote.topic}</h1>
-            <div className="mt-3 grid gap-1.5 text-base font-medium leading-relaxed text-text-muted sm:mt-4">
+            {/* 모바일 뷰: 첫 번째 문장은 단독 줄, 두 번째와 세 번째 문장은 줄바꿈(엔터) 없이 연속으로 표시 */}
+            <div className="mt-3 grid gap-1.5 text-base font-medium leading-relaxed text-text-muted sm:hidden">
+              {quote.content?.[0] && <p className="break-keep">{quote.content[0]}</p>}
+              {quote.content?.[1] && (
+                <p className="break-keep">
+                  {quote.content[1]}
+                  {quote.content[2] ? ` ${quote.content[2]}` : ''}
+                </p>
+              )}
+            </div>
+
+            {/* 데스크톱 뷰: 모든 문장을 각각 단독 줄로 표시 */}
+            <div className="hidden gap-1.5 text-base font-medium leading-relaxed text-text-muted sm:grid sm:mt-4">
               {(quote.content || []).map((sentence, index) => (
                 <p key={index} className="break-keep">{sentence}</p>
               ))}
