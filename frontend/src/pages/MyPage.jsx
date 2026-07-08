@@ -675,8 +675,7 @@ export default function MyPage() {
                   <div className="flex flex-wrap items-center gap-6">
                     {[
                       { label: '작성한 주석', value: dashboardStats.annotations, Icon: MessageIcon, tab: 'annotations' },
-                      { label: '좋아요 받은 주석', value: dashboardStats.totalLikes, Icon: HeartIcon, tab: 'annotations' },
-                      { label: '즐겨찾기한 문장', value: dashboardStats.favoriteAnnotations, Icon: BookmarkIcon, tab: 'favoriteAnnotations' },
+                      { label: '받은 좋아요', value: dashboardStats.totalLikes, Icon: HeartIcon, tab: 'annotations' },
                       { label: '친구', value: dashboardStats.friends, Icon: UsersIcon, tab: 'friends' },
                     ].map(({ label, value, Icon, tab }) => (
                       <button
