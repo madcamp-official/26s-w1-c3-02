@@ -8,7 +8,7 @@ const visibilityOptions = [
   {
     label: '공개',
     value: 'public',
-    help: '모두에게 이 구절 노트를 공개해요.',
+    help: '모두에게 이 주석을 공개해요.',
   },
   {
     label: '비공개',
@@ -18,7 +18,7 @@ const visibilityOptions = [
   {
     label: '친구 공개',
     value: 'friends',
-    help: '친구에게만 이 구절 노트를 공개해요.',
+    help: '친구에게만 이 주석을 공개해요.',
   },
 ];
 
@@ -103,7 +103,7 @@ export default function AnnotationFormPage() {
         setVisibility(response.visibility ?? 'public');
         setIsSpoiler(Boolean(response.isSpoiler));
       } catch (error) {
-        if (!ignore) setErrorMessage(error.message || '구절 노트 정보를 불러오지 못했습니다.');
+        if (!ignore) setErrorMessage(error.message || '주석 정보를 불러오지 못했습니다.');
       } finally {
         if (!ignore && !bookId) setIsLoadingBook(false);
       }
@@ -125,7 +125,7 @@ export default function AnnotationFormPage() {
       }
 
       if (!bookId) {
-        setErrorMessage('책 상세 화면에서 구절 노트 작성을 시작해주세요.');
+        setErrorMessage('책 상세 화면에서 주석 작성을 시작해주세요.');
         setIsLoadingBook(false);
         return;
       }
@@ -159,7 +159,7 @@ export default function AnnotationFormPage() {
     setErrorMessage('');
 
     if (!bookId) {
-      setErrorMessage('책 상세 화면에서 구절 노트 작성을 시작해주세요.');
+      setErrorMessage('책 상세 화면에서 주석 작성을 시작해주세요.');
       return;
     }
 
@@ -190,7 +190,7 @@ export default function AnnotationFormPage() {
         navigate(`/books/${bookId}`);
       }
     } catch (error) {
-      setErrorMessage(error.message || '구절 노트를 게시하지 못했습니다.');
+      setErrorMessage(error.message || '주석을 게시하지 못했습니다.');
     } finally {
       isSubmittingRef.current = false;
       setIsSubmitting(false);
@@ -205,7 +205,7 @@ export default function AnnotationFormPage() {
         <div className="container flex min-h-[58px] items-center gap-2 text-sm font-semibold text-text-muted">
           <Link to="/">홈</Link>
           <span>/</span>
-          <span className="text-text">{isEditMode ? '구절 노트 수정' : '새 구절 노트'}</span>
+          <span className="text-text">{isEditMode ? '주석 수정' : '새 주석'}</span>
         </div>
       </div>
 
@@ -213,7 +213,7 @@ export default function AnnotationFormPage() {
         <div className="container grid max-w-[860px] gap-8">
           <div>
             <p className="text-sm font-bold text-text-muted">문장서재</p>
-            <h1 className="page-title mt-2">{isEditMode ? '구절 노트 수정하기' : '새 구절 노트 남기기'}</h1>
+            <h1 className="page-title mt-2">{isEditMode ? '주석 수정하기' : '새 주석 남기기'}</h1>
           </div>
 
           <form className="card card--padded grid gap-7" onSubmit={handleSubmit}>

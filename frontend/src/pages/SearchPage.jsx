@@ -218,7 +218,7 @@ function AnnotationResultCard({ annotation, isMine, onRequireAuth }) {
 
       {shouldHideContent ? (
         <div className="mt-4 rounded-sm border border-line bg-surfaceMuted p-5 text-center">
-          <p className="text-sm font-bold text-text-muted">스포일러가 포함된 구절 노트입니다.</p>
+          <p className="text-sm font-bold text-text-muted">스포일러가 포함된 주석입니다.</p>
           <button
             className="button button--secondary button--sm mt-4"
             type="button"
@@ -660,7 +660,7 @@ export default function SearchPage() {
 
                   <section className="grid gap-4 border-t border-line pt-7">
                     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                      <h2 className="section-title">인기 구절노트</h2>
+                      <h2 className="section-title">인기 주석</h2>
                       {isAuthenticated && (
                         <div className="flex flex-wrap gap-2">
                             <button
@@ -688,7 +688,7 @@ export default function SearchPage() {
                         ))}
                       </div>
                     ) : browseAnnotations.length === 0 ? (
-                      <EmptyState>조건에 맞는 구절노트가 없습니다.</EmptyState>
+                      <EmptyState>조건에 맞는 주석이 없습니다.</EmptyState>
                     ) : (
                       <div className="grid gap-4">
                         {browseAnnotations.map((annotation) => (

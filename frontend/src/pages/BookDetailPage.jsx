@@ -200,7 +200,7 @@ function BookHero({ book, isLoading, onToggleFavorite, isFavoritePending }) {
             <BookmarkIcon className="h-4 w-4" fill={book.isFavorited ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={1.8} />
             {book.isFavorited ? '서재에 담김' : '서재에 담기'}
           </button>
-          <span className="text-base font-medium text-text-subtle">구절 노트 {book.annotationCount}개</span>
+          <span className="text-base font-medium text-text-subtle">주석 {book.annotationCount}개</span>
         </div>
       </div>
     </section>
@@ -279,7 +279,7 @@ function AnnotationCard({ annotation, isMine, onRequireAuth }) {
 
       {shouldHideContent ? (
         <div className="mt-5 rounded-sm border border-line bg-surfaceMuted p-5 text-center">
-          <p className="text-sm font-bold text-text-muted">스포일러가 포함된 구절 노트입니다.</p>
+          <p className="text-sm font-bold text-text-muted">스포일러가 포함된 주석입니다.</p>
           <button
             className="button button--secondary button--sm mt-4"
             type="button"
@@ -376,7 +376,7 @@ function SearchAndAction({ bookId, value, onChange, onSearch, onReset }) {
         </button>
       </form>
       <Link to={`/annotations/new?bookId=${bookId}`} className="button button--primary button--lg rounded-full px-8">
-        + 구절 노트 작성
+        + 주석 작성
       </Link>
     </section>
   );

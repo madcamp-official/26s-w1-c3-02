@@ -157,7 +157,7 @@ function AnnotationCard({ annotation, isMine, onDelete, onRequireAuth }) {
 
       {shouldHideContent ? (
         <div className="mt-5 rounded-sm border border-line bg-surfaceMuted p-6 text-center">
-          <p className="text-sm font-bold text-text-muted">스포일러가 포함된 구절 노트입니다.</p>
+          <p className="text-sm font-bold text-text-muted">스포일러가 포함된 주석입니다.</p>
           <button className="button button--secondary button--sm mt-4" type="button" onClick={() => setIsRevealed(true)}>
             보기
           </button>
@@ -363,13 +363,13 @@ export default function AnnotationDetailPage() {
 
   const handleDeleteAnnotation = async () => {
     if (!requireAuth()) return;
-    if (!window.confirm('이 구절 노트를 삭제할까요?')) return;
+    if (!window.confirm('이 주석을 삭제할까요?')) return;
 
     try {
       await deleteAnnotation(annotationId);
       navigate(annotation?.bookId ? `/books/${annotation.bookId}` : '/');
     } catch (error) {
-      setErrorMessage(error.message || '구절 노트를 삭제하지 못했습니다.');
+      setErrorMessage(error.message || '주석을 삭제하지 못했습니다.');
     }
   };
 

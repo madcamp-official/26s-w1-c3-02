@@ -754,7 +754,7 @@ export default function HomePage() {
 
             {!isFeedLoading && !feedErrorMessage && todayFeed.length === 0 && (
               <div className="py-10 text-center">
-                <p className="text-sm font-semibold text-text-muted">최근 24시간 안에 올라온 구절노트가 없습니다.</p>
+                <p className="text-sm font-semibold text-text-muted">최근 24시간 안에 올라온 주석이 없습니다.</p>
               </div>
             )}
           </section>
