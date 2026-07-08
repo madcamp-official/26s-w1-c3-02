@@ -82,8 +82,10 @@ class AnnotationSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         group = attrs.get('group', getattr(self.instance, 'group', None))
-        visibility = attrs.get('visibility', getattr(self.instance, 'visibility', Annotation.Visibility.PUBLIC))
+        if group is not None:
+            attrs['visibility'] = Annotation.Visibility.GROUP
 
+        visibility = attrs.get('visibility', getattr(self.instance, 'visibility', Annotation.Visibility.PUBLIC))
         if visibility == Annotation.Visibility.GROUP and group is None:
             raise serializers.ValidationError({'groupId': 'group visibility requires groupId.'})
 

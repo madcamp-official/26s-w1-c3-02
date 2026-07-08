@@ -119,7 +119,7 @@ class BookAnnotationListView(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        queryset = annotations_with_stats(self.request).filter(book_id=self.kwargs['book_id'])
+        queryset = annotations_with_stats(self.request).filter(book_id=self.kwargs['book_id']).exclude(visibility=Annotation.Visibility.GROUP)
         annotation_type = self.request.query_params.get('type')
 
         if annotation_type:
@@ -133,7 +133,7 @@ class AnnotationFeedView(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        queryset = annotations_with_stats(self.request)
+        queryset = annotations_with_stats(self.request).exclude(visibility=Annotation.Visibility.GROUP)
         recent_hours = self.request.query_params.get('recentHours')
         scope = self.request.query_params.get('scope')
         annotation_type = self.request.query_params.get('type')
@@ -170,7 +170,7 @@ class AnnotationSearchView(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        queryset = annotations_with_stats(self.request)
+        queryset = annotations_with_stats(self.request).exclude(visibility=Annotation.Visibility.GROUP)
         book_id = self.request.query_params.get('bookId')
         keyword = self.request.query_params.get('keyword')
         page_number = self.request.query_params.get('pageNumber')

@@ -355,7 +355,7 @@ function AnnotationSkeleton() {
   );
 }
 
-function SearchAndAction({ bookId, value, onChange, onSearch, onReset }) {
+function SearchAndAction({ bookId, groupId, value, onChange, onSearch, onReset }) {
   return (
     <section className="grid gap-4 border-t border-line pt-7 md:grid-cols-[1fr_auto] md:items-center">
       <form className="flex min-h-14 items-center gap-3 rounded-full border border-line bg-white px-5 text-base text-text-muted shadow-soft focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/10" onSubmit={onSearch}>
@@ -375,7 +375,7 @@ function SearchAndAction({ bookId, value, onChange, onSearch, onReset }) {
           검색
         </button>
       </form>
-      <Link to={`/annotations/new?bookId=${bookId}`} className="button button--primary button--lg rounded-full px-8">
+      <Link to={`/annotations/new?bookId=${bookId}${groupId ? `&groupId=${groupId}` : ''}`} className="button button--primary button--lg rounded-full px-8">
         + 주석 작성
       </Link>
     </section>
@@ -572,6 +572,7 @@ export default function BookDetailPage() {
           />
           <SearchAndAction
             bookId={bookId}
+            groupId={groupId}
             value={searchInput}
             onChange={setSearchInput}
             onSearch={handleSearch}

@@ -69,12 +69,13 @@ export default function AnnotationFormPage() {
   const [searchParams] = useSearchParams();
   const isEditMode = Boolean(annotationId);
   const [bookId, setBookId] = useState(searchParams.get('bookId') || '');
+  const [groupId, setGroupId] = useState(searchParams.get('groupId') || '');
   const [book, setBook] = useState(null);
   const [page, setPage] = useState('');
   const [passage, setPassage] = useState('');
   const [review, setReview] = useState('');
   const [annotationType, setAnnotationType] = useState('NORMAL');
-  const [visibility, setVisibility] = useState('public');
+  const [visibility, setVisibility] = useState(searchParams.get('groupId') ? 'group' : 'public');
   const [isSpoiler, setIsSpoiler] = useState(false);
   const [isLoadingBook, setIsLoadingBook] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -96,6 +97,7 @@ export default function AnnotationFormPage() {
 
         const nextBookId = response.book?.bookId ?? response.bookId;
         setBookId(nextBookId ? String(nextBookId) : '');
+        setGroupId(response.groupId ? String(response.groupId) : '');
         setPage(response.page ? String(response.page) : '');
         setPassage(response.passage ?? '');
         setReview(response.review ?? '');
@@ -178,16 +180,17 @@ export default function AnnotationFormPage() {
         passage: passage.trim(),
         review: review.trim(),
         page: Number(page),
-        visibility,
+        visibility: groupId ? 'group' : visibility,
         isSpoiler,
+        groupId: groupId ? Number(groupId) : null,
       };
 
       if (isEditMode) {
         await updateAnnotation(annotationId, payload);
-        navigate(`/annotations/${annotationId}`);
+        navigate(`/annotations/${annotationId}${groupId ? `?groupId=${groupId}` : ''}`);
       } else {
         await createAnnotation(payload);
-        navigate(`/books/${bookId}`);
+        navigate(`/books/${bookId}${groupId ? `?groupId=${groupId}` : ''}`);
       }
     } catch (error) {
       setErrorMessage(error.message || '주석을 게시하지 못했습니다.');
@@ -298,30 +301,38 @@ export default function AnnotationFormPage() {
               </div>
             </fieldset>
 
-            <fieldset className="grid gap-5">
-              <legend className="form-label">공개 설정</legend>
-              <div className="mt-2 grid gap-3 md:grid-cols-3">
-                {visibilityOptions.map((option) => (
-                  <label
-                    key={option.value}
-                    className={`grid cursor-pointer gap-2 rounded-sm border p-4 transition ${
-                      visibility === option.value ? 'border-primary bg-primary-soft' : 'border-line bg-white'
-                    }`}
-                  >
-                    <input
-                      className="sr-only"
-                      type="radio"
-                      name="visibility"
-                      value={option.value}
-                      checked={visibility === option.value}
-                      onChange={(event) => setVisibility(event.target.value)}
-                    />
-                    <span className="text-center text-sm font-extrabold text-text">{option.label}</span>
-                    <span className="text-center text-xs leading-[1.5] text-text-muted">{option.help}</span>
-                  </label>
-                ))}
+            {groupId ? (
+              <div className="rounded-sm border border-line bg-pageSoft p-5">
+                <span className="form-label">공개 설정</span>
+                <p className="mt-3 text-base font-extrabold text-text">그룹 공개</p>
+                <p className="mt-1 text-xs text-text-muted">이 주석은 그룹 멤버들에게만 공개됩니다.</p>
               </div>
-            </fieldset>
+            ) : (
+              <fieldset className="grid gap-5">
+                <legend className="form-label">공개 설정</legend>
+                <div className="mt-2 grid gap-3 md:grid-cols-3">
+                  {visibilityOptions.map((option) => (
+                    <label
+                      key={option.value}
+                      className={`grid cursor-pointer gap-2 rounded-sm border p-4 transition ${
+                        visibility === option.value ? 'border-primary bg-primary-soft' : 'border-line bg-white'
+                      }`}
+                    >
+                      <input
+                        className="sr-only"
+                        type="radio"
+                        name="visibility"
+                        value={option.value}
+                        checked={visibility === option.value}
+                        onChange={(event) => setVisibility(event.target.value)}
+                      />
+                      <span className="text-center text-sm font-extrabold text-text">{option.label}</span>
+                      <span className="text-center text-xs leading-[1.5] text-text-muted">{option.help}</span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            )}
 
             <label
               className={`flex cursor-pointer items-center justify-between gap-4 rounded-sm border p-4 transition ${
@@ -345,7 +356,7 @@ export default function AnnotationFormPage() {
             {errorMessage && <p className="form-error">{errorMessage}</p>}
 
             <div className="flex justify-end gap-2">
-              <Link className="button button--secondary" to={isEditMode ? `/annotations/${annotationId}` : bookId ? `/books/${bookId}` : '/'}>
+              <Link className="button button--secondary" to={isEditMode ? `/annotations/${annotationId}${groupId ? `?groupId=${groupId}` : ''}` : bookId ? `/books/${bookId}${groupId ? `?groupId=${groupId}` : ''}` : '/'}>
                 취소
               </Link>
               <button className="button button--primary button--lg" type="submit" disabled={isSubmitting || isLoadingBook || !book}>

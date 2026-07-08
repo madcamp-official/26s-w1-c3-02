@@ -108,7 +108,7 @@ class AnnotationApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         ids = [item['annotationId'] for item in response.data['data']]
         self.assertEqual(ids[:2], [self.public_annotation.id, self.friend_annotation.id])
-        self.assertIn(self.group_annotation.id, ids)
+        self.assertNotIn(self.group_annotation.id, ids)
         self.assertEqual(response.data['data'][0]['likeCount'], 2)
         self.assertTrue(response.data['data'][0]['isLiked'])
 
@@ -229,5 +229,15 @@ class AnnotationApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['pagination']['totalElements'], 1)
         self.assertEqual(response.data['data'][0]['annotationId'], self.friend_annotation.id)
+
+    def test_group_annotations_only_accessible_via_group_lounge(self):
+        response = self.client.get(f'/api/groups/{self.group.id}/annotations')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        self.client.force_authenticate(self.user)
+        response = self.client.get(f'/api/groups/{self.group.id}/annotations')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        ids = [item['annotationId'] for item in response.data['data']]
+        self.assertIn(self.group_annotation.id, ids)
 
 # Create your tests here.

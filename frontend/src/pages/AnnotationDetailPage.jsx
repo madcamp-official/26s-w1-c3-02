@@ -70,6 +70,7 @@ function normalizeAnnotation(annotation) {
     isLiked: Boolean(annotation.isLiked),
     isFavorited: Boolean(annotation.isFavorited),
     isSpoiler: Boolean(annotation.isSpoiler),
+    groupId: annotation.groupId ?? null,
     createdAt: annotation.createdAt,
   };
 }
@@ -182,7 +183,7 @@ function AnnotationCard({ annotation, isMine, onDelete, onRequireAuth }) {
             <div className="flex flex-wrap gap-2">
               {isMine && (
                 <>
-                  <Link className="button button--secondary button--sm" to={`/annotations/${annotation.id}/edit`}>
+                  <Link className="button button--secondary button--sm" to={`/annotations/${annotation.id}/edit${annotation.groupId ? `?groupId=${annotation.groupId}` : ''}`}>
                     수정
                   </Link>
                   <button className="button button--danger button--sm" type="button" onClick={onDelete}>
@@ -367,7 +368,7 @@ export default function AnnotationDetailPage() {
 
     try {
       await deleteAnnotation(annotationId);
-      navigate(annotation?.bookId ? `/books/${annotation.bookId}` : '/');
+      navigate(annotation?.bookId ? `/books/${annotation.bookId}${annotation.groupId ? `?groupId=${annotation.groupId}` : ''}` : '/');
     } catch (error) {
       setErrorMessage(error.message || '주석을 삭제하지 못했습니다.');
     }
