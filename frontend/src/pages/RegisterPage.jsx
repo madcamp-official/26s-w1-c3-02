@@ -165,7 +165,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <main className="page min-h-[calc(100vh-72px)] flex items-center justify-center">
+    <main className="page min-h-[calc(100vh-64px)] md:min-h-[calc(100vh-74px)] flex items-center justify-center">
       <div className="container">
         <form onSubmit={handleSubmit} className="card card--padded mx-auto grid max-w-[420px] gap-4">
           <div className="text-center mb-2">

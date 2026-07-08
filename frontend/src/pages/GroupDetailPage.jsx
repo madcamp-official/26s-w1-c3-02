@@ -322,7 +322,7 @@ export default function GroupDetailPage() {
   return (
     <>
       <SiteHeader active="lounge" />
-      <main className="page min-h-[calc(100vh-72px)]">
+      <main className="page min-h-[calc(100vh-64px)] md:min-h-[calc(100vh-74px)]">
         <div className="container grid max-w-[980px] gap-4 md:gap-6">
           {isLoadingGroup ? (
             <div className="card card--padded h-[140px] animate-pulse bg-surfaceMuted" />

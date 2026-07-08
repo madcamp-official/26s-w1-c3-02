@@ -108,7 +108,7 @@ export default function SiteHeader({ active = 'auto', showSearch = true }) {
 
   return (
     <header className="site-header">
-      <div className="container grid min-h-[64px] grid-cols-[auto_1fr_auto] items-center gap-3 md:min-h-[72px] lg:gap-8">
+      <div className="container grid min-h-[64px] grid-cols-[auto_1fr_auto] items-center gap-3 md:min-h-[74px] lg:gap-8">
         <Link to="/" className="brand justify-self-start">
           <LogoMark />
           <span className="brand__subtitle hidden xl:inline">문장을 수집하고, 생각을 나누는 공간</span>
