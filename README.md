@@ -18,6 +18,7 @@
 ### 인증 및 사용자
 
 - 이메일/비밀번호 기반 회원가입 및 로그인
+- 카카오 소셜 로그인 (최초 로그인 시 닉네임 설정 온보딩 포함)
 - JWT Bearer 토큰 기반 API 인증
 - 로그인 없이도 홈/검색/책·주석 열람 가능, 작성·참여·마이페이지는 로그인 필요
 - 마이페이지에서 내 정보, 작성한 주석, 즐겨찾기한 책/주석, 친구, 그룹 확인
@@ -69,7 +70,11 @@
 | `/annotations/:annotationId/edit` | 주석 수정 | 기존 주석 편집 |
 | `/login` | 로그인 | 로그인 및 토큰 저장 |
 | `/register` | 회원가입 | 계정 생성 |
+| `/auth/kakao/callback` | 카카오 로그인 콜백 | 카카오 인가 코드 처리 및 토큰 저장 |
+| `/onboarding/nickname` | 닉네임 설정 온보딩 | 카카오 최초 로그인 시 닉네임 입력 |
 | `/mypage` | 마이페이지 | 대시보드, 내 주석, 즐겨찾기, 내 서재, 그룹, 친구, 설정 |
+| `/users/:userId` | 사용자 프로필 | 다른 사용자의 공개 프로필/활동 조회 |
+| `/friends` | 친구 | 친구 목록/요청 관리 |
 | `/groups` | 라운지 | 참여 중인 그룹 목록, 그룹 생성, 받은 초대 수락/거절 |
 | `/groups/:groupId` | 그룹 상세 | 그룹 정보, 멤버 초대/관리, 도서 관리 |
 
@@ -83,7 +88,7 @@
 | Auth State | React Context |
 | Backend | Django, Django REST Framework |
 | Database | MySQL |
-| Auth | JWT Bearer (djangorestframework-simplejwt) |
+| Auth | JWT Bearer (djangorestframework-simplejwt), 카카오 소셜 로그인(OAuth) |
 | 배포 | Docker Compose (nginx + gunicorn + MySQL), KAIST VM |
 
 ## 폴더 구조
@@ -97,7 +102,7 @@
 │   ├── requirements.txt
 │   ├── config/              # 설정·루트 URL (settings, urls, wsgi)
 │   ├── common/              # 공통 인프라 (pagination, exceptions, permissions)
-│   ├── accounts/            # User, Friend — 인증·사용자·친구
+│   ├── accounts/            # User, Friend — 인증·사용자·친구 (카카오 로그인 포함)
 │   ├── groups/              # Group, GroupMember, GroupBook — 그룹 주석방
 │   ├── books/               # Book, BookFavorite — 도서·북마크·알라딘 연동
 │   ├── annotations/         # Annotation, Comment, Like, AnnotationFavorite
@@ -109,6 +114,9 @@
     │   ├── api/             # axios 클라이언트 및 도메인별 API 모듈
     │   ├── components/
     │   ├── context/         # AuthContext
+    │   ├── features/        # 도메인별 기능 모듈 (annotations, auth, books, friends, groups, mypage)
+    │   ├── hooks/
+    │   ├── lib/             # kakao.js 등 외부 연동
     │   ├── pages/           # 화면 컴포넌트 (위 화면 구조 참고)
     │   ├── utils/
     │   └── styles/
@@ -138,22 +146,35 @@ docker compose exec backend python manage.py loaddata seed
 
 ## API 문서
 
-상세 API 명세는 [docs/api-spec.md](docs/api-spec.md)를 참고합니다.
+상세 API 명세는 [docs/api-spec.md](docs/api-spec.md)를 참고합니다. Base URL은 `/api`이며, JWT Bearer 토큰으로 인증합니다.
 
-주요 API 그룹:
+API는 6개 카테고리로 구성됩니다.
 
-- 인증/사용자: `/api/auth/*`, `/api/users/*`
-- 책: `/api/books`, `/api/books/{bookId}`, `/api/books/{bookId}/favorite`
-- 주석: `/api/annotations`, `/api/annotations/search`, `/api/annotations/{annotationId}/favorite`
+- **인증/사용자** — 이메일·카카오 로그인, 회원가입, 프로필 조회/수정, 사용자 검색·공개 프로필
+- **책** — 목록/검색/상세, 알라딘 연동 외부 검색·등록, 오늘의 문장, 북마크
+- **주석** — 홈 피드, 검색, 작성/수정/삭제, 즐겨찾기
+- **댓글 · 좋아요** — 주석·댓글 댓글/좋아요
+- **친구** — 검색, 요청/수락/삭제
+- **그룹 주석방** — 생성/관리, 멤버 초대, 공지, 그룹 도서, 그룹 전용 주석 피드
+
+<details>
+<summary>전체 엔드포인트 목록 보기</summary>
+
+- 인증/사용자: `/api/auth/register`, `/api/auth/nickname-check`, `/api/auth/email-check`, `/api/auth/login`, `/api/auth/kakao`, `/api/auth/logout`, `/api/users/me`, `/api/users`, `/api/users/{userId}`
+- 책: `/api/books`, `/api/books/{bookId}`, `/api/books/{bookId}/favorite`, `/api/books/categories`, `/api/books/daily-quote`, `/api/books/external-search`, `/api/books/import-from-aladin`, `/api/books/recommendations`, `/api/users/me/favorite-books`
+- 주석: `/api/annotations/feed`, `/api/annotations/search`, `/api/annotations`, `/api/annotations/{annotationId}`, `/api/books/{bookId}/annotations`, `/api/annotations/{annotationId}/favorite`, `/api/users/me/annotations`, `/api/users/{userId}/annotations`, `/api/users/me/favorite-annotations`
 - 댓글: `/api/annotations/{annotationId}/comments`, `/api/comments/{commentId}`
 - 좋아요: `/api/likes`
-- 친구: `/api/friends`, `/api/users/me/friend-requests`
-- 그룹: `/api/groups`, `/api/groups/{groupId}/members`, `/api/groups/{groupId}/books`
-- 그룹 초대: `/api/groups/{groupId}/members/{userId}/accept`, `/api/users/me/group-invitations`
+- 친구: `/api/friends`, `/api/friends/{userId}/accept`, `/api/friends/{userId}`, `/api/users/me/friends`, `/api/users/me/friend-requests`
+- 그룹: `/api/groups`, `/api/groups/{groupId}`, `/api/groups/{groupId}/members`, `/api/groups/{groupId}/members/{userId}`, `/api/groups/{groupId}/books`, `/api/groups/{groupId}/books/{bookId}`, `/api/groups/{groupId}/annotations`, `/api/users/me/groups`
+- 그룹 초대/공지: `/api/groups/{groupId}/invitations`, `/api/groups/{groupId}/members/{userId}/accept`, `/api/users/me/group-invitations`, `/api/groups/{groupId}/notice`
+
+</details>
 
 ## 구현 상태
 
 - 홈/검색/책 상세/주석 상세/작성/수정 플로우 구현
+- 이메일/카카오 소셜 로그인 및 닉네임 설정 온보딩 구현
 - 책 북마크 및 주석 즐겨찾기 구현
 - 주석/댓글 좋아요 구현
 - 마이페이지 대시보드, 내 주석, 즐겨찾기, 내 서재, 친구, 그룹 탭 구현
@@ -175,11 +196,19 @@ docker compose exec backend python manage.py loaddata seed
 
 <!-- 또는 동영상 링크: [데모 영상](docs/media/demo.mp4) -->
 
-## 다운로드 (APK)
+## 🔁 회고 (KPT)
 
-<!-- TODO: APK 파일을 저장소에 업로드하거나 구글 드라이브 등에 업로드한 링크로 교체하세요. -->
+### Keep
 
-- [문장서재.apk 다운로드](docs/release/문장서재.apk)
+<!-- TODO: 계속 유지하고 싶은 좋았던 점을 작성하세요. -->
+
+### Problem
+
+<!-- TODO: 아쉬웠던 점, 문제였던 점을 작성하세요. -->
+
+### Try
+
+<!-- TODO: 다음에 시도해볼 점을 작성하세요. -->
 
 ## 참고 문서
 

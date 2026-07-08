@@ -1,6 +1,6 @@
 # API 명세서 — 문장서재
 
-이 문서는 현재 프론트엔드와 `frontend/mock-server.js`가 사용하는 API를 기준으로 정리한 명세입니다.
+이 문서는 실제 Django 백엔드(`backend/*/urls.py`, `backend/*/views.py`)를 기준으로 정리한 명세입니다. `frontend/mock-server.js`는 초기 개발용 mock이며, 실제 응답 형식(bare 배열/`{data:[...]}` 등)은 백엔드 구현을 따릅니다.
 
 ## 1. 공통 규약
 
@@ -176,10 +176,15 @@ mock server는 개발 편의를 위해 토큰 검증을 강하게 하지 않지�
   "memberCount": 4,
   "bookCount": 2,
   "coverImageUrl": "",
+  "books": [
+    { "bookId": 6, "title": "데미안", "coverImageUrl": "" }
+  ],
   "lastActivityAt": "2026-07-03T08:00:00Z",
   "createdAt": "2026-07-01T14:00:00Z"
 }
 ```
+
+`books`는 카드에 표지를 겹쳐 보여주기 위한 미리보기로 최대 5권만 포함합니다.
 
 상세 응답:
 
@@ -195,20 +200,32 @@ mock server는 개발 편의를 위해 토큰 검증을 강하게 하지 않지�
   "books": [
     { "bookId": 6, "title": "데미안", "author": "헤르만 헤세", "genreCode": "NOVEL", "coverImageUrl": "" }
   ],
+  "notice": {
+    "noticeId": 3,
+    "content": "이번 주 모임은 금요일 저녁입니다.",
+    "author": { "id": 9, "nickname": "헤세매니아" },
+    "createdAt": "2026-07-08T00:00:00Z"
+  },
   "createdAt": "2026-07-01T14:00:00Z"
 }
 ```
+
+공지가 없으면 `notice`는 `null`입니다.
 
 ## 3. 인증 · 사용자
 
 | Method | Endpoint | 설명 | 인증 |
 |---|---|---|---|
 | POST | `/api/auth/register` | 회원가입 | - |
+| GET | `/api/auth/nickname-check` | 닉네임 중복 확인 | - |
+| GET | `/api/auth/email-check` | 이메일 중복 확인 | - |
 | POST | `/api/auth/login` | 로그인 및 토큰 발급 | - |
+| POST | `/api/auth/kakao` | 카카오 로그인/가입 및 토큰 발급 | - |
 | POST | `/api/auth/logout` | 로그아웃 | 🔒 |
 | GET | `/api/users/me` | 내 정보 조회 | 🔒 |
 | PATCH | `/api/users/me` | 프로필 수정 | 🔒 |
 | GET | `/api/users` | 닉네임 사용자 검색 | 🔒 |
+| GET | `/api/users/{userId}` | 사용자 공개 프로필 조회 | - |
 
 ### POST `/api/auth/register`
 
@@ -222,6 +239,22 @@ mock server는 개발 편의를 위해 토큰 검증을 강하게 하지 않지�
 
 ```json
 { "id": 13, "nickname": "reader01", "email": "a@b.com", "createdAt": "2026-07-04T00:00:00.000Z" }
+```
+
+### GET `/api/auth/nickname-check?nickname={nickname}`
+
+응답:
+
+```json
+{ "available": true }
+```
+
+### GET `/api/auth/email-check?email={email}`
+
+응답:
+
+```json
+{ "available": true }
 ```
 
 ### POST `/api/auth/login`
@@ -250,6 +283,36 @@ mock server는 개발 편의를 위해 토큰 검증을 강하게 하지 않지�
 ```
 
 mock server는 개발 편의를 위해 이메일/비밀번호가 정확히 일치하지 않아도 기본 사용자로 로그인됩니다.
+
+### POST `/api/auth/kakao`
+
+프론트에서 카카오 인가 코드(`code`)와 로그인에 사용한 `redirectUri`를 전달하면, 서버가 카카오 토큰 교환·프로필 조회를 대행하고 신규 유저면 자동 가입시킵니다. 카카오 프로필의 닉네임은 사용하지 않고 임시 닉네임(`카카오사용자####`)을 부여하며, 최초 가입(`isNewUser: true`)이면 프론트는 닉네임 설정 온보딩(`/onboarding/nickname`)으로 이동합니다.
+
+요청:
+
+```json
+{ "code": "카카오 인가 코드", "redirectUri": "http://localhost:5173/auth/kakao/callback" }
+```
+
+응답 `200`:
+
+```json
+{
+  "accessToken": "eyJ...",
+  "user": {
+    "id": 20,
+    "nickname": "카카오사용자1234",
+    "email": "kakao_1234@kakao.local",
+    "bio": "",
+    "avatarUrl": "",
+    "avatarIcon": "",
+    "createdAt": "2026-07-08T00:00:00Z"
+  },
+  "isNewUser": true
+}
+```
+
+이미 다른 계정에서 같은 이메일을 이메일/비밀번호 방식으로 가입한 경우 `400 VALIDATION_ERROR`를 반환합니다.
 
 ### POST `/api/auth/logout` 🔒
 
@@ -287,11 +350,34 @@ mock server는 개발 편의를 위해 이메일/비밀번호가 정확히 일�
 }
 ```
 
+### GET `/api/users/{userId}`
+
+공개 프로필. 비로그인도 조회 가능하며, 통계(`annotationCount`, `totalLikes`)는 조회자에게 보이는 공개/친구공개 주석 기준으로 계산합니다.
+
+응답:
+
+```json
+{
+  "id": 6,
+  "nickname": "easy0131",
+  "bio": "책 속의 문장이 나를 바꾸고...",
+  "avatarUrl": "",
+  "avatarIcon": "cat",
+  "createdAt": "2026-07-03T12:00:00Z",
+  "annotationCount": 12,
+  "totalLikes": 34
+}
+```
+
 ## 4. 책
 
 | Method | Endpoint | 설명 | 인증 |
 |---|---|---|---|
 | GET | `/api/books` | 책 목록/검색 | - |
+| GET | `/api/books/categories` | 최근 30일 좋아요 기반 인기 카테고리 상위 3개 | - |
+| GET | `/api/books/daily-quote` | 오늘의 문장 큐레이션 | - |
+| GET | `/api/books/external-search` | 알라딘 도서 검색(등록 전 미리보기) | - |
+| POST | `/api/books/import-from-aladin` | 알라딘 ISBN으로 책 등록/조회 | - |
 | GET | `/api/books/recommendations` | 추천 책 목록 | - |
 | GET | `/api/books/{bookId}` | 책 상세 | - |
 | POST | `/api/books` | 책 등록 | 🔒 |
@@ -318,6 +404,60 @@ mock server는 개발 편의를 위해 이메일/비밀번호가 정확히 일�
   "pagination": { "page": 1, "size": 20, "totalElements": 1, "totalPages": 1 }
 }
 ```
+
+### GET `/api/books/categories`
+
+최근 30일간 좋아요를 받은 주석이 속한 책의 중분류 카테고리를 집계해 상위 3개를 반환합니다(홈 화면 인기 카테고리).
+
+응답:
+
+```json
+{
+  "data": [
+    { "label": "에세이", "value": "에세이", "count": 12 }
+  ]
+}
+```
+
+### GET `/api/books/daily-quote?date={YYYY-MM-DD}`
+
+`date` 생략 시 오늘 날짜 기준. 해당 월/일의 큐레이션 문장 중 하나를 무작위로 반환합니다.
+
+응답:
+
+```json
+{
+  "date": "7월 8일",
+  "topic": "여름밤의 기억",
+  "author": "헤르만 헤세",
+  "book_title": "데미안",
+  "content": "새는 알에서 나오려고 투쟁한다.",
+  "coverImageUrl": "",
+  "isbn": "9788937460449"
+}
+```
+
+### GET `/api/books/external-search?keyword={keyword}`
+
+알라딘 API로 외부 도서를 검색합니다(아직 DB에 등록되지 않은 책 포함). 쿼리 `field`(제목/저자 등), `page`, `size` 지원.
+
+응답:
+
+```json
+{ "data": [ { "title": "데미안", "author": "헤르만 헤세", "isbn": "9788937460449", "genreCode": "NOVEL", "coverImageUrl": "" } ] }
+```
+
+### POST `/api/books/import-from-aladin`
+
+요청:
+
+```json
+{ "isbn": "9788937460449" }
+```
+
+이미 DB에 같은 ISBN의 책이 있으면 그 `Book`을 그대로 반환(`200`)하고, 없으면 알라딘 조회 결과로 새로 생성해 반환합니다(`201`). 알라딘에서 찾지 못하면 `404`.
+
+응답: `Book`
 
 ### GET `/api/books/{bookId}`
 
@@ -370,6 +510,7 @@ mock server는 개발 편의를 위해 이메일/비밀번호가 정확히 일�
 | POST | `/api/annotations/{annotationId}/favorite` | 주석 즐겨찾기 추가 | 🔒 |
 | DELETE | `/api/annotations/{annotationId}/favorite` | 주석 즐겨찾기 해제 | 🔒 |
 | GET | `/api/users/me/annotations` | 내가 작성한 주석 목록 | 🔒 |
+| GET | `/api/users/{userId}/annotations` | 특정 사용자가 작성한 주석 목록(공개 범위 준수) | - |
 | GET | `/api/users/me/favorite-annotations` | 내 즐겨찾기 주석 목록 | 🔒 |
 
 ### GET `/api/annotations/feed`
@@ -560,6 +701,10 @@ mock server는 개발 편의를 위해 이메일/비밀번호가 정확히 일�
 | GET | `/api/groups/{groupId}/members` | 그룹 멤버 목록 | 🔒 |
 | POST | `/api/groups/{groupId}/members` | 멤버 초대/추가 | 🔒 |
 | DELETE | `/api/groups/{groupId}/members/{userId}` | 멤버 내보내기/나가기 | 🔒 |
+| POST | `/api/groups/{groupId}/members/{userId}/accept` | 그룹 초대 수락(URL의 userId는 무시, 본인만 가능) | 🔒 |
+| GET | `/api/groups/{groupId}/invitations` | 대기 중인 초대 목록(owner 전용) | 🔒 |
+| GET | `/api/users/me/group-invitations` | 내가 받은 대기 중인 그룹 초대 목록 | 🔒 |
+| POST | `/api/groups/{groupId}/notice` | 그룹 공지 작성/수정(owner 전용, 최신 1건 갱신) | 🔒 |
 | GET | `/api/groups/{groupId}/books` | 그룹 도서 목록 | 🔒 |
 | POST | `/api/groups/{groupId}/books` | 그룹 도서 추가 | 🔒 |
 | DELETE | `/api/groups/{groupId}/books/{bookId}` | 그룹 도서 제거 | 🔒 |
@@ -567,7 +712,7 @@ mock server는 개발 편의를 위해 이메일/비밀번호가 정확히 일�
 
 ### GET `/api/users/me/groups` 🔒
 
-응답: `Group` 목록. 현재 mock server는 배열 자체를 반환합니다.
+응답: `Group` 목록. 페이지네이션 없이 배열 자체를 반환합니다.
 
 ### POST `/api/groups` 🔒
 
@@ -603,6 +748,57 @@ mock server는 개발 편의를 위해 이메일/비밀번호가 정확히 일�
 
 중복이면 `409 DUPLICATE`.
 
+### GET `/api/groups/{groupId}/invitations` 🔒
+
+owner만 조회 가능. 대기 중(PENDING)인 초대 대상자 목록을 반환합니다.
+
+응답:
+
+```json
+[
+  { "userId": 7, "nickname": "책벌레A", "avatarUrl": "", "avatarIcon": "cat", "invitedAt": "2026-07-04T00:00:00Z" }
+]
+```
+
+### GET `/api/users/me/group-invitations` 🔒
+
+내가 받은 대기 중(PENDING)인 그룹 초대 목록.
+
+응답:
+
+```json
+[
+  {
+    "groupId": 9,
+    "groupName": "데미안 같이 읽기 소모임",
+    "owner": { "id": 9, "nickname": "헤세매니아" },
+    "memberCount": 4,
+    "invitedAt": "2026-07-04T00:00:00Z"
+  }
+]
+```
+
+### POST `/api/groups/{groupId}/notice` 🔒
+
+owner만 작성 가능. 그룹당 최신 공지 1건만 유지하며, 이미 공지가 있으면 내용을 덮어씁니다.
+
+요청:
+
+```json
+{ "content": "이번 주 모임은 금요일 저녁입니다." }
+```
+
+응답 `201`:
+
+```json
+{
+  "noticeId": 3,
+  "content": "이번 주 모임은 금요일 저녁입니다.",
+  "author": { "id": 9, "nickname": "헤세매니아" },
+  "createdAt": "2026-07-08T00:00:00Z"
+}
+```
+
 ### POST `/api/groups/{groupId}/books` 🔒
 
 요청:
@@ -636,9 +832,12 @@ mock server는 개발 편의를 위해 이메일/비밀번호가 정확히 일�
 
 | 화면 | 사용하는 주요 API |
 |---|---|
-| 홈 | `GET /books`, `GET /annotations/feed`, 책 북마크, 주석 즐겨찾기 |
-| 검색 | `GET /books`, `GET /annotations/search`, `GET /annotations/feed`, 책 북마크, 주석 즐겨찾기 |
+| 로그인/회원가입 | `POST /auth/login`, `POST /auth/kakao`, `POST /auth/register`, `GET /auth/nickname-check`, `GET /auth/email-check` |
+| 홈 | `GET /books`, `GET /books/categories`, `GET /books/daily-quote`, `GET /annotations/feed`, 책 북마크, 주석 즐겨찾기 |
+| 검색 | `GET /books`, `GET /books/external-search`, `GET /annotations/search`, `GET /annotations/feed`, 책 북마크, 주석 즐겨찾기 |
 | 책 상세 | `GET /books/{bookId}`, `GET /books/{bookId}/annotations`, `GET /annotations/search`, 책 북마크, 주석 좋아요/즐겨찾기 |
 | 주석 상세 | `GET /annotations/{annotationId}`, `GET/POST /annotations/{id}/comments`, 좋아요, 주석 즐겨찾기 |
 | 마이페이지 | `GET /users/me/*`, 주석/책 즐겨찾기 목록, 친구/그룹 API |
-| 그룹 상세 | `GET/PATCH/DELETE /groups/{groupId}`, 멤버/도서 추가·삭제 |
+| 사용자 프로필 | `GET /users/{userId}`, `GET /users/{userId}/annotations` |
+| 그룹 라운지 | `GET /users/me/groups`, `GET /users/me/group-invitations`, `POST /groups` |
+| 그룹 상세 | `GET/PATCH/DELETE /groups/{groupId}`, 멤버/초대/공지, 도서 추가·삭제 |
