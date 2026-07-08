@@ -100,11 +100,11 @@
   }
 
   .site-header {
-    @apply fixed inset-x-0 top-0 z-50 h-[72px] border-b border-line bg-white/90 backdrop-blur;
+    @apply fixed inset-x-0 top-0 z-50 h-[74px] border-b border-line bg-white/90 backdrop-blur;
   }
 
   .site-header + .page {
-    @apply mt-[72px];
+    @apply mt-[74px];
   }
 
   .brand {
