@@ -683,8 +683,8 @@ export default function MyPage() {
                         onClick={() => handleTabClick(tab)}
                         className="flex flex-col items-center gap-2 text-center"
                       >
-                        <span className="flex h-8 w-8 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-primary-soft text-primary">
-                          <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
+                        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-primary-soft text-primary">
+                          <Icon className="h-5 w-5" />
                         </span>
                         <span className="text-xs font-semibold text-text-muted">{label}</span>
                         <span className="text-lg font-extrabold text-text">{formatCount(value)}</span>
