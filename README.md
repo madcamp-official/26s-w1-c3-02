@@ -231,14 +231,6 @@ flowchart TD
 
 ![주석 작성](docs/media/screens/annotation-new.png)
 
-#### 주석 상세 (`/annotations/:annotationId`)
-
-![주석 상세](docs/media/screens/annotation-detail.png)
-
-#### 주석 수정 (`/annotations/:annotationId/edit`)
-
-![주석 수정](docs/media/screens/annotation-edit.png)
-
 #### 로그인 (`/login`)
 
 ![로그인](docs/media/screens/login.png)
@@ -246,14 +238,6 @@ flowchart TD
 #### 회원가입 (`/register`)
 
 ![회원가입](docs/media/screens/register.png)
-
-#### 카카오 로그인 콜백 (`/auth/kakao/callback`)
-
-![카카오 로그인 콜백](docs/media/screens/kakao-callback.png)
-
-#### 닉네임 설정 온보딩 (`/onboarding/nickname`)
-
-![닉네임 설정 온보딩](docs/media/screens/onboarding-nickname.png)
 
 #### 마이페이지 (`/mypage`)
 
@@ -263,9 +247,6 @@ flowchart TD
 
 ![사용자 프로필](docs/media/screens/user-profile.png)
 
-#### 친구 (`/friends`)
-
-![친구](docs/media/screens/friends.png)
 
 #### 라운지 (`/groups`)
 

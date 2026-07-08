@@ -1,8 +1,13 @@
 import json
+from datetime import datetime, timedelta, timezone as dt_timezone
 from pathlib import Path
 
 PW = 'pbkdf2_sha256$1200000$hm8GLPflDTxt91b6M57LOU$yCMpLUSp3I80MZGD1nF0urSCFepYCWmNVnsvNgUnmLM='
 OUT = []
+
+# 홈 화면 "오늘의 주석" 피드는 최근 24시간 이내 주석만 보여준다. 아래 NOW를 기준으로
+# 주석 created_at을 상대적으로 계산해서, 언제 이 스크립트를 실행하더라도 최근 24시간 안에 들어오게 한다.
+NOW = datetime.now(dt_timezone.utc)
 
 
 def add(model, pk, **fields):
@@ -25,22 +30,23 @@ users = [
     (13, 'easy00', 'easy_o@kaist.ac.kr', '', '2026-07-07T06:00:00Z'),
 ]
 
-for pk, nickname, email, bio, joined in users:
-    add(
-        'accounts.user',
-        pk,
-        password=PW,
-        last_login=None,
-        is_superuser=False,
-        is_staff=False,
-        is_active=True,
-        date_joined=joined,
-        email=email,
-        nickname=nickname,
-        bio=bio,
-        avatar_url='',
-        avatar_icon='',
-    )
+# 주석 시드만 다시 로드하기 위해 잠시 주석 처리 — 기존 DB의 유저 데이터를 건드리지 않는다.
+# for pk, nickname, email, bio, joined in users:
+#     add(
+#         'accounts.user',
+#         pk,
+#         password=PW,
+#         last_login=None,
+#         is_superuser=False,
+#         is_staff=False,
+#         is_active=True,
+#         date_joined=joined,
+#         email=email,
+#         nickname=nickname,
+#         bio=bio,
+#         avatar_url='',
+#         avatar_icon='',
+#     )
 
 
 # Aladin Open API ItemLookUp results, normalized with books.aladin.normalize_aladin_item.
@@ -128,18 +134,18 @@ books = [
     ),
 ]
 
-for pk, title, author, publish_date, isbn, genre_code, cover_image_url in books:
-    add(
-        'books.book',
-        pk,
-        title=title,
-        author=author,
-        publish_date=publish_date,
-        isbn=isbn,
-        genre_code=genre_code,
-        cover_image_url=cover_image_url,
-        created_at='2026-07-03T00:00:00Z',
-    )
+# for pk, title, author, publish_date, isbn, genre_code, cover_image_url in books:
+#     add(
+#         'books.book',
+#         pk,
+#         title=title,
+#         author=author,
+#         publish_date=publish_date,
+#         isbn=isbn,
+#         genre_code=genre_code,
+#         cover_image_url=cover_image_url,
+#         created_at='2026-07-03T00:00:00Z',
+#     )
 
 
 friends = [
@@ -154,8 +160,8 @@ friends = [
     (9, 1, 7, 'ACCEPTED', '2026-07-03T18:30:00Z'),
 ]
 
-for pk, requester, addressee, status, created_at in friends:
-    add('accounts.friend', pk, requester=requester, addressee=addressee, status=status, created_at=created_at)
+# for pk, requester, addressee, status, created_at in friends:
+#     add('accounts.friend', pk, requester=requester, addressee=addressee, status=status, created_at=created_at)
 
 
 groups = [
@@ -167,14 +173,14 @@ groups = [
 
 member_pk = 0
 group_book_pk = 0
-for pk, group_name, owner, members, group_books, created_at in groups:
-    add('groups.group', pk, group_name=group_name, owner=owner, created_at=created_at)
-    for user in members:
-        member_pk += 1
-        add('groups.groupmember', member_pk, group=pk, user=user, status='ACCEPTED', joined_at=created_at)
-    for book in group_books:
-        group_book_pk += 1
-        add('groups.groupbook', group_book_pk, group=pk, book=book)
+# for pk, group_name, owner, members, group_books, created_at in groups:
+#     add('groups.group', pk, group_name=group_name, owner=owner, created_at=created_at)
+#     for user in members:
+#         member_pk += 1
+#         add('groups.groupmember', member_pk, group=pk, user=user, status='ACCEPTED', joined_at=created_at)
+#     for book in group_books:
+#         group_book_pk += 1
+#         add('groups.groupbook', group_book_pk, group=pk, book=book)
 
 
 annotations = [
@@ -440,7 +446,9 @@ annotations = [
     ),
 ]
 
-for pk, book, user, group, typ, passage, review, page, visibility, is_spoiler, created_at in annotations:
+# 홈 "오늘의 주석" 피드(recentHours=24)에 항상 걸리도록, 각 주석의 created_at을 원래 하드코딩된
+# 문자열 대신 NOW를 기준으로 역산한 시각으로 덮어쓴다(가장 오래된 것이 NOW-5h, 가장 최근 것이 NOW-15m).
+for idx, (pk, book, user, group, typ, passage, review, page, visibility, is_spoiler, _created_at) in enumerate(annotations):
     add(
         'annotations.annotation',
         pk,
@@ -453,67 +461,68 @@ for pk, book, user, group, typ, passage, review, page, visibility, is_spoiler, c
         page=page,
         visibility=visibility,
         is_spoiler=is_spoiler,
-        created_at=created_at,
+        created_at=(NOW - timedelta(minutes=15 * (len(annotations) - idx))).isoformat(),
     )
 
 
-comments = [
-    (1, 1, 2, 'REVIEW', '이 문장 때문에 데미안을 다시 읽고 싶어졌어요.', '2026-07-04T10:00:00Z'),
-    (2, 1, 9, 'DISCUSSION', '세계를 깬다는 표현이 지금 읽어도 강하네요.', '2026-07-04T10:30:00Z'),
-    (3, 3, 5, 'NORMAL', '가벼움과 책임이 같이 떠오르는 부분이었어요.', '2026-07-04T11:00:00Z'),
-    (4, 5, 1, 'QUESTION', '농업혁명 파트를 읽고 나면 진짜 관점이 바뀌는 것 같아요.', '2026-07-04T11:30:00Z'),
-    (5, 10, 6, 'REVIEW', '이 책은 과학보다 마음의 거리 이야기처럼 읽혔어요.', '2026-07-04T12:00:00Z'),
-]
-
-for pk, annotation, user, typ, content, created_at in comments:
-    add(
-        'annotations.comment',
-        pk,
-        annotation=annotation,
-        user=user,
-        type=typ,
-        content=content,
-        created_at=created_at,
-    )
-
-
-for pk, book in enumerate([1, 3, 5, 9], 1):
-    add('books.bookfavorite', pk, user=1, book=book, created_at='2026-07-04T13:00:00Z')
-
-for pk, annotation in enumerate([1, 3, 10], 1):
-    add('annotations.annotationfavorite', pk, user=1, annotation=annotation, created_at='2026-07-04T13:10:00Z')
-
-
-likes = {
-    ('annotation', 1): [2, 3, 4, 6, 9],
-    ('annotation', 2): [1, 3, 5, 9],
-    ('annotation', 3): [2, 5, 7],
-    ('annotation', 4): [1, 6, 8, 12],
-    ('annotation', 5): [1, 2, 5],
-    ('annotation', 6): [1, 5, 7, 11],
-    ('annotation', 7): [1, 3],
-    ('annotation', 8): [1, 4, 5, 10],
-    ('annotation', 9): [5, 7, 11],
-    ('annotation', 10): [1, 3, 6, 9],
-    ('annotation', 11): [2, 6, 12],
-    ('comment', 1): [1, 3, 4],
-    ('comment', 2): [2, 5],
-    ('comment', 3): [1, 7],
-    ('comment', 5): [1, 12],
-}
-
-like_pk = 0
-for (target_type, target_id), users_for_like in likes.items():
-    for user in users_for_like:
-        like_pk += 1
-        add(
-            'annotations.like',
-            like_pk,
-            user=user,
-            target_type=target_type,
-            target_id=target_id,
-            created_at='2026-07-04T14:00:00Z',
-        )
+# 주석 시드만 다시 로드하기 위해 잠시 주석 처리 — 기존 DB의 댓글/즐겨찾기/좋아요 데이터를 건드리지 않는다.
+# comments = [
+#     (1, 1, 2, 'REVIEW', '이 문장 때문에 데미안을 다시 읽고 싶어졌어요.', '2026-07-04T10:00:00Z'),
+#     (2, 1, 9, 'DISCUSSION', '세계를 깬다는 표현이 지금 읽어도 강하네요.', '2026-07-04T10:30:00Z'),
+#     (3, 3, 5, 'NORMAL', '가벼움과 책임이 같이 떠오르는 부분이었어요.', '2026-07-04T11:00:00Z'),
+#     (4, 5, 1, 'QUESTION', '농업혁명 파트를 읽고 나면 진짜 관점이 바뀌는 것 같아요.', '2026-07-04T11:30:00Z'),
+#     (5, 10, 6, 'REVIEW', '이 책은 과학보다 마음의 거리 이야기처럼 읽혔어요.', '2026-07-04T12:00:00Z'),
+# ]
+#
+# for pk, annotation, user, typ, content, created_at in comments:
+#     add(
+#         'annotations.comment',
+#         pk,
+#         annotation=annotation,
+#         user=user,
+#         type=typ,
+#         content=content,
+#         created_at=created_at,
+#     )
+#
+#
+# for pk, book in enumerate([1, 3, 5, 9], 1):
+#     add('books.bookfavorite', pk, user=1, book=book, created_at='2026-07-04T13:00:00Z')
+#
+# for pk, annotation in enumerate([1, 3, 10], 1):
+#     add('annotations.annotationfavorite', pk, user=1, annotation=annotation, created_at='2026-07-04T13:10:00Z')
+#
+#
+# likes = {
+#     ('annotation', 1): [2, 3, 4, 6, 9],
+#     ('annotation', 2): [1, 3, 5, 9],
+#     ('annotation', 3): [2, 5, 7],
+#     ('annotation', 4): [1, 6, 8, 12],
+#     ('annotation', 5): [1, 2, 5],
+#     ('annotation', 6): [1, 5, 7, 11],
+#     ('annotation', 7): [1, 3],
+#     ('annotation', 8): [1, 4, 5, 10],
+#     ('annotation', 9): [5, 7, 11],
+#     ('annotation', 10): [1, 3, 6, 9],
+#     ('annotation', 11): [2, 6, 12],
+#     ('comment', 1): [1, 3, 4],
+#     ('comment', 2): [2, 5],
+#     ('comment', 3): [1, 7],
+#     ('comment', 5): [1, 12],
+# }
+#
+# like_pk = 0
+# for (target_type, target_id), users_for_like in likes.items():
+#     for user in users_for_like:
+#         like_pk += 1
+#         add(
+#             'annotations.like',
+#             like_pk,
+#             user=user,
+#             target_type=target_type,
+#             target_id=target_id,
+#             created_at='2026-07-04T14:00:00Z',
+#         )
 
 
 fixture_path = Path(__file__).with_name('seed.json')
