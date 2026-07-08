@@ -170,6 +170,10 @@ flowchart TD
 
 <!-- TODO: 각 화면 캡처/와이어프레임 이미지로 교체하세요. 경로 예시: docs/media/screens/{name}.png -->
 
+### 로그인 (`/login`)
+
+![로그인](docs/media/screens/login.png)
+
 ### 홈 (`/`)
 
 ![홈](docs/media/screens/home.png)
@@ -189,10 +193,6 @@ flowchart TD
 ### 주석 상세 (`/annotations/:annotationId`)
 
 ![주석 상세](docs/media/screens/annotation-detail.png)
-
-### 로그인 (`/login`)
-
-![로그인](docs/media/screens/login.png)
 
 ### 마이페이지 (`/mypage`)
 
