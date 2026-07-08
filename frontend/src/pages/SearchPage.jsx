@@ -247,7 +247,7 @@ function AnnotationResultCard({ annotation, isMine, onRequireAuth }) {
                 <span>{annotation.author}</span>
               )}
             </span>
-            <span>♡ {likeCount} · 댓글 {annotation.commentCount}</span>
+            <span>▲ {likeCount} · 댓글 {annotation.commentCount}</span>
           </footer>
           <div className="mt-4 flex justify-end">
             <button
@@ -257,7 +257,7 @@ function AnnotationResultCard({ annotation, isMine, onRequireAuth }) {
               disabled={isPending}
               aria-pressed={isLiked}
             >
-              {isLiked ? '♥ 좋아요' : '♡ 좋아요'}
+              ▲ 좋아요
             </button>
           </div>
         </>
@@ -355,7 +355,7 @@ function BrowseAnnotationCard({ annotation, onRequireAuth }) {
           )}
         </span>
         <div className="flex flex-wrap items-center justify-end gap-2">
-          <span>♡ {likeCount} · 댓글 {annotation.commentCount}</span>
+          <span>▲ {likeCount} · 댓글 {annotation.commentCount}</span>
           <button
             type="button"
             className={`button button--sm ${isLiked ? 'button--primary' : 'button--secondary'}`}
@@ -363,7 +363,7 @@ function BrowseAnnotationCard({ annotation, onRequireAuth }) {
             disabled={isPending}
             aria-pressed={isLiked}
           >
-            {isLiked ? '♥ 좋아요' : '♡ 좋아요'}
+            ▲ 좋아요
           </button>
         </div>
       </footer>

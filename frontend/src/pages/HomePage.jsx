@@ -489,7 +489,7 @@ function AnnotationCard({ item }) {
 
       <footer className="card-actions">
         <div className="flex items-center gap-5">
-          <span>♡ {likeCount}</span>
+          <span>▲ {likeCount}</span>
           <span>댓글 {item.comments}</span>
         </div>
         <button
@@ -499,7 +499,7 @@ function AnnotationCard({ item }) {
           disabled={isPending}
           aria-pressed={isLiked}
         >
-          {isLiked ? '♥ 좋아요' : '♡ 좋아요'}
+          ▲ 좋아요
         </button>
       </footer>
       </article>
