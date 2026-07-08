@@ -123,26 +123,129 @@
     └── package.json
 ```
 
-## 실행 방법
+## IA 및 화면 설계서
 
-저장소 루트의 `.env`를 준비한 뒤(`.env.example` 참고), Docker Compose로 전체 스택을 한 번에 실행합니다.
+> 서비스의 전체 페이지 구조와 페이지 간 이동 흐름; 각 페이지의 주요 UI 구성, 입력 요소, 버튼, 사용자 행동 흐름 등을 간단한 와이어프레임 형태로 정리
 
-```bash
-docker compose up --build -d
+### 플로우 차트
+
+```mermaid
+flowchart TD
+    Home["/  홈"]
+    Search["/search  둘러보기/검색"]
+    BookDetail["/books/:bookId  책 상세"]
+    AnnoNew["/annotations/new  주석 작성"]
+    AnnoDetail["/annotations/:annotationId  주석 상세"]
+    AnnoEdit["/annotations/:annotationId/edit  주석 수정"]
+    Login["/login  로그인"]
+    Register["/register  회원가입"]
+    KakaoCallback["/auth/kakao/callback  카카오 로그인 콜백"]
+    Onboarding["/onboarding/nickname  닉네임 설정 온보딩"]
+    MyPage["/mypage  마이페이지"]
+    UserProfile["/users/:userId  사용자 프로필"]
+    Friends["/friends  친구"]
+    Groups["/groups  라운지"]
+    GroupDetail["/groups/:groupId  그룹 상세"]
+
+    Home --> Search
+    Home --> BookDetail
+    Home --> MyPage
+    Home --> UserProfile
+    Home --> Login
+
+    Search --> BookDetail
+    Search --> AnnoDetail
+
+    BookDetail --> AnnoNew
+    BookDetail --> AnnoDetail
+
+    AnnoDetail --> AnnoEdit
+    AnnoDetail --> UserProfile
+
+    Login --> Register
+    Login --> Home
+    Register --> Login
+
+    KakaoCallback -->|isNewUser: true| Onboarding
+    KakaoCallback -->|isNewUser: false| Home
+    Onboarding --> Home
+
+    MyPage --> AnnoDetail
+    MyPage --> BookDetail
+    MyPage --> Friends
+    MyPage --> Groups
+
+    Friends --> UserProfile
+
+    Groups --> GroupDetail
+    GroupDetail --> BookDetail
+    GroupDetail --> AnnoDetail
+    GroupDetail --> UserProfile
 ```
 
-최초 1회, 데이터베이스 마이그레이션과 데모 데이터를 적재합니다.
+### 화면 설계서
 
-```bash
-docker compose exec backend python manage.py migrate
-docker compose exec backend python manage.py loaddata seed
-```
+<!-- TODO: 각 화면 캡처/와이어프레임 이미지로 교체하세요. 경로 예시: docs/media/screens/{name}.png -->
 
-- 서비스: `http://<배포-호스트>` (로컬 실행 시 `http://localhost`)
-- 관리자 페이지: `http://<배포-호스트>/admin`
-- 데모 계정 비밀번호: `pw1234!!`
+#### 홈 (`/`)
 
-환경 변수(DB 접속 정보, `DJANGO_SECRET_KEY`, `DJANGO_ALLOWED_HOSTS`, 알라딘 API 키 등)는 모두 루트 `.env`로 주입합니다. 배포 시에는 `DJANGO_DEBUG=False`, `DJANGO_ALLOWED_HOSTS`에 배포 호스트를 지정합니다.
+![홈](docs/media/screens/home.png)
+
+#### 둘러보기/검색 (`/search`)
+
+![둘러보기/검색](docs/media/screens/search.png)
+
+#### 책 상세 (`/books/:bookId`)
+
+![책 상세](docs/media/screens/book-detail.png)
+
+#### 주석 작성 (`/annotations/new`)
+
+![주석 작성](docs/media/screens/annotation-new.png)
+
+#### 주석 상세 (`/annotations/:annotationId`)
+
+![주석 상세](docs/media/screens/annotation-detail.png)
+
+#### 주석 수정 (`/annotations/:annotationId/edit`)
+
+![주석 수정](docs/media/screens/annotation-edit.png)
+
+#### 로그인 (`/login`)
+
+![로그인](docs/media/screens/login.png)
+
+#### 회원가입 (`/register`)
+
+![회원가입](docs/media/screens/register.png)
+
+#### 카카오 로그인 콜백 (`/auth/kakao/callback`)
+
+![카카오 로그인 콜백](docs/media/screens/kakao-callback.png)
+
+#### 닉네임 설정 온보딩 (`/onboarding/nickname`)
+
+![닉네임 설정 온보딩](docs/media/screens/onboarding-nickname.png)
+
+#### 마이페이지 (`/mypage`)
+
+![마이페이지](docs/media/screens/mypage.png)
+
+#### 사용자 프로필 (`/users/:userId`)
+
+![사용자 프로필](docs/media/screens/user-profile.png)
+
+#### 친구 (`/friends`)
+
+![친구](docs/media/screens/friends.png)
+
+#### 라운지 (`/groups`)
+
+![라운지](docs/media/screens/groups.png)
+
+#### 그룹 상세 (`/groups/:groupId`)
+
+![그룹 상세](docs/media/screens/group-detail.png)
 
 ## DB 스키마
 
@@ -392,29 +495,23 @@ erDiagram
 
 </details>
 
-## 구현 상태
-
-- 홈/검색/책 상세/주석 상세/작성/수정 플로우 구현
-- 이메일/카카오 소셜 로그인 및 닉네임 설정 온보딩 구현
-- 책 북마크 및 주석 즐겨찾기 구현
-- 주석/댓글 좋아요 구현
-- 마이페이지 대시보드, 내 주석, 즐겨찾기, 내 서재, 친구, 그룹 탭 구현
-- 그룹 생성/상세/멤버 초대·수락/도서 추가 구현
-- Django REST Framework 기반 전체 API 및 MySQL 연동 구현
-- 알라딘 API 연동 도서 검색·등록 구현
-- Docker Compose 기반 통합 실행 및 KAIST VM 배포
-
 ## 배포 결과물
 
 > 접속 가능한 링크, 실행 방법, 주요 구현 내용
 
-- **[서비스 URL:](https://munjang.madcamp-kaist.org/)**
-- **실행 방법:**
+- **서비스 URL:** [https://munjang.madcamp-kaist.org/](https://munjang.madcamp-kaist.org/)
+
+
+- **로컬 실행 방법:**
 
 ```bash
-# 실행 방법 작성
-```
+# 저장소 루트에 .env 준비 (.env.example 참고) 후 전체 스택 실행
+docker compose up --build -d
 
+# 최초 1회, DB 마이그레이션과 데모 데이터 적재
+docker compose exec backend python manage.py migrate
+docker compose exec backend python manage.py loaddata seed
+```
 ---
 
 ## 🔁 회고 (KPT)
