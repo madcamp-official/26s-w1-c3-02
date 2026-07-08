@@ -162,6 +162,25 @@ docker compose exec backend python manage.py loaddata seed
 - 알라딘 API 연동 도서 검색·등록 구현
 - Docker Compose 기반 통합 실행 및 KAIST VM 배포
 
+## 데모
+
+<!-- TODO: 움짤(GIF) 4개 이상 또는 20초 이상 동영상(혹은 스크린샷 4장 이상)을 아래에 추가하세요. -->
+
+| 화면 | 데모 |
+|---|---|
+| 홈 | ![홈 화면 데모](docs/media/demo-home.gif) |
+| 책 상세 | ![책 상세 데모](docs/media/demo-book-detail.gif) |
+| 주석 작성 | ![주석 작성 데모](docs/media/demo-annotation.gif) |
+| 마이페이지 | ![마이페이지 데모](docs/media/demo-mypage.gif) |
+
+<!-- 또는 동영상 링크: [데모 영상](docs/media/demo.mp4) -->
+
+## 다운로드 (APK)
+
+<!-- TODO: APK 파일을 저장소에 업로드하거나 구글 드라이브 등에 업로드한 링크로 교체하세요. -->
+
+- [문장서재.apk 다운로드](docs/release/문장서재.apk)
+
 ## 참고 문서
 
 - [docs/api-spec.md](docs/api-spec.md): API 상세 명세
