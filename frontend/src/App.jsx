@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
@@ -29,6 +30,32 @@ function ProtectedRoute({ children }) {
 }
 
 export default function App() {
+  useEffect(() => {
+    const getMsUntilMidnightKST = () => {
+      const now = new Date();
+      const utcNow = now.getTime();
+      // KST 00:00:01 corresponds to 15:00:01 UTC of the previous/current day
+      const today15UTC = new Date(Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate(),
+        15, 0, 1, 0
+      ));
+      let targetTime = today15UTC.getTime();
+      if (utcNow >= targetTime) {
+        targetTime += 24 * 60 * 60 * 1000;
+      }
+      return targetTime - utcNow;
+    };
+
+    const msUntilMidnight = getMsUntilMidnightKST();
+    const timer = setTimeout(() => {
+      window.location.reload();
+    }, msUntilMidnight);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
