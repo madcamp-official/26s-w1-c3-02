@@ -45,11 +45,10 @@ STEP2_SYSTEM_PROMPT = """[Role]
 [Constraints]
 1. 사실 확인: 정보의 사실 여부가 매우 중요해. [verified_events]에 없는 사건·연도·날짜를 지어내지 마. [verified_events]의 항목에 기반해 배너를 작성할 때는 그 항목의 text·year에 명시된 사실만 사용하고 임의로 살을 붙이지 마.
 2. 사건-배너 매칭: [verified_events]가 비어있지 않다면, 반드시 각 항목마다 정확히 1개의 배너를 작성할 것(하나의 사건 = 하나의 배너, 총 [batch_size]개 = [verified_events]의 개수). 이 경우 절대로 5번 규칙(대체 배너)을 섞어 쓰지 말 것 — 모든 배너가 실제 사건에 기반해야 함.
-3. 분량: 각 배너의 content 배열은 도입-설명-마무리가 자연스럽게 이어지는 하나의 짧은 이야기가 되도록 작성하고, 문장 단위로 나눠 배열 요소로 담을 것. 문장 개수를 억지로 맞추지 말고, 내용을 풀어내는 데 필요한 만큼(대략 4~6문장)만 자연스럽게 쓸 것.
+3. 분량: 각 배너의 content 배열은 정확히 4개의 문장으로 구성된 하나의 짧은 이야기여야 함. 문장 단위로 나눠 배열 요소로 담되, 첫 문장은 도입, 가운데 두 문장은 사건·작품에 대한 구체적인 설명, 마지막 문장은 의미를 짚는 마무리가 되도록 작성할 것.
 4. 톤앤매너: 독자의 감성과 호기심을 자극하는 부드럽고 다정한 에세이 톤을 사용할 것. 딱딱하고 건조한 사실 나열을 피하고, 서정적인 묘사와 은유를 더해 마치 따뜻한 대화를 건네는 듯한 문학적인 대화체(습니다체)를 사용할 것.
-5. 예외 처리(대체 배너): [verified_events]가 완전히 비어 있는 경우(위키백과 조회 실패 또는 그날 문학 사건이 하나도 없는 경우)에만, 오늘 날짜의 월(Month)이나 계절과 관련된 세계적인 문학 작품의 구절이나 작가의 에피소드로 총 [batch_size]개의 배너를 대체 작성할 것. 이 경우 '오늘'과 정확히 연결된 사건인 것처럼 쓰지 말고, 계절감이 있는 단순 책 추천의 느낌이 나도록 작성할 것.
-6. 중복 방지: [batch_size]개의 배너는 서로 다른 topic·author·book_title을 다뤄야 해. 같은 작가나 같은 책을 두 번 이상 등장시키지 마.
-7. 마크다운(Markdown) 코드 블록(```json ... ```)을 제외한 어떠한 서론이나 결론도 출력하지 말 것.
+5. 중복 방지: [batch_size]개의 배너는 서로 다른 topic·author·book_title을 다뤄야 해. 같은 작가나 같은 책을 두 번 이상 등장시키지 마.
+6. 마크다운(Markdown) 코드 블록(```json ... ```)을 제외한 어떠한 서론이나 결론도 출력하지 말 것.
 
 [Output Format]
 {
@@ -60,15 +59,68 @@ STEP2_SYSTEM_PROMPT = """[Role]
       "author": "작가 이름 (영어 이름)",
       "book_title": "관련 도서명 (원제)",
       "content": [
-        "오늘의 날짜와 문학적 사건을 자연스럽게 소개하는 문장에서 시작해서,",
-        "사건이나 작품을 구체적으로 설명하고,",
-        "그 의미를 짚으며 독자에게 건네는 마무리로 끝나는 흐름으로, 필요한 만큼의 문장을 이어서 작성"
+        "오늘의 날짜와 문학적 사건을 자연스럽게 소개하는 도입 문장",
+        "사건이나 작품을 구체적으로 설명하는 문장",
+        "사건이나 작품에 대한 설명을 이어가거나 심화하는 문장",
+        "그 의미를 짚으며 독자에게 건네는 마무리 문장"
       ],
       "source_event": "이 배너의 근거가 된 verified_events 항목의 text (대체 배너인 경우 빈 문자열)"
     }
   ]
 }
-curations 배열에는 위 형식의 객체가 정확히 [batch_size]개 포함되어야 합니다."""
+
+[Example — 아래는 오직 출력 형식과 문체를 보여주기 위한 예시일 뿐, 실제 데이터가 아님]
+주의: 실제 응답에서는 이 예시에 나온 인물(장 드 라 퐁텐, 퍼시 비시 셸리)·사건·문장을 절대 그대로 재사용하지 말고, 아래 [Example Input]이 아니라 이번 요청의 실제 [current_date]·[batch_size]·[verified_events]에만 근거해서 작성할 것.
+
+[Example Input]
+current_date: 2026-07-08
+batch_size: 2
+verified_events: [
+  {
+    "year": 1621,
+    "text": "프랑스의 시인 장 드 라 퐁텐 탄생."
+  },
+  {
+    "year": 1822,
+    "text": "영국의 시인 퍼시 비시 셸리 사망."
+  }
+]
+
+[Example Output]
+```json
+{
+  "curations": [
+    {
+      "date": "07월 08일",
+      "topic": "우화 속에 담긴 영원한 지혜",
+      "author": "장 드 라 퐁텐 (Jean de La Fontaine)",
+      "book_title": "라 퐁텐 우화집 (Fables)",
+      "content": [
+        "녹음이 짙어가는 7월 8일은 시대를 초월해 인간사회의 단면을 날카롭고도 유머러스하게 그려낸 프랑스의 시인, 장 드 라 퐁텐이 태어난 날입니다.",
+        "1621년 오늘 태어난 그는 동물의 입을 빌려 인간의 어리석음과 탐욕을 풍자하는 12권의 우화집을 남겨 전 세계 독자들의 마음을 사로잡았습니다.",
+        "그의 작품들은 단순한 어린이용 이야기를 넘어 시적인 아름다움과 삶을 관통하는 철학적 통찰이 아름답게 녹아있는 문학의 정수입니다.",
+        "오늘 하루는 그의 우화 한 편을 읽으며, 일상 속에 숨어있는 작지만 소중한 지혜의 조각들을 가만히 되짚어보는 시간을 가져보면 어떨까요."
+      ],
+      "source_event": "프랑스의 시인 장 드 라 퐁텐 탄생."
+    },
+    {
+      "date": "07월 08일",
+      "topic": "바다로 떠난 낭만주의의 영혼",
+      "author": "퍼시 비시 셸리 (Percy Bysshe Shelley)",
+      "book_title": "퍼시 비시 셸리 시선집 (The Selected Poetry of Percy Bysshe Shelley)",
+      "content": [
+        "여름의 뜨거운 열기가 가득한 오늘, 7월 8일은 영국의 위대한 낭만주의 시인 퍼시 비시 셸리가 푸른 바다의 품에서 영원한 안식에 든 날입니다.",
+        "1822년의 오늘, 그는 이탈리아 해안에서 갑작스러운 폭풍우를 만나 29세라는 너무도 젊은 나이에 소중한 문학적 불꽃을 채 피우지 못하고 세상과 작별했습니다.",
+        "비록 그의 삶은 파도처럼 짧게 부서졌지만, 자유와 인간 해방을 노래했던 그의 열정적인 시어들은 지금까지도 수많은 이들의 가슴속에 깊은 울림을 전합니다.",
+        "영원한 바람과 자연을 사랑했던 시인의 기일을 맞아, 그의 서정적인 시 한 구절을 나지막이 읊조리며 그가 남긴 낭만의 온기를 느껴보시기 바랍니다."
+      ],
+      "source_event": "영국의 시인 퍼시 비시 셸리 사망."
+    }
+  ]
+}
+[Example 끝 — 여기까지는 형식 참고용이며, 실제 사건·인물·문장이 아님]
+
+이제 실제 요청의 [current_date]·[batch_size]·[verified_events]로 돌아가서, curations 배열에는 위 형식의 객체가 정확히 [batch_size]개 포함되어야 하며, 각 배너는 반드시 실제로 전달된 [verified_events]의 사실에 근거해야 합니다(예시 속 사건을 재사용하지 말 것)."""
 
 
 def get_or_generate_curations(month, day, date_str):
@@ -120,7 +172,7 @@ def curate_batch(date_str, verified_events, batch_size):
         {'current_date': date_str, 'batch_size': target_count, 'verified_events': verified_events},
         ensure_ascii=False,
     )
-    result = call_openai_json(STEP2_SYSTEM_PROMPT, user_content, temperature=0.6, timeout=60)
+    result = call_openai_json(STEP2_SYSTEM_PROMPT, user_content, temperature=0.8, timeout=60)
     curations = result.get('curations') if isinstance(result, dict) else None
     if not isinstance(curations, list) or not curations:
         raise exceptions.APIException('OpenAI curation batch response missing "curations" list.')
@@ -179,8 +231,8 @@ def validate_curation_item(item):
         if not item.get(key):
             raise exceptions.APIException(f'Curation item missing required field: {key}.')
     content = item['content']
-    if not (isinstance(content, list) and 1 <= len(content) <= 8 and all(isinstance(s, str) and s for s in content)):
-        raise exceptions.APIException('Curation item content must be a non-empty list of 1-8 strings.')
+    if not (isinstance(content, list) and len(content) == 4 and all(isinstance(s, str) and s for s in content)):
+        raise exceptions.APIException('Curation item content must be a list of exactly 4 strings.')
 
 
 def build_curation_rows(month, day, raw_curations):
