@@ -621,7 +621,7 @@ export default function SearchPage() {
           </form>
 
           <section>
-            <h1 className="page-title mt-2">
+            <h1 className="page-title mt-0 mb-0">
               {isBrowseMode ? '둘러보기' : `“${keywordParam}” 검색 결과`}
             </h1>
           </section>
